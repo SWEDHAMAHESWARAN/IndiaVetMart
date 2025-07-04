@@ -57,6 +57,23 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        brand: {
+          navy: "hsl(var(--brand-navy))",
+          "dark-navy": "hsl(var(--brand-dark-navy))",
+          cream: "hsl(var(--brand-cream))",
+          "light-yellow": "hsl(var(--brand-light-yellow))",
+          yellow: "hsl(var(--brand-yellow))",
+          "dark-gray": "hsl(var(--brand-dark-gray))",
+          gray: "hsl(var(--brand-gray))",
+        },
+      },
+      fontFamily: {
+        gilroy: ["Inter", "system-ui", "sans-serif"],
+        gabarito: ["Inter", "system-ui", "sans-serif"],
+      },
+      backgroundImage: {
+        "hero-gradient":
+          "linear-gradient(103deg, #FCEED5 6%, #FCEED5 75%, #FFE7BA 100%)",
       },
       borderRadius: {
         lg: "var(--radius)",
