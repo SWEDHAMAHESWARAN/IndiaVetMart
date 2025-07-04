@@ -149,25 +149,37 @@ export default function Index() {
         <div className="relative z-10 px-[130px] max-lg:px-8 max-sm:px-4 pt-12">
           <div className="flex items-center justify-between">
             <div className="max-w-md">
-              <h1 className="text-brand-dark-navy text-6xl max-lg:text-4xl max-sm:text-3xl font-gilroy font-light leading-[68px] max-lg:leading-tight mb-4">
+              <h1
+                className="text-brand-neutral-80 text-6xl max-lg:text-4xl max-sm:text-3xl font-light leading-[68px] max-lg:leading-tight mb-4"
+                style={{ fontFamily: "SVN-Gilroy, Inter, sans-serif" }}
+              >
                 One more friend
               </h1>
-              <h2 className="text-brand-navy text-[46px] max-lg:text-3xl max-sm:text-2xl font-gilroy font-bold leading-[60px] max-lg:leading-tight mb-6">
+              <h2
+                className="text-brand-navy text-[46px] max-lg:text-3xl max-sm:text-2xl font-bold leading-[60px] max-lg:leading-tight mb-6"
+                style={{ fontFamily: "SVN-Gilroy, Inter, sans-serif" }}
+              >
                 Thousands more fun!
               </h2>
-              <p className="text-brand-dark-gray font-gabarito font-bold mb-8 max-w-sm">
+              <p
+                className="text-brand-neutral-80 font-bold mb-8 max-w-sm"
+                style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
+              >
                 Having a pet means you have more joy, a new friend, a happy
                 person who will always be with you to have fun. We have 200+
                 different pets that can meet your needs!
               </p>
-              <button className="flex items-center gap-2.5 pt-3.5 pb-2.5 px-7 bg-brand-navy rounded-[57px] text-white font-gabarito font-bold hover:bg-brand-dark-navy transition-colors">
+              <button
+                className="flex items-center gap-2.5 pt-3.5 pb-2.5 px-7 bg-brand-navy rounded-[57px] text-white font-bold hover:bg-brand-dark-navy transition-colors"
+                style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
+              >
                 Explore Now
               </button>
             </div>
             <div className="hidden lg:block">
               <img
-                src="https://picsum.photos/944/693?random=hero"
-                alt="Happy pets"
+                src="https://cdn.builder.io/api/v1/image/assets%2Fe33c04ad181d47968df9f3990555750a%2F4a5c546fecc64bb5a0e3be69d1984208?format=webp&width=800"
+                alt="Happy person with dog - One more friend, thousands more fun!"
                 className="w-[600px] h-[450px] object-cover rounded-2xl"
               />
             </div>
@@ -178,7 +190,10 @@ export default function Index() {
       {/* Notification Banner */}
       <section className="w-full h-[102px] flex justify-center items-center py-7 px-[130px] max-lg:px-8 max-sm:px-4">
         <div className="w-full h-[44px] flex items-center justify-between gap-4 p-2.5 border-l-[3px] border-brand-dark-navy rounded-[5px] bg-hero-gradient">
-          <p className="text-brand-navy text-sm font-gabarito font-bold">
+          <p
+            className="text-brand-navy text-sm font-bold"
+            style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
+          >
             New offers just dropped! Check them out before they're gone. Up to
             50% off on winter wear—new arrivals included!
           </p>

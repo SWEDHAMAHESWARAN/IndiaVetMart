@@ -13,18 +13,30 @@ export function ProductCard({ image, title, vendor, price }: ProductCardProps) {
       </div>
       <div className="flex flex-col gap-2.5 pt-2 pb-5 px-2">
         <div className="flex flex-col gap-1">
-          <p className="text-[#00171F] font-gilroy font-light leading-6 line-clamp-2">
+          <p
+            className="text-brand-neutral-100 font-light leading-6 line-clamp-2"
+            style={{ fontFamily: "SVN-Gilroy, Inter, sans-serif" }}
+          >
             {title}
           </p>
           <div className="flex items-center gap-1.5">
-            <span className="text-[#667479] text-xs font-gabarito font-medium leading-[18px]">
+            <span
+              className="text-brand-neutral-60 text-xs font-medium leading-[18px]"
+              style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
+            >
               Vendor:
             </span>
-            <span className="text-[#667479] text-xs font-gabarito font-medium leading-[18px]">
+            <span
+              className="text-brand-neutral-60 text-xs font-medium leading-[18px]"
+              style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
+            >
               {vendor}
             </span>
           </div>
-          <p className="text-[#00171F] text-sm font-gilroy font-light leading-5">
+          <p
+            className="text-brand-neutral-100 text-sm font-light leading-5"
+            style={{ fontFamily: "SVN-Gilroy, Inter, sans-serif" }}
+          >
             {price}
           </p>
         </div>
