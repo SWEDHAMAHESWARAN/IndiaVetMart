@@ -10,43 +10,61 @@
   */
   :root {
     --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --foreground: 180 100% 6%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 180 100% 6%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 180 100% 6%;
 
-    --primary: 201 100% 18%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 201 100% 17%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 201 100% 18%;
+    --secondary: 42 72% 86%;
+    --secondary-foreground: 201 100% 17%;
 
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 201 100% 18%;
+    --accent: 42 72% 86%;
+    --accent-foreground: 201 100% 17%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 7 87% 65%;
+    --destructive-foreground: 0 0% 100%;
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 201 100% 18%;
+    --ring: 201 100% 17%;
 
     --radius: 0.5rem;
 
-    /* Custom pet care brand colors */
-    --brand-navy: 201 100% 18%;
-    --brand-dark-navy: 201 100% 15%;
-    --brand-cream: 42 60% 92%;
-    --brand-light-yellow: 42 72% 86%;
-    --brand-yellow: 42 83% 77%;
-    --brand-dark-gray: 210 14% 20%;
-    --brand-gray: 210 9% 42%;
+    /* Brand Design System Colors */
+    --linear: linear-gradient(
+      13deg,
+      #fceed5 6.17%,
+      #fceed5 75.14%,
+      #ffe7ba 100%
+    );
+    --primarycolor-darkblue: #003459;
+    --primarycolor-darkblue80: #002a48;
+    --primarycolor-darkblue60: #00528c;
+    --primarycolor-darkblue40: #0078cd;
+    --secondarycolor-monyellow: #f7dba7;
+    --secondarycolor-monyellow80: #eec77e;
+    --secondarycolor-monyellow60: #f1d092;
+    --secondarycolor-monyellow40: #fceed5;
+    --statecolor-pinkred: #ff564f;
+    --statecolor-greenlight: #34c759;
+    --statecolor-orangeshine: #ff912c;
+    --statecolor-bluesea: #00a7e7;
+    --neutralcolor-100: #00171f;
+    --neutralcolor-80: #242b33;
+    --neutralcolor-60: #667479;
+    --neutralcolor-40: #99a2a5;
+    --neutralcolor-20: #ccd1d2;
+    --neutralcolor-10: #ebeeef;
+    --neutralcolor-00: #ffffff;
 
     --sidebar-background: 0 0% 98%;
 
@@ -66,42 +84,50 @@
   }
 
   .dark {
-    --background: 201 100% 15%;
-    --foreground: 210 40% 98%;
+    --background: 180 100% 9%;
+    --foreground: 0 0% 100%;
 
-    --card: 201 100% 15%;
-    --card-foreground: 210 40% 98%;
+    --card: 180 100% 9%;
+    --card-foreground: 0 0% 100%;
 
-    --popover: 201 100% 15%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 180 100% 9%;
+    --popover-foreground: 0 0% 100%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 201 100% 18%;
+    --primary: 0 0% 100%;
+    --primary-foreground: 201 100% 17%;
 
     --secondary: 201 50% 20%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary-foreground: 0 0% 100%;
 
     --muted: 201 50% 20%;
     --muted-foreground: 215 20.2% 65.1%;
 
     --accent: 201 50% 20%;
-    --accent-foreground: 210 40% 98%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 100%;
 
     --border: 201 50% 20%;
     --input: 201 50% 20%;
     --ring: 212.7 26.8% 83.9%;
 
     /* Dark mode brand colors */
-    --brand-navy: 210 40% 98%;
-    --brand-dark-navy: 210 40% 95%;
-    --brand-cream: 201 50% 20%;
-    --brand-light-yellow: 201 50% 25%;
-    --brand-yellow: 201 50% 30%;
-    --brand-dark-gray: 210 40% 85%;
-    --brand-gray: 210 20% 65%;
+    --primarycolor-darkblue: #ffffff;
+    --primarycolor-darkblue80: #f0f0f0;
+    --primarycolor-darkblue60: #d0d0d0;
+    --primarycolor-darkblue40: #b0b0b0;
+    --secondarycolor-monyellow: #2a3b47;
+    --secondarycolor-monyellow80: #1f2b35;
+    --secondarycolor-monyellow60: #334150;
+    --secondarycolor-monyellow40: #1a252f;
+    --neutralcolor-100: #ffffff;
+    --neutralcolor-80: #f0f0f0;
+    --neutralcolor-60: #d0d0d0;
+    --neutralcolor-40: #b0b0b0;
+    --neutralcolor-20: #808080;
+    --neutralcolor-10: #606060;
+    --neutralcolor-00: #00171f;
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
