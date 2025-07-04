@@ -206,56 +206,169 @@ export default function Index() {
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Dashboard */}
           <div className="lg:w-[386px] bg-white p-4">
-            <h3 className="text-black text-sm font-gabarito font-bold mb-4">
+            <h3
+              className="text-brand-neutral-100 text-sm font-bold mb-4"
+              style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
+            >
               Seven Pet Vet Hospital
             </h3>
             <div className="grid grid-cols-4 gap-4 text-xs">
               <div className="text-center">
-                <div className="font-gabarito font-bold mb-2">DATE</div>
+                <div
+                  className="font-bold mb-2"
+                  style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
+                >
+                  DATE
+                </div>
                 <div className="space-y-2">
-                  <div className="font-gilroy font-light">JUN 26</div>
-                  <div className="font-gilroy font-light">JUN 26</div>
-                  <div className="font-gilroy font-light">JUN 26</div>
-                  <div className="font-gilroy font-light">JUN 26</div>
-                  <div className="font-gilroy font-light">JUN 26</div>
+                  <div
+                    className="font-light"
+                    style={{ fontFamily: "SVN-Gilroy, Inter, sans-serif" }}
+                  >
+                    JUN 26
+                  </div>
+                  <div
+                    className="font-light"
+                    style={{ fontFamily: "SVN-Gilroy, Inter, sans-serif" }}
+                  >
+                    JUN 26
+                  </div>
+                  <div
+                    className="font-light"
+                    style={{ fontFamily: "SVN-Gilroy, Inter, sans-serif" }}
+                  >
+                    JUN 26
+                  </div>
+                  <div
+                    className="font-light"
+                    style={{ fontFamily: "SVN-Gilroy, Inter, sans-serif" }}
+                  >
+                    JUN 26
+                  </div>
+                  <div
+                    className="font-light"
+                    style={{ fontFamily: "SVN-Gilroy, Inter, sans-serif" }}
+                  >
+                    JUN 26
+                  </div>
                 </div>
               </div>
               <div className="text-center">
-                <div className="font-gabarito font-bold mb-2">SUPPLIER</div>
+                <div
+                  className="font-bold mb-2"
+                  style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
+                >
+                  SUPPLIER
+                </div>
                 <div className="space-y-2">
-                  <div className="font-gilroy font-light">Coveture</div>
-                  <div className="font-gilroy font-light">Amatheon</div>
-                  <div className="font-gilroy font-light">Zootice</div>
-                  <div className="font-gilroy font-light">Pet Shop</div>
-                  <div className="font-gilroy font-light">Amour</div>
+                  <div
+                    className="font-light"
+                    style={{ fontFamily: "SVN-Gilroy, Inter, sans-serif" }}
+                  >
+                    Coveture
+                  </div>
+                  <div
+                    className="font-light"
+                    style={{ fontFamily: "SVN-Gilroy, Inter, sans-serif" }}
+                  >
+                    Amatheon
+                  </div>
+                  <div
+                    className="font-light"
+                    style={{ fontFamily: "SVN-Gilroy, Inter, sans-serif" }}
+                  >
+                    Zootice
+                  </div>
+                  <div
+                    className="font-light"
+                    style={{ fontFamily: "SVN-Gilroy, Inter, sans-serif" }}
+                  >
+                    Pet Shop
+                  </div>
+                  <div
+                    className="font-light"
+                    style={{ fontFamily: "SVN-Gilroy, Inter, sans-serif" }}
+                  >
+                    Amour
+                  </div>
                 </div>
               </div>
               <div className="text-center">
-                <div className="font-gabarito font-bold mb-2">Total</div>
+                <div
+                  className="font-bold mb-2"
+                  style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
+                >
+                  Total
+                </div>
                 <div className="space-y-2">
-                  <div className="font-gilroy font-light">₹1000</div>
-                  <div className="font-gilroy font-light">₹2500</div>
-                  <div className="font-gilroy font-light">₹7000</div>
-                  <div className="font-gilroy font-light">₹9020</div>
-                  <div className="font-gilroy font-light">₹6000</div>
+                  <div
+                    className="font-light"
+                    style={{ fontFamily: "SVN-Gilroy, Inter, sans-serif" }}
+                  >
+                    ₹1000
+                  </div>
+                  <div
+                    className="font-light"
+                    style={{ fontFamily: "SVN-Gilroy, Inter, sans-serif" }}
+                  >
+                    ₹2500
+                  </div>
+                  <div
+                    className="font-light"
+                    style={{ fontFamily: "SVN-Gilroy, Inter, sans-serif" }}
+                  >
+                    ₹7000
+                  </div>
+                  <div
+                    className="font-light"
+                    style={{ fontFamily: "SVN-Gilroy, Inter, sans-serif" }}
+                  >
+                    ₹9020
+                  </div>
+                  <div
+                    className="font-light"
+                    style={{ fontFamily: "SVN-Gilroy, Inter, sans-serif" }}
+                  >
+                    ₹6000
+                  </div>
                 </div>
               </div>
               <div className="text-center">
-                <div className="font-gabarito font-bold mb-2">STATUS</div>
+                <div
+                  className="font-bold mb-2"
+                  style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
+                >
+                  STATUS
+                </div>
                 <div className="space-y-2">
-                  <div className="text-red-500 font-gabarito font-bold">
+                  <div
+                    className="text-brand-red font-bold"
+                    style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
+                  >
                     Processed
                   </div>
-                  <div className="text-green-500 font-gabarito font-bold">
+                  <div
+                    className="text-brand-green font-bold"
+                    style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
+                  >
                     Completed
                   </div>
-                  <div className="text-green-500 font-gabarito font-bold">
+                  <div
+                    className="text-brand-green font-bold"
+                    style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
+                  >
                     Completed
                   </div>
-                  <div className="text-green-500 font-gabarito font-bold">
+                  <div
+                    className="text-brand-green font-bold"
+                    style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
+                  >
                     Completed
                   </div>
-                  <div className="text-green-500 font-gabarito font-bold">
+                  <div
+                    className="text-brand-green font-bold"
+                    style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
+                  >
                     Completed
                   </div>
                 </div>
@@ -266,7 +379,10 @@ export default function Index() {
           {/* Categories */}
           <div className="flex-1">
             <div className="mb-6">
-              <h3 className="text-black text-sm font-gabarito font-bold mb-4">
+              <h3
+                className="text-brand-neutral-100 text-sm font-bold mb-4"
+                style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
+              >
                 Featured Categories
               </h3>
               <div className="flex items-center justify-between gap-4">
@@ -296,14 +412,23 @@ export default function Index() {
       <section className="w-full px-[130px] max-lg:px-8 max-sm:px-4 py-16">
         <div className="flex justify-between items-center mb-8">
           <div className="flex flex-col gap-0.5">
-            <span className="text-black font-gabarito font-bold">
+            <span
+              className="text-brand-neutral-100 font-bold"
+              style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
+            >
               Featured Products from your search
             </span>
-            <span className="text-brand-navy text-2xl font-gilroy font-bold leading-9">
+            <span
+              className="text-brand-navy text-2xl font-bold leading-9"
+              style={{ fontFamily: "SVN-Gilroy, Inter, sans-serif" }}
+            >
               Our Products
             </span>
           </div>
-          <button className="flex items-center gap-2 py-3 px-7 border-[1.5px] border-brand-navy rounded-[57px] text-brand-navy text-sm font-gabarito font-bold hover:bg-brand-navy hover:text-white transition-colors">
+          <button
+            className="flex items-center gap-2 py-3 px-7 border-[1.5px] border-brand-navy rounded-[57px] text-brand-navy text-sm font-bold hover:bg-brand-navy hover:text-white transition-colors"
+            style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
+          >
             View more
             <ChevronRight className="w-5 h-5" />
           </button>
@@ -325,14 +450,23 @@ export default function Index() {
         {/* Vendors Section */}
         <div className="flex justify-between items-center mt-16 mb-8">
           <div className="flex items-end gap-2">
-            <span className="text-black font-gilroy font-light leading-[31px]">
+            <span
+              className="text-brand-neutral-100 font-light leading-[31px]"
+              style={{ fontFamily: "SVN-Gilroy, Inter, sans-serif" }}
+            >
               Proud to be part of
             </span>
-            <span className="text-brand-navy text-2xl font-gilroy font-bold leading-9">
+            <span
+              className="text-brand-navy text-2xl font-bold leading-9"
+              style={{ fontFamily: "SVN-Gilroy, Inter, sans-serif" }}
+            >
               Vendors
             </span>
           </div>
-          <button className="flex items-center gap-2 py-3 px-7 border-[1.5px] border-brand-navy rounded-[57px] text-brand-navy text-sm font-gabarito font-bold hover:bg-brand-navy hover:text-white transition-colors">
+          <button
+            className="flex items-center gap-2 py-3 px-7 border-[1.5px] border-brand-navy rounded-[57px] text-brand-navy text-sm font-bold hover:bg-brand-navy hover:text-white transition-colors"
+            style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
+          >
             View all Our Vendors
             <ChevronRight className="w-5 h-5" />
           </button>
@@ -367,23 +501,38 @@ export default function Index() {
           {/* Content */}
           <div className="relative z-10 h-full flex items-center justify-end pr-16 max-lg:pr-8">
             <div className="text-right max-w-md">
-              <h2 className="text-brand-navy text-[52px] max-lg:text-3xl font-gilroy font-light leading-[68px] max-lg:leading-tight mb-2">
+              <h2
+                className="text-brand-navy text-[52px] max-lg:text-3xl font-light leading-[68px] max-lg:leading-tight mb-2"
+                style={{ fontFamily: "SVN-Gilroy, Inter, sans-serif" }}
+              >
                 One more friend
               </h2>
-              <h3 className="text-brand-navy text-4xl max-lg:text-2xl font-gilroy font-bold leading-[54px] max-lg:leading-tight mb-4">
+              <h3
+                className="text-brand-navy text-4xl max-lg:text-2xl font-bold leading-[54px] max-lg:leading-tight mb-4"
+                style={{ fontFamily: "SVN-Gilroy, Inter, sans-serif" }}
+              >
                 Thousands more fun!
               </h3>
-              <p className="text-brand-dark-gray text-xs font-gabarito font-bold mb-6 max-w-sm ml-auto">
+              <p
+                className="text-brand-neutral-80 text-xs font-bold mb-6 max-w-sm ml-auto"
+                style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
+              >
                 Having a pet means you have more joy, a new friend, a happy
                 person who will always be with you to have fun. We have 200+
                 different pets that can meet your needs!
               </p>
               <div className="flex items-center gap-4 justify-end">
-                <button className="flex items-center gap-2 pt-3.5 pb-2.5 px-7 border-[1.5px] border-brand-navy rounded-[57px] text-brand-navy font-gabarito font-bold hover:bg-brand-navy hover:text-white transition-colors">
+                <button
+                  className="flex items-center gap-2 pt-3.5 pb-2.5 px-7 border-[1.5px] border-brand-navy rounded-[57px] text-brand-navy font-bold hover:bg-brand-navy hover:text-white transition-colors"
+                  style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
+                >
                   View Intro
                   <Play className="w-6 h-6" />
                 </button>
-                <button className="flex items-center gap-2.5 pt-3.5 pb-2.5 px-7 bg-brand-navy rounded-[57px] text-white font-gabarito font-bold hover:bg-brand-dark-navy transition-colors">
+                <button
+                  className="flex items-center gap-2.5 pt-3.5 pb-2.5 px-7 bg-brand-navy rounded-[57px] text-white font-bold hover:bg-brand-dark-navy transition-colors"
+                  style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
+                >
                   Explore Now
                 </button>
               </div>
@@ -403,14 +552,23 @@ export default function Index() {
       <section className="w-full px-[130px] max-lg:px-8 max-sm:px-4 py-16">
         <div className="flex justify-between items-center mb-8">
           <div className="flex flex-col gap-0.5">
-            <span className="text-black font-gabarito font-bold">
+            <span
+              className="text-brand-neutral-100 font-bold"
+              style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
+            >
               Pet Accessories
             </span>
-            <span className="text-brand-navy text-2xl font-gilroy font-bold leading-9">
+            <span
+              className="text-brand-navy text-2xl font-bold leading-9"
+              style={{ fontFamily: "SVN-Gilroy, Inter, sans-serif" }}
+            >
               Do not miss the current offers until the end of June
             </span>
           </div>
-          <button className="flex items-center gap-2 py-3 px-7 border-[1.5px] border-brand-navy rounded-[57px] text-brand-navy text-sm font-gabarito font-bold hover:bg-brand-navy hover:text-white transition-colors">
+          <button
+            className="flex items-center gap-2 py-3 px-7 border-[1.5px] border-brand-navy rounded-[57px] text-brand-navy text-sm font-bold hover:bg-brand-navy hover:text-white transition-colors"
+            style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
+          >
             View more
             <ChevronRight className="w-5 h-5" />
           </button>
