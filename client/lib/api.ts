@@ -31,6 +31,7 @@ api.interceptors.response.use(
       code: error.code,
       status: error.response?.status,
       data: error.response?.data,
+      fullError: error,
     });
 
     // Handle different types of errors

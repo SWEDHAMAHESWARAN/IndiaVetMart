@@ -295,6 +295,11 @@ export default function Login() {
           >
             Sign in to your veterinary account
           </p>
+          <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <p className="text-xs text-yellow-800 font-medium">
+              🚧 Server maintenance: Use demo@demo.com / demo123 to preview
+            </p>
+          </div>
         </div>
 
         {/* Login Form */}
@@ -394,6 +399,24 @@ export default function Login() {
               style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
             >
               {isSubmitting ? "Signing In..." : "Sign In"}
+            </button>
+
+            {/* Demo Quick Login */}
+            <button
+              type="button"
+              onClick={() => {
+                setFormData({ email: "demo@demo.com", password: "demo123" });
+                // Auto-submit after setting values
+                setTimeout(() => {
+                  const form = document.querySelector("form");
+                  if (form) form.requestSubmit();
+                }, 100);
+              }}
+              disabled={isSubmitting}
+              className="w-full bg-yellow-500 text-white py-2 px-6 rounded-lg font-bold hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+              style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
+            >
+              🚀 Quick Demo Login
             </button>
 
             {/* Divider */}
