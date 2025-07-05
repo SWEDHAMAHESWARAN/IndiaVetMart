@@ -5,7 +5,6 @@ import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 import { useAuth } from "../contexts/AuthContext";
 import { authAPI } from "../lib/api";
 import { auth, googleProvider } from "../lib/firebase";
-import { TestConnection } from "../components/TestConnection";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -315,9 +314,6 @@ export default function Login() {
           </div>
         </div>
       </div>
-
-      {/* Debug component - remove in production */}
-      <TestConnection />
     </div>
   );
 }
