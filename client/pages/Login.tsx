@@ -228,10 +228,11 @@ export default function Login() {
             {/* Login Button */}
             <button
               type="submit"
-              className="w-full bg-brand-navy text-white py-3 px-6 rounded-lg font-bold hover:bg-brand-dark-navy transition-colors"
+              disabled={isSubmitting}
+              className="w-full bg-brand-navy text-white py-3 px-6 rounded-lg font-bold hover:bg-brand-dark-navy transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
             >
-              Sign In
+              {isSubmitting ? "Signing In..." : "Sign In"}
             </button>
 
             {/* Divider */}
