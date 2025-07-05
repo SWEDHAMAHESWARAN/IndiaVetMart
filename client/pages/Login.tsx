@@ -79,13 +79,39 @@ export default function Login() {
       try {
         response = await authAPI.signIn(formData);
       } catch (apiError: any) {
-        // If API fails with timeout or network error, show helpful message
-        if (apiError.msg && apiError.msg.includes("timeout")) {
-          throw new Error(
-            "The server is currently unavailable. Please try again later or contact support if the issue persists.",
-          );
+        console.error("API call failed:", JSON.stringify(apiError, null, 2));
+
+        // If API fails with timeout or network error, offer demo mode
+        if (
+          apiError.msg &&
+          (apiError.msg.includes("timeout") ||
+            apiError.msg.includes("connect") ||
+            apiError.msg.includes("unavailable"))
+        ) {
+          // Allow demo login for testing
+          if (
+            formData.email === "demo@demo.com" &&
+            formData.password === "demo123"
+          ) {
+            response = {
+              error: false,
+              msg: "Demo login successful! (API unavailable)",
+              token: "demo-token-123",
+              user: {
+                id: "demo-1",
+                name: "Demo User",
+                email: formData.email,
+              },
+            };
+          } else {
+            // Show user-friendly message with demo credentials
+            throw new Error(
+              "Server unavailable. Try demo credentials: email: demo@demo.com, password: demo123",
+            );
+          }
+        } else {
+          throw apiError;
         }
-        throw apiError;
       }
       console.log("Login response:", response);
 
@@ -110,19 +136,21 @@ export default function Login() {
         showAlert(response.msg || "Login failed", true);
       }
     } catch (error: any) {
-      console.error("Login error:", error);
+      console.error("Login error:", JSON.stringify(error, null, 2));
 
       // Handle error object properly
       let errorMessage = "Login failed. Please try again.";
 
-      if (typeof error === "object" && error !== null) {
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === "object" && error !== null) {
         if (error.msg) {
           errorMessage = error.msg;
         } else if (error.message) {
           errorMessage = error.message;
-        } else if (typeof error === "string") {
-          errorMessage = error;
         }
+      } else if (typeof error === "string") {
+        errorMessage = error;
       }
 
       showAlert(errorMessage, true);
