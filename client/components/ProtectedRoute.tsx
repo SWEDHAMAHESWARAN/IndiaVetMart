@@ -9,6 +9,8 @@ interface ProtectedRouteProps {
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { isLogin, isLoading } = useAuth();
 
+  console.log("ProtectedRoute - isLogin:", isLogin, "isLoading:", isLoading);
+
   // Show loading spinner while checking authentication
   if (isLoading) {
     return (

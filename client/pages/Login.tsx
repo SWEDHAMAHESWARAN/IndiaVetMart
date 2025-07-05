@@ -61,13 +61,16 @@ export default function Login() {
         };
         localStorage.setItem("user", JSON.stringify(user));
 
+        // Update auth state immediately
         setUser(user);
         setIsLogin(true);
+
         showAlert(response.msg || "Login successful!");
 
+        // Navigate immediately after state update
         setTimeout(() => {
-          navigate("/");
-        }, 1500);
+          navigate("/", { replace: true });
+        }, 100);
       } else {
         showAlert(response.msg || "Login failed", true);
       }
@@ -130,8 +133,8 @@ export default function Login() {
             showAlert(response.msg || "Google login successful!");
 
             setTimeout(() => {
-              navigate("/");
-            }, 2000);
+              navigate("/", { replace: true });
+            }, 100);
           } else {
             showAlert(response.msg || "Google login failed", true);
           }

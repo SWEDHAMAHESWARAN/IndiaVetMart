@@ -56,10 +56,13 @@ export default function Signup() {
       const response = await authAPI.signUp(signupData);
 
       if (!response.error) {
-        showAlert(response.msg || "Account created successfully!");
+        showAlert(
+          response.msg ||
+            "Account created successfully! Please login to continue.",
+        );
         setTimeout(() => {
-          navigate("/login");
-        }, 2000);
+          navigate("/login", { replace: true });
+        }, 1500);
       } else {
         showAlert(response.msg || "Signup failed", true);
       }
@@ -122,8 +125,8 @@ export default function Signup() {
             showAlert(response.msg || "Google signup successful!");
 
             setTimeout(() => {
-              navigate("/");
-            }, 2000);
+              navigate("/", { replace: true });
+            }, 100);
           } else {
             showAlert(response.msg || "Google signup failed", true);
           }

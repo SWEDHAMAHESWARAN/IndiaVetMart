@@ -61,9 +61,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const token = localStorage.getItem("token");
     const userData = localStorage.getItem("user");
 
+    console.log("AuthContext - Checking stored auth:", {
+      token: !!token,
+      userData: !!userData,
+    });
+
     if (token && userData) {
       try {
         const parsedUser = JSON.parse(userData);
+        console.log("AuthContext - Setting user:", parsedUser);
         setUser(parsedUser);
         setIsLogin(true);
       } catch (error) {
