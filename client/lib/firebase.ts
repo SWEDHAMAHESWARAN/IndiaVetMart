@@ -2,25 +2,35 @@ import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 
 // Firebase configuration
-// Note: Replace with your actual Firebase config
 const firebaseConfig = {
-  apiKey: "your-api-key",
-  authDomain: "your-auth-domain",
-  projectId: "your-project-id",
-  storageBucket: "your-storage-bucket",
-  messagingSenderId: "your-messaging-sender-id",
-  appId: "your-app-id",
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "",
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "",
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "",
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "",
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "",
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || "",
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
+// Check if Firebase is configured
+const isFirebaseConfigured =
+  firebaseConfig.apiKey &&
+  firebaseConfig.authDomain &&
+  firebaseConfig.projectId;
 
-// Initialize Firebase Authentication and get a reference to the service
-export const auth = getAuth(app);
+// Initialize Firebase only if properly configured
+let app: any = null;
+let auth: any = null;
+let googleProvider: GoogleAuthProvider | null = null;
 
-// Google Auth Provider
-export const googleProvider = new GoogleAuthProvider();
-googleProvider.addScope("email");
-googleProvider.addScope("profile");
+if (isFirebaseConfigured) {
+  app = initializeApp(firebaseConfig);
+  auth = getAuth(app);
+  googleProvider = new GoogleAuthProvider();
+  googleProvider.addScope("email");
+  googleProvider.addScope("profile");
+} else {
+  console.warn("Firebase not configured. Google authentication will not work.");
+}
 
+export { auth, googleProvider };
 export default app;

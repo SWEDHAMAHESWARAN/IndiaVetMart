@@ -73,6 +73,11 @@ export default function Login() {
   };
 
   const handleGoogleSignup = () => {
+    if (!auth || !googleProvider) {
+      showAlert("Google authentication is not configured", true);
+      return;
+    }
+
     setIsLoading(true);
     signInWithPopup(auth, googleProvider)
       .then(async (result) => {

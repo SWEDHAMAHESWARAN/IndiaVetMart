@@ -1,7 +1,8 @@
 import axios from "axios";
 
-// Use relative URL in development (proxy) or full URL in production
-const API_BASE_URL = import.meta.env.PROD ? "http://20.235.173.36:3001" : "";
+// Use relative URL in development (proxy) and production (Netlify redirects)
+// Only use full URL if explicitly set in environment
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
 
 // Create axios instance
 const api = axios.create({
