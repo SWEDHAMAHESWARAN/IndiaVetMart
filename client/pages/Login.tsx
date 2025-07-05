@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Mail, Lock } from "lucide-react";
 import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
@@ -8,19 +8,56 @@ import { auth, googleProvider } from "../lib/firebase";
 
 export default function Login() {
   const navigate = useNavigate();
-  const { setUser, setIsLogin, setIsLoading, showAlert } = useAuth();
+  const { setUser, setIsLogin, showAlert } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [positions, setPositions] = useState([]);
+  const [selectedPosition, setSelectedPosition] = useState("");
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
+  const [formfields, setFormfields] = useState({
+    name: "",
+    email: "",
+    password: "",
+    isAdmin: true,
+    clinicname: "",
+    clinicphone: "",
+    clinicemail: "",
+    position: positions,
+  });
+
+  useEffect(() => {
+    // Fetch positions data if needed
+    // fetchDataFromApi(`/api/position/id`).then((res) => {
+    //   console.log("Res", res.response);
+    //   setPositions(res.response);
+    // });
+  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     });
+  };
+
+  const onchangeInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormfields(() => ({
+      ...formfields,
+      [e.target.name]: e.target.value,
+    }));
+  };
+
+  const handleforposition = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    console.log("e", e.target.id);
+    setSelectedPosition(e.target.value);
+    setFormfields(() => ({
+      ...formfields,
+      position: e.target.value,
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -67,10 +104,8 @@ export default function Login() {
 
         showAlert(response.msg || "Login successful!");
 
-        // Navigate immediately after state update
-        setTimeout(() => {
-          navigate("/", { replace: true });
-        }, 100);
+        // Navigate directly to homepage
+        navigate("/", { replace: true });
       } else {
         showAlert(response.msg || "Login failed", true);
       }
@@ -132,9 +167,8 @@ export default function Login() {
             setIsLogin(true);
             showAlert(response.msg || "Google login successful!");
 
-            setTimeout(() => {
-              navigate("/", { replace: true });
-            }, 100);
+            // Navigate directly to homepage
+            navigate("/", { replace: true });
           } else {
             showAlert(response.msg || "Google login failed", true);
           }
@@ -160,6 +194,76 @@ export default function Login() {
       .finally(() => {
         setIsLoading(false);
       });
+  };
+
+  const register = (e: React.FormEvent) => {
+    console.log(formfields);
+    e.preventDefault();
+    try {
+      if (formfields.name === "") {
+        showAlert("Name is required", true);
+        return false;
+      }
+
+      if (formfields.email === "") {
+        showAlert("Email is required", true);
+        return false;
+      }
+
+      if (formfields.password === "") {
+        showAlert("Password is required", true);
+        return false;
+      }
+      if (formfields.clinicname === "") {
+        showAlert("Clinic name is required", true);
+        return false;
+      }
+      if (formfields.clinicphone === "") {
+        showAlert("Clinic phone is required", true);
+        return false;
+      }
+      if (formfields.clinicemail === "") {
+        showAlert("Clinic email is required", true);
+        return false;
+      }
+      if (formfields.position === "") {
+        showAlert("Position is required", true);
+        return false;
+      }
+
+      setIsLoading(true);
+      console.log("formfields", formfields);
+
+      // Using our existing signup API
+      authAPI
+        .signUp({
+          name: formfields.name,
+          email: formfields.email,
+          password: formfields.password,
+          phone: formfields.clinicphone,
+          clinicName: formfields.clinicname,
+          clinicEmail: formfields.clinicemail,
+          clinicPhoneNumber: formfields.clinicphone,
+        })
+        .then((res) => {
+          console.log(`res ${JSON.stringify(res)}`);
+          if (!res.error) {
+            showAlert(res?.msg || "Registration successful");
+            localStorage.setItem("user", JSON.stringify(res.user));
+
+            setTimeout(() => {
+              setIsLoading(false);
+              navigate("/", { replace: true });
+            }, 2000);
+          } else {
+            setIsLoading(false);
+            showAlert(res.msg || "Registration failed", true);
+          }
+        });
+    } catch (error) {
+      console.log(error);
+      setIsLoading(false);
+    }
   };
 
   return (
