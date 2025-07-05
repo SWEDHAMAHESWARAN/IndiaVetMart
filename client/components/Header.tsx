@@ -1,6 +1,10 @@
-import { Search, User, ShoppingCart, ChevronDown } from "lucide-react";
+import { Search, User, ShoppingCart, ChevronDown, LogOut } from "lucide-react";
+import { useAuth } from "../contexts/AuthContext";
+import { useState } from "react";
 
 export function Header() {
+  const { user, logout } = useAuth();
+  const [showUserDropdown, setShowUserDropdown] = useState(false);
   return (
     <header className="w-full h-[123px] flex items-center px-[130px] max-lg:px-8 max-sm:px-4">
       <div className="w-full flex items-center gap-3">
@@ -68,9 +72,56 @@ export function Header() {
 
             {/* User and Cart Icons */}
             <div className="flex items-center gap-4">
-              <button className="p-2 hover:bg-brand-neutral-10 rounded-full transition-colors">
-                <User className="w-6 h-6 text-brand-navy" />
-              </button>
+              {/* User Dropdown */}
+              <div className="relative">
+                <button
+                  onClick={() => setShowUserDropdown(!showUserDropdown)}
+                  className="flex items-center gap-2 p-2 hover:bg-brand-neutral-10 rounded-full transition-colors"
+                >
+                  <User className="w-6 h-6 text-brand-navy" />
+                  {user && (
+                    <span
+                      className="hidden md:block text-brand-navy font-medium text-sm"
+                      style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
+                    >
+                      {user.name}
+                    </span>
+                  )}
+                  <ChevronDown className="w-4 h-4 text-brand-navy" />
+                </button>
+
+                {/* Dropdown Menu */}
+                {showUserDropdown && (
+                  <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-lg border border-brand-neutral-20 py-2 z-50">
+                    <div className="px-4 py-2 border-b border-brand-neutral-20">
+                      <p
+                        className="text-brand-navy font-bold text-sm"
+                        style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
+                      >
+                        {user?.name}
+                      </p>
+                      <p
+                        className="text-brand-neutral-60 text-xs"
+                        style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
+                      >
+                        {user?.email}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => {
+                        logout();
+                        setShowUserDropdown(false);
+                      }}
+                      className="w-full flex items-center gap-2 px-4 py-2 text-left text-brand-navy hover:bg-brand-neutral-10 transition-colors"
+                      style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
+                    >
+                      <LogOut className="w-4 h-4" />
+                      Sign Out
+                    </button>
+                  </div>
+                )}
+              </div>
+
               <button className="p-2 hover:bg-brand-neutral-10 rounded-full transition-colors">
                 <ShoppingCart className="w-6 h-6 text-brand-navy" />
               </button>
