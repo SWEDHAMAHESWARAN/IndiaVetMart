@@ -454,19 +454,45 @@ export default function Login() {
             {/* Demo Quick Login */}
             <button
               type="button"
-              onClick={() => {
-                setFormData({ email: "demo@demo.com", password: "demo123" });
-                // Auto-submit after setting values
-                setTimeout(() => {
-                  const form = document.querySelector("form");
-                  if (form) form.requestSubmit();
-                }, 100);
+              onClick={async () => {
+                setIsSubmitting(true);
+                setIsLoading(true);
+
+                // Simulate demo login
+                try {
+                  const demoUser = {
+                    id: "demo-1",
+                    name: "Demo User",
+                    email: "demo@demo.com",
+                  };
+
+                  localStorage.setItem("token", "demo-token-123");
+                  localStorage.setItem("user", JSON.stringify(demoUser));
+
+                  setUser(demoUser);
+                  setIsLogin(true);
+                  showAlert("Demo mode activated! Welcome to IndiaVetMart 🎉");
+
+                  // Navigate to homepage
+                  setTimeout(() => {
+                    navigate("/", { replace: true });
+                  }, 500);
+                } catch (error) {
+                  showAlert("Demo mode failed", true);
+                } finally {
+                  setTimeout(() => {
+                    setIsSubmitting(false);
+                    setIsLoading(false);
+                  }, 600);
+                }
               }}
               disabled={isSubmitting}
-              className="w-full bg-yellow-500 text-white py-2 px-6 rounded-lg font-bold hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+              className="w-full bg-green-500 text-white py-3 px-6 rounded-lg font-bold hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
             >
-              🚀 Quick Demo Login
+              {isSubmitting
+                ? "Loading Demo..."
+                : "🎯 Enter Demo Mode - Skip API"}
             </button>
 
             {/* Divider */}
