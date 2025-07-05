@@ -1,9 +1,16 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Mail, Lock } from "lucide-react";
+import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import { useAuth } from "../contexts/AuthContext";
+import { authAPI } from "../lib/api";
+import { auth, googleProvider } from "../lib/firebase";
 
 export default function Login() {
+  const navigate = useNavigate();
+  const { setUser, setIsLogin, setIsLoading, showAlert } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -16,15 +23,88 @@ export default function Login() {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle login logic here
-    console.log("Login attempt:", formData);
+    setIsSubmitting(true);
+    setIsLoading(true);
+
+    try {
+      const response = await authAPI.signIn(formData);
+
+      if (!response.error && response.token && response.user) {
+        localStorage.setItem("token", response.token);
+        const user = {
+          id: response.user.id,
+          name: response.user.name,
+          email: response.user.email,
+        };
+        localStorage.setItem("user", JSON.stringify(user));
+
+        setUser(user);
+        setIsLogin(true);
+        showAlert(response.msg || "Login successful!");
+
+        setTimeout(() => {
+          navigate("/");
+        }, 1500);
+      } else {
+        showAlert(response.msg || "Login failed", true);
+      }
+    } catch (error: any) {
+      showAlert(error.msg || "Login failed. Please try again.", true);
+    } finally {
+      setIsSubmitting(false);
+      setIsLoading(false);
+    }
   };
 
   const handleGoogleSignup = () => {
-    // Handle Google OAuth here
-    console.log("Google signup clicked");
+    setIsLoading(true);
+    signInWithPopup(auth, googleProvider)
+      .then(async (result) => {
+        const user = result.user;
+
+        const fields = {
+          name: user.displayName || "",
+          email: user.email || "",
+          password: null,
+          images: user.photoURL || "",
+          phone: user.phoneNumber || "",
+        };
+
+        try {
+          const response = await authAPI.authWithGoogle(fields);
+
+          if (!response.error && response.token && response.user) {
+            localStorage.setItem("token", response.token);
+            const userData = {
+              id: response.user.id,
+              name: response.user.name,
+              email: response.user.email,
+            };
+            localStorage.setItem("user", JSON.stringify(userData));
+
+            setUser(userData);
+            setIsLogin(true);
+            showAlert(response.msg || "Google login successful!");
+
+            setTimeout(() => {
+              navigate("/");
+            }, 2000);
+          } else {
+            showAlert(response.msg || "Google login failed", true);
+          }
+        } catch (error: any) {
+          showAlert(error.msg || "Google login failed", true);
+        }
+      })
+      .catch((error) => {
+        const errorMessage = error.message;
+        showAlert(errorMessage || "Google login failed", true);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
   };
 
   return (
