@@ -37,7 +37,19 @@ export default function Login() {
 
     try {
       console.log("Attempting login with:", { email: formData.email });
-      const response = await authAPI.signIn(formData);
+      let response;
+
+      try {
+        response = await authAPI.signIn(formData);
+      } catch (apiError: any) {
+        // If API fails with timeout or network error, show helpful message
+        if (apiError.msg && apiError.msg.includes("timeout")) {
+          throw new Error(
+            "The server is currently unavailable. Please try again later or contact support if the issue persists.",
+          );
+        }
+        throw apiError;
+      }
       console.log("Login response:", response);
 
       if (!response.error && response.token && response.user) {
@@ -61,10 +73,21 @@ export default function Login() {
       }
     } catch (error: any) {
       console.error("Login error:", error);
-      showAlert(
-        error.msg || "Unable to connect to server. Please try again.",
-        true,
-      );
+
+      // Handle error object properly
+      let errorMessage = "Login failed. Please try again.";
+
+      if (typeof error === "object" && error !== null) {
+        if (error.msg) {
+          errorMessage = error.msg;
+        } else if (error.message) {
+          errorMessage = error.message;
+        } else if (typeof error === "string") {
+          errorMessage = error;
+        }
+      }
+
+      showAlert(errorMessage, true);
     } finally {
       setIsSubmitting(false);
       setIsLoading(false);
@@ -113,7 +136,18 @@ export default function Login() {
             showAlert(response.msg || "Google login failed", true);
           }
         } catch (error: any) {
-          showAlert(error.msg || "Google login failed", true);
+          console.error("Google login API error:", error);
+
+          let errorMessage = "Google login failed";
+          if (typeof error === "object" && error !== null) {
+            if (error.msg) {
+              errorMessage = error.msg;
+            } else if (error.message) {
+              errorMessage = error.message;
+            }
+          }
+
+          showAlert(errorMessage, true);
         }
       })
       .catch((error) => {

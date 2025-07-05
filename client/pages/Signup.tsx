@@ -64,7 +64,22 @@ export default function Signup() {
         showAlert(response.msg || "Signup failed", true);
       }
     } catch (error: any) {
-      showAlert(error.msg || "Signup failed. Please try again.", true);
+      console.error("Signup error:", error);
+
+      // Handle error object properly
+      let errorMessage = "Signup failed. Please try again.";
+
+      if (typeof error === "object" && error !== null) {
+        if (error.msg) {
+          errorMessage = error.msg;
+        } else if (error.message) {
+          errorMessage = error.message;
+        } else if (typeof error === "string") {
+          errorMessage = error;
+        }
+      }
+
+      showAlert(errorMessage, true);
     } finally {
       setIsSubmitting(false);
       setIsLoading(false);
@@ -113,7 +128,18 @@ export default function Signup() {
             showAlert(response.msg || "Google signup failed", true);
           }
         } catch (error: any) {
-          showAlert(error.msg || "Google signup failed", true);
+          console.error("Google signup API error:", error);
+
+          let errorMessage = "Google signup failed";
+          if (typeof error === "object" && error !== null) {
+            if (error.msg) {
+              errorMessage = error.msg;
+            } else if (error.message) {
+              errorMessage = error.message;
+            }
+          }
+
+          showAlert(errorMessage, true);
         }
       })
       .catch((error) => {

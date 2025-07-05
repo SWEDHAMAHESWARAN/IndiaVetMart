@@ -10,7 +10,7 @@ const api = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
-  timeout: 10000, // 10 second timeout
+  timeout: 30000, // 30 second timeout
 });
 
 // Add token to requests if available
@@ -26,7 +26,12 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response.data,
   (error) => {
-    console.error("API Error:", error);
+    console.error("API Error Details:", {
+      message: error.message,
+      code: error.code,
+      status: error.response?.status,
+      data: error.response?.data,
+    });
 
     // Handle different types of errors
     if (error.code === "NETWORK_ERROR" || error.message === "Network Error") {
@@ -36,9 +41,9 @@ api.interceptors.response.use(
       });
     }
 
-    if (error.code === "ECONNABORTED") {
+    if (error.code === "ECONNABORTED" || error.message.includes("timeout")) {
       return Promise.reject({
-        msg: "Request timeout. Please try again.",
+        msg: "Request timeout. The server is taking too long to respond. Please try again.",
         error: true,
       });
     }
@@ -57,12 +62,21 @@ api.interceptors.response.use(
       });
     }
 
-    return Promise.reject(
-      error.response?.data || {
-        msg: error.message || "Something went wrong. Please try again.",
+    // Handle API response errors
+    if (error.response?.data) {
+      return Promise.reject({
+        msg:
+          error.response.data.msg ||
+          error.response.data.message ||
+          "Request failed",
         error: true,
-      },
-    );
+      });
+    }
+
+    return Promise.reject({
+      msg: error.message || "Something went wrong. Please try again.",
+      error: true,
+    });
   },
 );
 
