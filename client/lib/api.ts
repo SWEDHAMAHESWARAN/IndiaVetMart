@@ -1,6 +1,7 @@
 import axios from "axios";
 
-const API_BASE_URL = "http://20.235.173.36:3001";
+// Use relative URL in development (proxy) or full URL in production
+const API_BASE_URL = import.meta.env.PROD ? "http://20.235.173.36:3001" : "";
 
 // Create axios instance
 const api = axios.create({
@@ -8,6 +9,7 @@ const api = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
+  timeout: 10000, // 10 second timeout
 });
 
 // Add token to requests if available
@@ -24,7 +26,42 @@ api.interceptors.response.use(
   (response) => response.data,
   (error) => {
     console.error("API Error:", error);
-    return Promise.reject(error.response?.data || error.message);
+
+    // Handle different types of errors
+    if (error.code === "NETWORK_ERROR" || error.message === "Network Error") {
+      return Promise.reject({
+        msg: "Unable to connect to server. Please check your internet connection.",
+        error: true,
+      });
+    }
+
+    if (error.code === "ECONNABORTED") {
+      return Promise.reject({
+        msg: "Request timeout. Please try again.",
+        error: true,
+      });
+    }
+
+    if (error.response?.status === 404) {
+      return Promise.reject({
+        msg: "Service not found. Please try again later.",
+        error: true,
+      });
+    }
+
+    if (error.response?.status >= 500) {
+      return Promise.reject({
+        msg: "Server error. Please try again later.",
+        error: true,
+      });
+    }
+
+    return Promise.reject(
+      error.response?.data || {
+        msg: error.message || "Something went wrong. Please try again.",
+        error: true,
+      },
+    );
   },
 );
 

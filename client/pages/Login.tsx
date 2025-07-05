@@ -5,6 +5,7 @@ import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 import { useAuth } from "../contexts/AuthContext";
 import { authAPI } from "../lib/api";
 import { auth, googleProvider } from "../lib/firebase";
+import { TestConnection } from "../components/TestConnection";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -25,11 +26,20 @@ export default function Login() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Check if required fields are filled
+    if (!formData.email || !formData.password) {
+      showAlert("Please fill in all fields", true);
+      return;
+    }
+
     setIsSubmitting(true);
     setIsLoading(true);
 
     try {
+      console.log("Attempting login with:", { email: formData.email });
       const response = await authAPI.signIn(formData);
+      console.log("Login response:", response);
 
       if (!response.error && response.token && response.user) {
         localStorage.setItem("token", response.token);
@@ -51,7 +61,11 @@ export default function Login() {
         showAlert(response.msg || "Login failed", true);
       }
     } catch (error: any) {
-      showAlert(error.msg || "Login failed. Please try again.", true);
+      console.error("Login error:", error);
+      showAlert(
+        error.msg || "Unable to connect to server. Please try again.",
+        true,
+      );
     } finally {
       setIsSubmitting(false);
       setIsLoading(false);
@@ -296,6 +310,9 @@ export default function Login() {
           </div>
         </div>
       </div>
+
+      {/* Debug component - remove in production */}
+      <TestConnection />
     </div>
   );
 }
