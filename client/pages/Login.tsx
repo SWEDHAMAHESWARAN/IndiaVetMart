@@ -86,7 +86,9 @@ export default function Login() {
           apiError.msg &&
           (apiError.msg.includes("timeout") ||
             apiError.msg.includes("connect") ||
-            apiError.msg.includes("unavailable"))
+            apiError.msg.includes("unavailable") ||
+            apiError.msg.includes("Request timeout") ||
+            apiError.msg.includes("server is taking too long"))
         ) {
           // Allow demo login for testing
           if (
@@ -106,11 +108,28 @@ export default function Login() {
           } else {
             // Show user-friendly message with demo credentials
             throw new Error(
-              "Server unavailable. Try demo credentials: email: demo@demo.com, password: demo123",
+              "🚧 Server timeout detected. Use demo credentials (demo@demo.com / demo123) or try the Quick Demo button below.",
             );
           }
         } else {
-          throw apiError;
+          // For any other API error, also check if user is trying demo credentials
+          if (
+            formData.email === "demo@demo.com" &&
+            formData.password === "demo123"
+          ) {
+            response = {
+              error: false,
+              msg: "Demo login successful! (API error bypassed)",
+              token: "demo-token-123",
+              user: {
+                id: "demo-1",
+                name: "Demo User",
+                email: formData.email,
+              },
+            };
+          } else {
+            throw apiError;
+          }
         }
       }
       console.log("Login response:", response);
@@ -323,9 +342,12 @@ export default function Login() {
           >
             Sign in to your veterinary account
           </p>
-          <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <p className="text-xs text-yellow-800 font-medium">
-              🚧 Server maintenance: Use demo@demo.com / demo123 to preview
+          <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-sm text-red-800 font-bold">
+              ⚠️ API Server Timeout - Use Demo Mode
+            </p>
+            <p className="text-xs text-red-600 mt-1">
+              Email: demo@demo.com | Password: demo123
             </p>
           </div>
         </div>
