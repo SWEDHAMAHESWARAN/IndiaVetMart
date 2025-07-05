@@ -1,19 +1,17 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
-import {
-  Eye,
-  EyeOff,
-  Mail,
-  Lock,
-  User,
-  Phone,
-  Building,
-  MapPin,
-} from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Eye, EyeOff, Mail, Lock, User, Phone, Building } from "lucide-react";
+import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import { useAuth } from "../contexts/AuthContext";
+import { authAPI } from "../lib/api";
+import { auth, googleProvider } from "../lib/firebase";
 
 export default function Signup() {
+  const navigate = useNavigate();
+  const { setUser, setIsLogin, setIsLoading, showAlert } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -32,15 +30,94 @@ export default function Signup() {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle signup logic here
-    console.log("Signup attempt:", formData);
+
+    // Validation
+    if (formData.password !== formData.confirmPassword) {
+      showAlert("Passwords do not match", true);
+      return;
+    }
+
+    setIsSubmitting(true);
+    setIsLoading(true);
+
+    try {
+      const signupData = {
+        name: formData.fullName,
+        email: formData.email,
+        password: formData.password,
+        phone: formData.phoneNumber,
+        clinicName: formData.clinicName,
+        clinicEmail: formData.clinicEmail,
+        clinicPhoneNumber: formData.clinicPhoneNumber,
+      };
+
+      const response = await authAPI.signUp(signupData);
+
+      if (!response.error) {
+        showAlert(response.msg || "Account created successfully!");
+        setTimeout(() => {
+          navigate("/login");
+        }, 2000);
+      } else {
+        showAlert(response.msg || "Signup failed", true);
+      }
+    } catch (error: any) {
+      showAlert(error.msg || "Signup failed. Please try again.", true);
+    } finally {
+      setIsSubmitting(false);
+      setIsLoading(false);
+    }
   };
 
   const handleGoogleSignup = () => {
-    // Handle Google OAuth here
-    console.log("Google signup clicked");
+    setIsLoading(true);
+    signInWithPopup(auth, googleProvider)
+      .then(async (result) => {
+        const user = result.user;
+
+        const fields = {
+          name: user.displayName || "",
+          email: user.email || "",
+          password: null,
+          images: user.photoURL || "",
+          phone: user.phoneNumber || "",
+        };
+
+        try {
+          const response = await authAPI.authWithGoogle(fields);
+
+          if (!response.error && response.token && response.user) {
+            localStorage.setItem("token", response.token);
+            const userData = {
+              id: response.user.id,
+              name: response.user.name,
+              email: response.user.email,
+            };
+            localStorage.setItem("user", JSON.stringify(userData));
+
+            setUser(userData);
+            setIsLogin(true);
+            showAlert(response.msg || "Google signup successful!");
+
+            setTimeout(() => {
+              navigate("/");
+            }, 2000);
+          } else {
+            showAlert(response.msg || "Google signup failed", true);
+          }
+        } catch (error: any) {
+          showAlert(error.msg || "Google signup failed", true);
+        }
+      })
+      .catch((error) => {
+        const errorMessage = error.message;
+        showAlert(errorMessage || "Google signup failed", true);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
   };
 
   return (
@@ -365,10 +442,11 @@ export default function Signup() {
             {/* Signup Button */}
             <button
               type="submit"
-              className="w-full bg-brand-navy text-white py-3 px-6 rounded-lg font-bold hover:bg-brand-dark-navy transition-colors"
+              disabled={isSubmitting}
+              className="w-full bg-brand-navy text-white py-3 px-6 rounded-lg font-bold hover:bg-brand-dark-navy transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
             >
-              Create Account
+              {isSubmitting ? "Creating Account..." : "Create Account"}
             </button>
 
             {/* Divider */}
