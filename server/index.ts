@@ -11,8 +11,8 @@ export function createServer() {
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
 
-  // Proxy route for external API calls (handles CORS)
-  app.all("/api/proxy/*", proxyHandler);
+  // Proxy route disabled - using Vite proxy instead
+  // app.all("/api/proxy/*", proxyHandler);
 
   // Example API routes
   app.get("/api/ping", (_req, res) => {
