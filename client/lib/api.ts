@@ -1,7 +1,7 @@
 import axios from "axios";
 
-// Use relative URLs to leverage Netlify functions proxy
-const API_BASE_URL = "";
+// Use local proxy to handle CORS
+const API_BASE_URL = "/api/proxy";
 
 const getAuthHeaders = () => {
   const token = localStorage.getItem("token");
@@ -19,10 +19,12 @@ export const fetchDataFromApi = async (url: string) => {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
+        Accept: "application/json",
         ...(localStorage.getItem("token") && {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         }),
       },
+      mode: "cors",
     });
 
     if (!response.ok) {
@@ -61,11 +63,13 @@ export const postData = async (url: string, formData: any) => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        Accept: "application/json",
         // Only add Authorization header if token exists
         ...(localStorage.getItem("token") && {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         }),
       },
+      mode: "cors",
       body: JSON.stringify(formData),
     });
 
