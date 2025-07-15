@@ -748,26 +748,18 @@ export default function Login() {
           <CardTitle className="heading-36pxbold">
             {isLogin && "Sign in to Your Account"}
           </CardTitle>
-{isLogin ? (
-            <>
-              <CardTitle className="heading-36pxbold">
-                Sign in to Your Account
-              </CardTitle>
-              <CardDescription className="text-neutral-60">
-                Welcome back! Please sign in to your account.
-              </CardDescription>
-            </>
-          ) : (
-            <div className="text-center mb-6">
-              <h1 className="text-2xl md:text-3xl font-bold font-gabarito text-primary-dark-blue">
-                Let's create your veterinary practice's purchasing account!
-              </h1>
-              <p className="text-neutral-80 text-base mt-2">
-                Signing up for IndiaVetMart is fast and free – you'll be up
-                and running in under a minute
-              </p>
-            </div>
-          )}
+          <CardDescription className="text-neutral-60">
+            {!isLogin && (
+              <div className="text-center mb-6">
+                <h1 className="text-2xl md:text-3xl font-bold font-gabarito text-primary-dark-blue">
+                  Let’s create your veterinary practice's purchasing account!
+                </h1>
+                <p className="text-neutral-80 text-base mt-2">
+                  Signing up for IndiaVetMart is fast and free – you’ll be up
+                  and running in under a minute
+                </p>
+              </div>
+            )}
           </CardDescription>
         </CardHeader>
         <CardContent>
