@@ -101,17 +101,12 @@ export const postData = async (url: string, formData: any) => {
       body: JSON.stringify(formData),
     });
 
-    // Clone the response to avoid "body stream already read" error
-    const responseClone = response.clone();
-
     let responseData;
     try {
       responseData = await response.json();
     } catch (jsonError) {
-      // If JSON parsing fails, try to get text response
-      const textResponse = await responseClone.text();
       console.error("Failed to parse JSON response:", jsonError);
-      console.log("Response text:", textResponse);
+      // For this error case, we can't read the response again since body is consumed
       throw new Error("Invalid JSON response from server");
     }
 
