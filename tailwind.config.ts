@@ -13,7 +13,40 @@ export default {
       },
     },
     extend: {
+      fontFamily: {
+        gabarito: ["Gabarito", "sans-serif"],
+        gilroy: ["SVN-Gilroy", "sans-serif"],
+      },
       colors: {
+        // Pet eCommerce color palette
+        "primary-dark-blue": {
+          DEFAULT: "#003459",
+          80: "#002a48",
+          60: "#00528c",
+          40: "#0078cd",
+        },
+        "secondary-yellow": {
+          DEFAULT: "#f7dba7",
+          80: "#eec77e",
+          60: "#f1d092",
+          40: "#fceed5",
+        },
+        state: {
+          "pink-red": "#ff564f",
+          "green-light": "#34c759",
+          "orange-shine": "#ff912c",
+          "blue-sea": "#00a7e7",
+        },
+        neutral: {
+          100: "#00171f",
+          80: "#242b33",
+          60: "#667479",
+          40: "#99a2a5",
+          20: "#ccd1d2",
+          10: "#ebeeef",
+          0: "#ffffff",
+        },
+        // Keep original shadcn colors for compatibility
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
@@ -57,34 +90,9 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
-        brand: {
-          navy: "var(--primarycolor-darkblue)",
-          "dark-navy": "var(--primarycolor-darkblue80)",
-          "navy-60": "var(--primarycolor-darkblue60)",
-          "navy-40": "var(--primarycolor-darkblue40)",
-          yellow: "var(--secondarycolor-monyellow)",
-          "yellow-80": "var(--secondarycolor-monyellow80)",
-          "yellow-60": "var(--secondarycolor-monyellow60)",
-          "yellow-40": "var(--secondarycolor-monyellow40)",
-          red: "var(--statecolor-pinkred)",
-          green: "var(--statecolor-greenlight)",
-          orange: "var(--statecolor-orangeshine)",
-          blue: "var(--statecolor-bluesea)",
-          "neutral-100": "var(--neutralcolor-100)",
-          "neutral-80": "var(--neutralcolor-80)",
-          "neutral-60": "var(--neutralcolor-60)",
-          "neutral-40": "var(--neutralcolor-40)",
-          "neutral-20": "var(--neutralcolor-20)",
-          "neutral-10": "var(--neutralcolor-10)",
-          "neutral-00": "var(--neutralcolor-00)",
-        },
-      },
-      fontFamily: {
-        gilroy: ["Inter", "system-ui", "sans-serif"],
-        gabarito: ["Inter", "system-ui", "sans-serif"],
       },
       backgroundImage: {
-        "hero-gradient":
+        "linear-gradient":
           "linear-gradient(13deg, #fceed5 6.17%, #fceed5 75.14%, #ffe7ba 100%)",
       },
       borderRadius: {
