@@ -2,6 +2,12 @@ import { RequestHandler } from "express";
 
 // Simple proxy to handle CORS issues
 export const proxyHandler: RequestHandler = async (req, res) => {
+  console.log("=== PROXY HANDLER CALLED ===");
+  console.log("Request method:", req.method);
+  console.log("Request URL:", req.url);
+  console.log("Request path:", req.path);
+  console.log("Request headers:", req.headers);
+
   // Set CORS headers
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,OPTIONS");
@@ -9,6 +15,7 @@ export const proxyHandler: RequestHandler = async (req, res) => {
 
   // Handle preflight requests
   if (req.method === "OPTIONS") {
+    console.log("Handling OPTIONS preflight request");
     res.sendStatus(200);
     return;
   }
