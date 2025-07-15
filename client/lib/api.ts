@@ -1,7 +1,7 @@
 import axios from "axios";
 
-// Always use the full API URL for direct CORS-enabled requests
-const API_BASE_URL = "http://20.235.173.36:3001";
+// Use relative URLs to leverage Netlify functions proxy
+const API_BASE_URL = "";
 
 const getAuthHeaders = () => {
   const token = localStorage.getItem("token");
@@ -23,8 +23,6 @@ export const fetchDataFromApi = async (url: string) => {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         }),
       },
-      mode: "cors",
-      credentials: "omit",
     });
 
     if (!response.ok) {
@@ -40,7 +38,7 @@ export const fetchDataFromApi = async (url: string) => {
       error.message.includes("Failed to fetch")
     ) {
       throw new Error(
-        "CORS Error: Unable to connect to the API server. Please ensure the server has CORS enabled for this domain.",
+        "Network Error: Unable to connect to the API. Please check your internet connection or try again later.",
       );
     }
 
@@ -55,6 +53,9 @@ export const fetchDataFromApi = async (url: string) => {
 export const postData = async (url: string, formData: any) => {
   const fullUrl = API_BASE_URL + url;
 
+  console.log("Making API request to:", fullUrl);
+  console.log("Request data:", formData);
+
   try {
     const response = await fetch(fullUrl, {
       method: "POST",
@@ -65,8 +66,6 @@ export const postData = async (url: string, formData: any) => {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         }),
       },
-      mode: "cors",
-      credentials: "omit",
       body: JSON.stringify(formData),
     });
 
@@ -76,7 +75,7 @@ export const postData = async (url: string, formData: any) => {
 
     return await response.json();
   } catch (error: any) {
-    console.error("API Error:", error.message);
+    console.error("API Error:", error);
 
     // Handle different types of errors
     if (
@@ -84,7 +83,7 @@ export const postData = async (url: string, formData: any) => {
       error.message.includes("Failed to fetch")
     ) {
       throw new Error(
-        "CORS Error: Unable to connect to the API server. Please ensure the server at http://20.235.173.36:3001 has CORS enabled for this domain.",
+        "Network Error: Unable to connect to the API. Please check your internet connection or try again later.",
       );
     }
 

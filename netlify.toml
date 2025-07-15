@@ -1,15 +1,19 @@
 [build]
   command = "npm run build:client"
-  functions = "netlify/functions"
   publish = "dist/spa"
 
-
 [functions]
-  external_node_modules = ["express"]
-  node_bundler = "esbuild"
-  
+  directory = "netlify/functions"
+
+# Redirect API calls to our proxy function
 [[redirects]]
-  force = true
   from = "/api/*"
+  to = "/.netlify/functions/api-proxy/:splat"
   status = 200
-  to = "/.netlify/functions/api/:splat"
+  force = true
+
+# SPA fallback for client-side routing
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
