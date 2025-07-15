@@ -153,6 +153,15 @@ export default function Login() {
       postData("/api/user/signin", formfields).then((res) => {
         console.log("formvalues", formfields);
         console.log("res:", res);
+
+        // Check if the response indicates an error
+        if (res.error === true) {
+          setAlertMsg(res.msg || "Login failed");
+          setAlertOpen(true);
+          setIsLoading(false);
+          return;
+        }
+
         localStorage.setItem("token", res.token);
         localStorage.setItem(
           "existingUser",

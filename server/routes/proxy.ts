@@ -15,14 +15,8 @@ export const proxyHandler: RequestHandler = async (req, res) => {
 
   try {
     const { body, method, headers } = req;
-    console.log("Original request path:", req.path);
-    console.log("Original request URL:", req.url);
-
     const apiPath = req.path.replace("/api/proxy", "");
-    console.log("API path after replacement:", apiPath);
-
     const targetUrl = `http://20.235.173.36:3001/api${apiPath}`;
-    console.log("Constructed target URL:", targetUrl);
 
     console.log("Proxying request to:", targetUrl);
 
