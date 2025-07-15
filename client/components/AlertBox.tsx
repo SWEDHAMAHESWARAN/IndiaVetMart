@@ -1,11 +1,11 @@
-import React from "react";
-import { useAuth } from "../contexts/AuthContext";
+import React, { useContext } from "react";
+import { MyContext } from "../App";
 import { CheckCircle, AlertCircle, X } from "lucide-react";
 
 export const AlertBox: React.FC = () => {
-  const { alertBox, setAlertBox } = useAuth();
+  const { alertBox, setAlertBox } = useContext(MyContext);
 
-  if (!alertBox.open) return null;
+  if (!alertBox || !alertBox.open) return null;
 
   return (
     <div className="fixed top-4 right-4 z-50 max-w-md">
@@ -30,7 +30,7 @@ export const AlertBox: React.FC = () => {
         </p>
 
         <button
-          onClick={() => setAlertBox({ open: false, error: false, msg: "" })}
+          onClick={() => setAlertBox?.({ open: false, error: false, msg: "" })}
           className="flex-shrink-0 hover:opacity-70 transition-opacity"
         >
           <X className="w-4 h-4" />
