@@ -2,6 +2,66 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useContext, useState, useEffect } from "react";
+
+// Define types for API responses
+interface ProductVariant {
+  _id: string;
+  price: number;
+  stock: number;
+  // Add other variant properties as needed
+}
+
+interface ProductVendor {
+  _id: string;
+  name: string;
+  vendorName?: string;
+  price?: number;
+  // Add other vendor properties as needed
+}
+
+interface ProductRating {
+  average: number;
+  count: number;
+  // Add rating properties as needed
+}
+
+// Helper type to get rating value
+type RatingValue = number | ProductRating;
+
+// Helper function to get rating value
+const getRatingValue = (rating: RatingValue): number => {
+  return typeof rating === 'number' ? rating : rating.average;
+};
+
+interface Product {
+  _id: string;
+  id: string;
+  name: string;
+  price: number;
+  images?: string[];
+  variants: ProductVariant[];
+  sellername: string;
+  rating: RatingValue;
+  reviews: any[]; // Update with proper review type if available
+  vendors: ProductVendor[];
+  updatedAt: string;
+  // Add other product properties as needed
+}
+
+// Extend Product for FeaturedProduct to ensure it has an id
+interface FeaturedProduct extends Omit<Product, 'id'> {
+  id?: string; // Make id optional in FeaturedProduct
+  _id: string; // Ensure _id is required
+}
+
+interface ProductsResponse {
+  products?: Product[];
+  // Add other response properties as needed
+}
+
+interface FeaturedProduct extends Omit<Product, 'id'> {
+  // Add any additional featured product specific properties
+}
 import { Badge } from "@/components/ui/badge";
 import {
   ArrowRight,
@@ -25,10 +85,10 @@ export default function HomeScreen() {
   const [categories, setCategories] = useState<any[]>([]);
   const [popular, setPopular] = useState<any[]>([]);
   const [isPopularLoading, setIsPopularLoading] = useState(true);
-  const [newProducts, setNewProducts] = useState<any[]>([]);
-  const [featureProducts, setFeatureProducts] = useState<any[]>([]);
+  const [newProducts, setNewProducts] = useState<Product[]>([]);
+  const [featureProducts, setFeatureProducts] = useState<FeaturedProduct[]>([]);
   const [vendorsData, setVendorsData] = useState<any[]>([]);
-  const [randomCatProducts, setRandomProducts] = useState<any[]>([]);
+  const [randomCatProducts, setRandomProducts] = useState<Product[]>([]);
   const history = useNavigate();
   useEffect(() => {
     if (orders?.length) setRecentOrder(orders);
@@ -63,51 +123,65 @@ export default function HomeScreen() {
 
   const fetchNewProducts = async () => {
     try {
-      const userDetails = JSON.parse(user);
+      const userDetails = user ? JSON.parse(user) : null;
       console.log("User details:", userDetails);
-      if (userDetails) {
-        const res = await fetchDataFromApi(
-          `/api/products?page=1&perPage=10&userid=${userDetails?.userId}`,
-        );
-
-        setNewProducts(res?.products || []);
+      if (userDetails?.userId) {
+        const response = await fetchDataFromApi(
+          `/products?page=1&perPage=10&userid=${userDetails.userId}`
+        ) as ProductsResponse;
+        const products = response?.products || [];
+        setNewProducts(products);
       }
     } catch (error) {
       console.error("Error fetching new products:", error);
+      setNewProducts([]);
     }
   };
 
   const fetchFeaturedProducts = async () => {
     try {
-      const userDetails = JSON.parse(user);
-      if (userDetails) {
-        const res = await fetchDataFromApi(
-          `/api/products/featured?userid=${userDetails?.userId}`,
-        );
-        setFeatureProducts(res || []);
+      const userDetails = user ? JSON.parse(user) : null;
+      if (userDetails?.userId) {
+        const response = await fetchDataFromApi(
+          `/products/featured?userid=${userDetails.userId}`
+        ) as { data: FeaturedProduct[] } | FeaturedProduct[];
+        
+        // Handle both response formats: { data: [] } or []
+        const products = Array.isArray(response) 
+          ? response 
+          : Array.isArray(response?.data) 
+            ? response.data 
+            : [];
+            
+        setFeatureProducts(products);
       }
     } catch (error) {
       console.error("Error fetching featured products:", error);
+      setFeatureProducts([]);
     }
   };
 
   const fetchRandomProducts = async () => {
     try {
       if (categories?.length > 0) {
-        console.log(`-pokn`);
-        const userDetails = JSON.parse(user);
+        const userDetails = user ? JSON.parse(user) : null;
+        if (!userDetails?.userId) return;
 
         const randomIndex = Math.floor(Math.random() * categories.length);
         const catId = categories[randomIndex]?.id;
+        if (!catId) return;
 
-        const res = await fetchDataFromApi(
-          `/api/products/catId?catIds=${catId}&userid=${userDetails?.userId}`,
-        );
-        console.log("random", res);
-        setRandomProducts(res?.products || []);
+        const response = await fetchDataFromApi(
+          `/products/catId?catIds=${catId}&userid=${userDetails.userId}`
+        ) as ProductsResponse;
+        
+        const products = response?.products || [];
+        console.log("Fetched random products:", products);
+        setRandomProducts(products);
       }
     } catch (error) {
       console.error("Error fetching random products:", error);
+      setRandomProducts([]);
     }
   };
   const handleAddToCart = (productName: string) => {
@@ -484,7 +558,7 @@ export default function HomeScreen() {
                       <Rating
                         className="mt-2 mb-2"
                         name="read-only"
-                        value={product?.rating || 0}
+                        value={getRatingValue(product.rating)}
                         readOnly
                         size="small"
                         precision={0.5}

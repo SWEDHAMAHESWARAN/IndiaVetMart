@@ -8,6 +8,13 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
+    proxy: {
+      '/api/proxy': {
+        target: 'http://20.235.173.36:3001',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/proxy/, '/api')
+      }
+    }
   },
   build: {
     outDir: "dist/spa",

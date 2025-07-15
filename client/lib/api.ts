@@ -3,18 +3,20 @@ import axios from "axios";
 // Use local proxy to handle CORS
 const API_BASE_URL = "/api/proxy"; // This will be prefixed to all API calls
 
-const getAuthHeaders = () => {
+const getAuthHeaders = (): { headers: { [key: string]: string } } => {
   const token = localStorage.getItem("token");
   return {
     headers: {
-      Authorization: token ? `Bearer ${token}` : "",
-      "Content-Type": "application/json",
-    },
+      ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    }
   };
 };
 
 export const fetchDataFromApi = async (url: string) => {
   try {
+<<<<<<< Updated upstream
     const response = await fetch(API_BASE_URL + url, {
       method: "GET",
       headers: {
@@ -61,6 +63,11 @@ export const fetchDataFromApi = async (url: string) => {
 
     return responseData;
   } catch (error: any) {
+=======
+    const response = await axios.get(API_BASE_URL + url, getAuthHeaders());
+    return response.data;
+  } catch (error) {
+>>>>>>> Stashed changes
     console.error("Fetch error:", error);
 
     if (
@@ -87,6 +94,7 @@ export const postData = async (url: string, formData: any) => {
   console.log("Request data:", formData);
 
   try {
+<<<<<<< Updated upstream
     const response = await fetch(fullUrl, {
       method: "POST",
       headers: {
@@ -147,60 +155,83 @@ export const postData = async (url: string, formData: any) => {
     throw new Error(
       error.message || "An unexpected error occurred. Please try again.",
     );
+=======
+    const response = await axios.post(API_BASE_URL + url, formData, getAuthHeaders());
+    return response.data;
+  } catch (error: any) {
+    console.error("Post error:", error);
+    // If we have a response with error data, return it
+    if (error.response?.data) {
+      return error.response.data;
+    }
+    throw error;
+>>>>>>> Stashed changes
   }
 };
 
 export const editData = async (url: string, updatedData: any) => {
   try {
-    const { data } = await axios.put(
+    const response = await axios.put(
       API_BASE_URL + url,
       updatedData,
-      getAuthHeaders(),
+      getAuthHeaders()
     );
-    return data;
-  } catch (error) {
+    return response.data;
+  } catch (error: any) {
     console.error("Edit error:", error);
+    if (error.response?.data) {
+      return error.response.data;
+    }
     throw error;
   }
 };
 
 export const deleteData = async (url: string) => {
   try {
-    const { data } = await axios.delete(API_BASE_URL + url, getAuthHeaders());
-    return data;
-  } catch (error) {
+    const response = await axios.delete(API_BASE_URL + url, getAuthHeaders());
+    return response.data;
+  } catch (error: any) {
     console.error("Delete error:", error);
+    if (error.response?.data) {
+      return error.response.data;
+    }
     throw error;
   }
 };
 
-export const uploadImage = async (url: string, formData: any) => {
+export const uploadImage = async (url: string, formData: FormData) => {
   console.log("Uploading image to:", API_BASE_URL + url);
-  console.log("Form data:", formData);
   try {
-    const { data } = await axios.post(API_BASE_URL + url, formData, {
+    const response = await axios.post(API_BASE_URL + url, formData, {
       headers: {
-        "Content-Type": "multipart/form-data",
+        ...getAuthHeaders().headers,
+        'Content-Type': 'multipart/form-data',
       },
     });
-    return data;
-  } catch (error) {
+    return response.data;
+  } catch (error: any) {
     console.error("Upload error:", error);
+    if (error.response?.data) {
+      return error.response.data;
+    }
     throw error;
   }
 };
 
 export const deleteImages = async (url: string, imageData: any) => {
   try {
-    const { data } = await axios.delete(API_BASE_URL + url, {
-      data: imageData, // Proper way to send body in DELETE with axios
-      headers: {
-        "Content-Type": "application/json",
-      },
+    const response = await axios({
+      method: 'delete',
+      url: API_BASE_URL + url,
+      data: imageData,
+      ...getAuthHeaders()
     });
-    return data;
-  } catch (error) {
+    return response.data;
+  } catch (error: any) {
     console.error("Delete Image error:", error);
+    if (error.response?.data) {
+      return error.response.data;
+    }
     throw error;
   }
 };
