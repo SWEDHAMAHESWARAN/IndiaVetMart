@@ -709,7 +709,7 @@ export default function HomeScreen() {
                         <Rating
                           className="mt-2 mb-2"
                           name="read-only"
-                          value={product?.rating || 0}
+                          value={getRatingValue(product.rating) || 0}
                           readOnly
                           size="small"
                           precision={0.5}

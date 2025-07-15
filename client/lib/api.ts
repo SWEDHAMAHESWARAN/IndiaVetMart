@@ -16,69 +16,23 @@ const getAuthHeaders = (): { headers: { [key: string]: string } } => {
 
 export const fetchDataFromApi = async (url: string) => {
   try {
-<<<<<<< Updated upstream
-    const response = await fetch(API_BASE_URL + url, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-        ...(localStorage.getItem("token") && {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        }),
-      },
-      mode: "cors",
-    });
-
-    // Clone the response to avoid "body stream already read" error
-    const responseClone = response.clone();
-
-    let responseData;
-    try {
-      responseData = await response.json();
-    } catch (jsonError) {
-      // If JSON parsing fails, try to get text response
-      const textResponse = await responseClone.text();
-      console.error("Failed to parse JSON response:", jsonError);
-      console.log("Response text:", textResponse);
-      throw new Error("Invalid JSON response from server");
-    }
-
-    // If response is not ok but we have JSON data, return it anyway
-    if (!response.ok) {
-      console.log("API returned non-ok status:", response.status, responseData);
-
-      // If it's a structured API error response, return it
-      if (
-        responseData &&
-        (responseData.error !== undefined || responseData.msg)
-      ) {
-        return responseData;
-      }
-
-      // Otherwise, throw an error
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    return responseData;
-  } catch (error: any) {
-=======
     const response = await axios.get(API_BASE_URL + url, getAuthHeaders());
     return response.data;
-  } catch (error) {
->>>>>>> Stashed changes
+  } catch (error: any) {
     console.error("Fetch error:", error);
 
-    if (
-      error.name === "TypeError" &&
-      error.message.includes("Failed to fetch")
-    ) {
+    if (error.name === "TypeError" && error.message.includes("Failed to fetch")) {
       throw new Error(
-        "Network Error: Unable to connect to the API. Please check your internet connection or try again later.",
+        "Network Error: Unable to connect to the API. Please check your internet connection or try again later."
       );
     }
 
-    if (error.message.includes("HTTP error")) {
+    if (error.message?.includes("HTTP error")) {
       throw new Error(`Server error: ${error.message}`);
+    }
+
+    if (error.response?.data) {
+      return error.response.data;
     }
 
     throw new Error(error.message || "An error occurred");
@@ -87,78 +41,10 @@ export const fetchDataFromApi = async (url: string) => {
 
 export const postData = async (url: string, formData: any) => {
   const fullUrl = API_BASE_URL + url;
-
   console.log("Making API request to:", fullUrl);
   console.log("Request data:", formData);
 
   try {
-<<<<<<< Updated upstream
-    const response = await fetch(fullUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-        // Only add Authorization header if token exists
-        ...(localStorage.getItem("token") && {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        }),
-      },
-      mode: "cors",
-      body: JSON.stringify(formData),
-    });
-
-    // Clone the response to avoid "body stream already read" error
-    const responseClone = response.clone();
-
-    let responseData;
-    try {
-      responseData = await response.json();
-    } catch (jsonError) {
-      // If JSON parsing fails, try to get text response
-      const textResponse = await responseClone.text();
-      console.error("Failed to parse JSON response:", jsonError);
-      console.log("Response text:", textResponse);
-      throw new Error("Invalid JSON response from server");
-    }
-
-    // If response is not ok but we have JSON data, return it anyway
-    if (!response.ok) {
-      console.log("API returned non-ok status:", response.status, responseData);
-
-      // If it's a structured API error response, return it
-      if (
-        responseData &&
-        (responseData.error !== undefined || responseData.msg)
-      ) {
-        return responseData;
-      }
-
-      // Otherwise, throw an error
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    return responseData;
-  } catch (error: any) {
-    console.error("API Error:", error);
-
-    // Handle different types of errors
-    if (
-      error.name === "TypeError" &&
-      error.message.includes("Failed to fetch")
-    ) {
-      throw new Error(
-        "Network Error: Unable to connect to the API. Please check your internet connection or try again later.",
-      );
-    }
-
-    if (error.message.includes("HTTP error")) {
-      throw new Error(`Server error: ${error.message}`);
-    }
-
-    throw new Error(
-      error.message || "An unexpected error occurred. Please try again.",
-    );
-=======
     const response = await axios.post(API_BASE_URL + url, formData, getAuthHeaders());
     return response.data;
   } catch (error: any) {
@@ -167,8 +53,15 @@ export const postData = async (url: string, formData: any) => {
     if (error.response?.data) {
       return error.response.data;
     }
+    
+    // Handle network errors
+    if (error.name === "TypeError" && error.message.includes("Failed to fetch")) {
+      throw new Error(
+        "Network Error: Unable to connect to the API. Please check your internet connection or try again later."
+      );
+    }
+    
     throw error;
->>>>>>> Stashed changes
   }
 };
 
