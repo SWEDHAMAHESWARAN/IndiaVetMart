@@ -26,6 +26,7 @@ import Checkout from "./pages/Checkout";
 import VendorConnection from "./pages/VendorConnection";
 import Budget from "./pages/Budget";
 import ApprovalManagement from "./pages/ApprovalManagement";
+import OrderConfirmation from "./pages/OrderConfirmation";
 import NotFound from "./pages/NotFound";
 import { createContext, useEffect, useState } from "react";
 import { fetchDataFromApi, postData } from "./lib/api";
