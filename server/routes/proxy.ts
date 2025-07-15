@@ -2,12 +2,6 @@ import { RequestHandler } from "express";
 
 // Simple proxy to handle CORS issues
 export const proxyHandler: RequestHandler = async (req, res) => {
-  console.log("=== PROXY HANDLER CALLED ===");
-  console.log("Request method:", req.method);
-  console.log("Request URL:", req.url);
-  console.log("Request path:", req.path);
-  console.log("Request headers:", req.headers);
-
   // Set CORS headers
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,OPTIONS");
@@ -15,7 +9,6 @@ export const proxyHandler: RequestHandler = async (req, res) => {
 
   // Handle preflight requests
   if (req.method === "OPTIONS") {
-    console.log("Handling OPTIONS preflight request");
     res.sendStatus(200);
     return;
   }
@@ -25,11 +18,7 @@ export const proxyHandler: RequestHandler = async (req, res) => {
     const apiPath = req.path.replace("/api/proxy", "");
     const targetUrl = `http://20.235.173.36:3001/api${apiPath}`;
 
-    console.log("Original path:", req.path);
-    console.log("API path after replace:", apiPath);
     console.log("Proxying request to:", targetUrl);
-    console.log("Method:", method);
-    console.log("Body:", body);
 
     // Prepare headers for the target API
     const proxyHeaders: { [key: string]: string } = {

@@ -11,11 +11,6 @@ export function createServer() {
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
 
-  // Test route to verify routing
-  app.get("/api/proxy/test", (_req, res) => {
-    res.json({ message: "Proxy route is working!" });
-  });
-
   // Proxy route for external API calls (handles CORS)
   app.all("/api/proxy/*", proxyHandler);
 
