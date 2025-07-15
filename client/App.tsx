@@ -14,7 +14,7 @@ import {
 } from "react-router-dom";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
-import Index from "./pages/Index";
+import HomeScreen from "./pages/Index";
 import Login from "./pages/Login";
 import Category from "./pages/Category";
 import ProductDetail from "./pages/ProductDetail";
@@ -24,16 +24,32 @@ import ShoppingCart from "./pages/ShoppingCart";
 import Checkout from "./pages/Checkout";
 import VendorConnection from "./pages/VendorConnection";
 import Budget from "./pages/Budget";
+//import UserManage from "./pages/UserManagement";
 import ApprovalManagement from "./pages/ApprovalManagement";
-import Signup from "./pages/Signup";
 import NotFound from "./pages/NotFound";
-
+import { createContext, useEffect, useState } from "react";
+import { fetchDataFromApi } from "./lib/api";
+import { MyContextType } from "./types";
+import Signup from "./pages/Signup";
 const queryClient = new QueryClient();
-
+export const MyContext = createContext<MyContextType>({
+  orders: [],
+  cat: [],
+  popularProducts: [],
+  vendors: [],
+  user: "",
+  setUser: () => {},
+  cartData: [],
+  shippingAddress: [],
+  fetchShippingAddress: () => {},
+  frequencyProducts: [],
+  recentOrders: [],
+  Permission: [],
+});
 function Layout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const isAuthPage =
-    location.pathname === "/login" || location.pathname === "/signup";
+  ["/login", "/signup", "/clinicform"].includes(location.pathname);
 
   if (isAuthPage) {
     return <>{children}</>;
@@ -49,60 +65,161 @@ function Layout({ children }: { children: React.ReactNode }) {
 }
 
 function AppContent() {
+  const [orders, setOrders] = useState<any[]>([]);
+  const [cat, setcat] = useState<any[]>([]);
+  const [popularProducts, setPopularProducts] = useState<any[]>([]);
+  const [vendors, setvendors] = useState<any[]>([]);
+  const [user, setUser] = useState<string>("");
+  const [Permission, setPermission] = useState<any[]>([]);
+  const [cartData, setCartData] = useState<any[]>([]);
+  const [shippingAddress, setShippingAddress] = useState<any[]>([]);
+  const [frequencyProducts, setFrequencyProducts] = useState<any[]>([]);
+  const [recentOrders, setRecentOrders] = useState<any[]>([]);
+  const [isAppReady, setIsAppReady] = useState(false);
+  const [alertBox, setAlertBox] = useState<{ open: boolean; error: boolean; msg: string }>({ open: false, error: false, msg: "" });
+
+  useEffect(() => {
+    const fetchInitialData = async () => {
+      try {
+        const userRaw = localStorage.getItem("user");
+        if (userRaw) {
+          setUser(userRaw);
+          const parsedUser = JSON.parse(userRaw);
+          const clinicId = parsedUser.clinicId;
+
+          const [
+            ordersRes,
+            catRes,
+            popRes,
+            vendorRes,
+            cartRes,
+            freqRes,
+            recRes,
+            shippingRes,
+          ] = await Promise.all([
+            fetchDataFromApi(`/api/orders/client?clinicId=${clinicId}`),
+            fetchDataFromApi(`/api/category`),
+            fetchDataFromApi(`/api/products/popular-products`),
+            fetchDataFromApi(`/api/vendor/getall`),
+            fetchDataFromApi(`/api/cart?clinicId=${clinicId}`),
+            fetchDataFromApi(
+              `/api/products/frequency-orders?clinicId=${clinicId}`,
+            ),
+            fetchDataFromApi(`/api/products/last-orders?clinicId=${clinicId}`),
+            fetchDataFromApi(`/api/shipping/addresses?clinicId=${clinicId}`),
+          ]);
+
+          setOrders(ordersRes);
+          setcat(catRes?.categoryList || []);
+          setPopularProducts(popRes?.data || []);
+          setvendors(vendorRes?.Response || []);
+          setCartData(cartRes);
+          setFrequencyProducts(freqRes?.products || []);
+          setRecentOrders(recRes?.products || []);
+          setShippingAddress(shippingRes);
+
+          // Permissions
+          const permissionKey = localStorage.getItem("userPermission");
+          if (permissionKey) {
+            const permRes = await fetchDataFromApi(
+              `/api/user/permission?name=${permissionKey}`,
+            );
+            setPermission(permRes?.response || []);
+          }
+        }
+
+        setIsAppReady(true);
+      } catch (err) {
+        console.error("Error during context init:", err);
+      }
+    };
+
+    fetchInitialData();
+  }, []);
+
+  if (!isAppReady) {
+    return (
+      <div className="flex items-center justify-center h-screen text-gray-500 text-lg">
+        Loading app data...
+      </div>
+    );
+  }
+
+  const contextValues: MyContextType = {
+    orders,
+    cat,
+    popularProducts,
+    vendors,
+    user,
+    setUser,
+    cartData,
+    shippingAddress,
+    fetchShippingAddress: () => {},
+    frequencyProducts,
+    recentOrders,
+    Permission,
+    alertBox,
+    setAlertBox,
+  };
   return (
-    <Layout>
-      <Routes>
-        <Route path="/" element={<Navigate to="/home" replace />} />
-        <Route path="/home" element={<Index />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
-        <Route path="/profile/*" element={<Profile />} />
-        {/* Placeholder routes for navigation items */}
-        <Route path="/category" element={<Category />} />
-        <Route path="/product/:id" element={<ProductDetail />} />
-        <Route path="/orders" element={<OrderHistory />} />
-        <Route
-          path="/orders/new"
-          element={
-            <div className="p-8">
-              <h1 className="text-2xl font-gabarito font-bold text-primary-dark-blue">
-                Create New Order - Coming Soon
-              </h1>
-              <p className="text-neutral-60 mt-2">
-                New order creation feature will be available soon.
-              </p>
-            </div>
-          }
-        />
-        <Route path="/shopping" element={<ShoppingCart />} />
-        <Route path="/checkout" element={<Checkout />} />
-        <Route path="/vendors" element={<VendorConnection />} />
-        <Route path="/budget" element={<Budget />} />
-        <Route path="/approvals" element={<ApprovalManagement />} />
-        <Route
-          path="/terms"
-          element={
-            <div className="p-8">
-              <h1 className="text-2xl font-gabarito font-bold text-primary-dark-blue">
-                Terms of Service - Coming Soon
-              </h1>
-            </div>
-          }
-        />
-        <Route
-          path="/privacy"
-          element={
-            <div className="p-8">
-              <h1 className="text-2xl font-gabarito font-bold text-primary-dark-blue">
-                Privacy Policy - Coming Soon
-              </h1>
-            </div>
-          }
-        />
-        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </Layout>
+    <MyContext.Provider value={contextValues}>
+      <Layout>
+        <Routes>
+          <Route path="/" element={<Navigate to="/login" />} />
+          <Route path="/home" element={<HomeScreen />} />
+          <Route path="/login" element={<Login />} />
+         <Route path="/clinicform" element={<Signup />} />
+          <Route path="/profile/*" element={<Profile />} />
+          {/* Placeholder routes for navigation items */}
+          <Route
+            path="/products/category/:id/:vendorId?/:availability?"
+            element={<Category />}
+          />
+          <Route path="/product/:id" element={<ProductDetail />} />
+          <Route path="/orders" element={<OrderHistory />} />
+          <Route
+            path="/orders/new"
+            element={
+              <div className="p-8">
+                <h1 className="text-2xl font-gabarito font-bold text-primary-dark-blue">
+                  Create New Order - Coming Soon
+                </h1>
+                <p className="text-neutral-60 mt-2">
+                  New order creation feature will be available soon.
+                </p>
+              </div>
+            }
+          />
+          <Route path="/shopping" element={<ShoppingCart />} />
+          <Route path="/checkout" element={<Checkout />} />
+          <Route path="/vendors" element={<VendorConnection />} />
+          <Route path="/budget" element={<Budget />} />
+          <Route path="/approvals" element={<ApprovalManagement />} />
+          <Route
+            path="/terms"
+            element={
+              <div className="p-8">
+                <h1 className="text-2xl font-gabarito font-bold text-primary-dark-blue">
+                  Terms of Service - Coming Soon
+                </h1>
+              </div>
+            }
+          />
+          <Route
+            path="/privacy"
+            element={
+              <div className="p-8">
+                <h1 className="text-2xl font-gabarito font-bold text-primary-dark-blue">
+                  Privacy Policy - Coming Soon
+                </h1>
+              </div>
+            }
+          />
+          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Layout>
+    </MyContext.Provider>
   );
 }
 
@@ -117,5 +234,4 @@ const App = () => (
     </TooltipProvider>
   </QueryClientProvider>
 );
-
-createRoot(document.getElementById("root")!).render(<App />);
+export default App;

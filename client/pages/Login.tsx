@@ -1,566 +1,1044 @@
-import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Eye, EyeOff, Mail, Lock } from "lucide-react";
-import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
-import { useAuth } from "../contexts/AuthContext";
-import { authAPI } from "../lib/api";
-import { auth, googleProvider } from "../lib/firebase";
+import { useState, useContext } from "react";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { Eye, EyeOff, ArrowLeft, CheckCircle } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { MyContext } from "../App";
+import { postData } from "@/lib/api";
+import { getAuth, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import { firebaseApp } from "../../firebase";
 
 export default function Login() {
-  const navigate = useNavigate();
-  const { setUser, setIsLogin, showAlert } = useAuth();
-  const [showPassword, setShowPassword] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const context = useContext(MyContext);
+  const history = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
-  const [positions, setPositions] = useState([]);
-  const [selectedPosition, setSelectedPosition] = useState("");
-  const [formData, setFormData] = useState({
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isLogin, setIsLogin] = useState(true);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotPasswordStep, setForgotPasswordStep] = useState(1);
+  const [forgotPasswordEmail, setForgotPasswordEmail] = useState("");
+  const [otpCode, setOtpCode] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmNewPassword, setConfirmNewPassword] = useState("");
+  const [alertOpen, setAlertOpen] = useState(false);
+  const [alertMsg, setAlertMsg] = useState("");
+  const [forgotMsg, setForgotMsg] = useState("");
+  const auth = getAuth(firebaseApp);
+  const googleProvider = new GoogleAuthProvider();
+  const [formfields, setFormfields] = useState({
     email: "",
     password: "",
   });
-  const [formfields, setFormfields] = useState({
+  const [formvalues, setFormvalues] = useState({
     name: "",
+    phone: "",
     email: "",
     password: "",
-    isAdmin: true,
     clinicname: "",
     clinicphone: "",
     clinicemail: "",
-    position: positions,
   });
-
-  useEffect(() => {
-    // Fetch positions data if needed
-    // fetchDataFromApi(`/api/position/id`).then((res) => {
-    //   console.log("Res", res.response);
-    //   setPositions(res.response);
-    // });
-  }, []);
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
-
-  const onchangeInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormfields(() => ({
-      ...formfields,
-      [e.target.name]: e.target.value,
-    }));
-  };
-
-  const handleforposition = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    console.log("e", e.target.id);
-    setSelectedPosition(e.target.value);
-    setFormfields(() => ({
-      ...formfields,
-      position: e.target.value,
-    }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    // Check if required fields are filled
-    if (!formData.email || !formData.password) {
-      showAlert("Please fill in all fields", true);
-      return;
-    }
-
-    setIsSubmitting(true);
-    setIsLoading(true);
-
-    try {
-      console.log("Attempting login with:", { email: formData.email });
-      let response;
-
-      try {
-        response = await authAPI.signIn(formData);
-      } catch (apiError: any) {
-        console.error("API call failed:", JSON.stringify(apiError, null, 2));
-
-        // If API fails with timeout or network error, offer demo mode
-        if (
-          apiError.msg &&
-          (apiError.msg.includes("timeout") ||
-            apiError.msg.includes("connect") ||
-            apiError.msg.includes("unavailable") ||
-            apiError.msg.includes("Request timeout") ||
-            apiError.msg.includes("server is taking too long"))
-        ) {
-          // Allow demo login for testing
-          if (
-            formData.email === "demo@demo.com" &&
-            formData.password === "demo123"
-          ) {
-            response = {
-              error: false,
-              msg: "Demo login successful! (API unavailable)",
-              token: "demo-token-123",
-              user: {
-                id: "demo-1",
-                name: "Demo User",
-                email: formData.email,
-              },
-            };
-          } else {
-            // Show user-friendly message with demo credentials
-            throw new Error(
-              "🚧 Server timeout detected. Use demo credentials (demo@demo.com / demo123) or try the Quick Demo button below.",
-            );
-          }
-        } else {
-          // For any other API error, also check if user is trying demo credentials
-          if (
-            formData.email === "demo@demo.com" &&
-            formData.password === "demo123"
-          ) {
-            response = {
-              error: false,
-              msg: "Demo login successful! (API error bypassed)",
-              token: "demo-token-123",
-              user: {
-                id: "demo-1",
-                name: "Demo User",
-                email: formData.email,
-              },
-            };
-          } else {
-            throw apiError;
-          }
-        }
-      }
-      console.log("Login response:", response);
-
-      if (!response.error && response.token && response.user) {
-        localStorage.setItem("token", response.token);
-        const user = {
-          id: response.user.id,
-          name: response.user.name,
-          email: response.user.email,
-        };
-        localStorage.setItem("user", JSON.stringify(user));
-
-        // Update auth state immediately
-        setUser(user);
-        setIsLogin(true);
-
-        showAlert(response.msg || "Login successful!");
-
-        // Navigate directly to homepage
-        navigate("/", { replace: true });
-      } else {
-        showAlert(response.msg || "Login failed", true);
-      }
-    } catch (error: any) {
-      console.error("Login error:", JSON.stringify(error, null, 2));
-
-      // Handle error object properly
-      let errorMessage = "Login failed. Please try again.";
-
-      if (error instanceof Error) {
-        errorMessage = error.message;
-      } else if (typeof error === "object" && error !== null) {
-        if (error.msg) {
-          errorMessage = error.msg;
-        } else if (error.message) {
-          errorMessage = error.message;
-        }
-      } else if (typeof error === "string") {
-        errorMessage = error;
-      }
-
-      showAlert(errorMessage, true);
-    } finally {
-      setIsSubmitting(false);
-      setIsLoading(false);
-    }
-  };
-
-  const handleGoogleSignup = () => {
-    if (!auth || !googleProvider) {
-      showAlert("Google authentication is not configured", true);
-      return;
-    }
-
-    setIsLoading(true);
+  const handleGoogleAuth = () => {
+    console.log(auth);
     signInWithPopup(auth, googleProvider)
-      .then(async (result) => {
+      .then((result) => {
+        const credential = GoogleAuthProvider.credentialFromResult(result);
+        const token = credential.accessToken;
         const user = result.user;
 
         const fields = {
-          name: user.displayName || "",
-          email: user.email || "",
+          name: user.providerData[0].displayName,
+          email: user.providerData[0].email,
           password: null,
-          images: user.photoURL || "",
-          phone: user.phoneNumber || "",
+          images: user.providerData[0].photoURL,
+          phone: user.providerData[0].phoneNumber,
         };
 
-        try {
-          const response = await authAPI.authWithGoogle(fields);
+        postData("/api/user/authWithGoogle", fields).then((res) => {
+          console.log("formvalues", fields);
+          console.log("res", res);
+          localStorage.setItem(
+            "existingUser",
+            JSON.stringify(res?.existingUser),
+          );
+          try {
+            if (res.error !== true) {
+              localStorage.setItem("token", res.token);
+              const user = {
+                name: res.existingUser?.name,
+                email: res.existingUser?.email,
+                userId: res.existingUser?.id,
+                phone: res.existingUser?.phone,
+                founder: res.existingUser?.founder,
+                clinicId: Array.isArray(res.existingUser?.clinicid)
+                  ? res.existingUser.clinicid[0]
+                  : undefined,
+                images: Array.isArray(res.existingUser?.images)
+                  ? res.existingUser.images[0]
+                  : undefined,
+                clinicname: Array.isArray(res?.findClinic)
+                  ? res.findClinic[0]?.clinicname
+                  : undefined,
+                clinicemail: Array.isArray(res?.findClinic)
+                  ? res.findClinic[0]?.clinicemail
+                  : undefined,
+                clinicphone: Array.isArray(res?.findClinic)
+                  ? res.findClinic[0]?.clinicphone
+                  : undefined,
+              };
+              console.log("user of login", user);
 
-          if (!response.error && response.token && response.user) {
-            localStorage.setItem("token", response.token);
-            const userData = {
-              id: response.user.id,
-              name: response.user.name,
-              email: response.user.email,
-            };
-            localStorage.setItem("user", JSON.stringify(userData));
+              localStorage.setItem("user", JSON.stringify(user));
+              context.setUser(JSON.stringify(user));
+              setTimeout(() => {
+                if (res?.existingUser?.clinicid?.length === 0) {
+                  history("/clinicform");
 
-            setUser(userData);
-            setIsLogin(true);
-            showAlert(response.msg || "Google login successful!");
+                  setIsLoading(false);
+                } else {
+                  history("/home");
 
-            // Navigate directly to homepage
-            navigate("/", { replace: true });
-          } else {
-            showAlert(response.msg || "Google login failed", true);
-          }
-        } catch (error: any) {
-          console.error("Google login API error:", error);
-
-          let errorMessage = "Google login failed";
-          if (typeof error === "object" && error !== null) {
-            if (error.msg) {
-              errorMessage = error.msg;
-            } else if (error.message) {
-              errorMessage = error.message;
+                  setIsLoading(false);
+                }
+              }, 2000);
+            } else {
+              setIsLoading(false);
             }
+          } catch (error) {
+            console.log(error);
+            setIsLoading(false);
           }
-
-          showAlert(errorMessage, true);
-        }
+        });
       })
       .catch((error) => {
+        console.log(error);
+        const errorCode = error.code;
         const errorMessage = error.message;
-        showAlert(errorMessage || "Google login failed", true);
-      })
-      .finally(() => {
-        setIsLoading(false);
+        const email = error.customData.email;
+        const credential = GoogleAuthProvider.credentialFromError(error);
       });
   };
 
-  const register = (e: React.FormEvent) => {
-    console.log(formfields);
+  const handleSubmit = (e) => {
     e.preventDefault();
-    try {
-      if (formfields.name === "") {
-        showAlert("Name is required", true);
-        return false;
+
+    if (isLogin) {
+      if (!formfields.email || !formfields.password) {
+        setAlertMsg("Email and password are required");
+        setAlertOpen(true);
+        return;
       }
 
-      if (formfields.email === "") {
-        showAlert("Email is required", true);
-        return false;
-      }
+      console.log("Sign In Data:", formfields);
+      postData("/api/user/signin", formfields).then((res) => {
+        console.log("formvalues", formfields);
+        console.log("res:", res);
+        localStorage.setItem("token", res.token);
+        localStorage.setItem(
+          "existingUser",
+          res.user?.existingUser ? JSON.stringify(res.user.existingUser) : "{}",
+        );
+        localStorage.setItem("loginTime", Date.now().toString());
 
-      if (formfields.password === "") {
-        showAlert("Password is required", true);
-        return false;
-      }
-      if (formfields.clinicname === "") {
-        showAlert("Clinic name is required", true);
-        return false;
-      }
-      if (formfields.clinicphone === "") {
-        showAlert("Clinic phone is required", true);
-        return false;
-      }
-      if (formfields.clinicemail === "") {
-        showAlert("Clinic email is required", true);
-        return false;
-      }
-      if (formfields.position === "") {
-        showAlert("Position is required", true);
-        return false;
-      }
+        try {
+          if (res.error !== true && res.user) {
+            const existingUser = res.user?.existingUser;
+            const findClinic = res.user?.findClinic ?? [];
+            const findAddress = res.user?.findAddress ?? [];
+            const findAssociation = res.user?.findAssociation ?? {
+              clinicid: [],
+            };
+            let user;
 
-      setIsLoading(true);
-      console.log("formfields", formfields);
+            if (findClinic != null) {
+              user = {
+                name: existingUser?.name,
+                email: existingUser?.email,
+                userId: existingUser?.id,
+                founder: existingUser?.founder,
+                images: existingUser?.images?.[0] ?? "",
+                clinicId: findClinic[0]?._id ?? null,
+                isAdmin: existingUser?.isAdmin ?? false,
+                clinicname: findClinic?.[0]?.clinicname ?? "N/A",
+                clinicemail: findClinic?.[0]?.clinicemail ?? "N/A",
+                state: findAddress?.[0].state ?? "N/A",
+                isVerified: findClinic?.[0]?.isVerified,
+                subscription: res.user.subscription,
+              };
+            } else {
+              user = {
+                name: existingUser?.name,
+                email: existingUser?.email,
+                userId: existingUser?.id,
+                founder: existingUser?.founder,
+                images: existingUser?.images?.[0] ?? "",
+                isAdmin: existingUser?.isAdmin ?? false,
+                clinicId: findClinic[0]?._id ?? null,
+                clinicname: findClinic?.[0]?.clinicname ?? "N/A",
+                clinicemail: findClinic?.[0]?.clinicemail ?? "N/A",
+                clinicphone: findClinic?.[0]?.clinicphone ?? "N/A",
+                state: findAddress?.[0]?.state ?? "N/A",
+                isVerified: findClinic?.[0]?.isVerified,
+                subscription: res.user.subscription,
+              };
+            }
+            console.log(" user:", user);
+            if ((res.user?.findAssociation?.clinicid ?? []).length === 0) {
+            }
 
-      // Using our existing signup API
-      authAPI
-        .signUp({
-          name: formfields.name,
-          email: formfields.email,
-          password: formfields.password,
-          phone: formfields.clinicphone,
-          clinicName: formfields.clinicname,
-          clinicEmail: formfields.clinicemail,
-          clinicPhoneNumber: formfields.clinicphone,
-        })
-        .then((res) => {
-          console.log(`res ${JSON.stringify(res)}`);
-          if (!res.error) {
-            showAlert(res?.msg || "Registration successful");
-            localStorage.setItem("user", JSON.stringify(res.user));
-
+            localStorage.setItem("user", JSON.stringify(user));
+            localStorage.setItem("images", JSON.stringify(user?.images));
             setTimeout(() => {
-              setIsLoading(false);
-              navigate("/", { replace: true });
+              if (
+                Array.isArray(res.user?.findClinic) &&
+                res.user.findClinic.length > 0 &&
+                Array.isArray(res.user.findClinic[0].speciesid) &&
+                res.user.findClinic[0].speciesid.length === 0
+              ) {
+                console.log("Clinic route");
+                history("/clinicform");
+              } else {
+                console.log("Home");
+                history("/home");
+              }
             }, 2000);
           } else {
-            setIsLoading(false);
-            showAlert(res.msg || "Registration failed", true);
+            setAlertMsg(res.msg || "Login failed.");
+            setAlertOpen(true);
           }
+        } catch (error) {
+          console.log(error);
+        }
+      });
+    } else {
+      if (
+        !formvalues.name ||
+        !formvalues.email ||
+        !formvalues.password ||
+        !formvalues.clinicname ||
+        !formvalues.clinicphone ||
+        !formvalues.clinicemail
+      ) {
+        setAlertMsg("All fields are required");
+        setAlertOpen(true);
+        return;
+      }
+
+      console.log("Sign Up Data:", formvalues);
+      postData("/api/user/signup", formvalues).then((res) => {
+        console.log("formvalues", formvalues);
+        console.log("res:", res);
+        localStorage.setItem("token", res.token);
+        localStorage.setItem(
+          "existingUser",
+          res.user?.existingUser ? JSON.stringify(res.user.existingUser) : "{}",
+        );
+        localStorage.setItem("loginTime", Date.now().toString());
+
+        try {
+          if (res.error !== true) {
+            console.log(`IF`);
+            let user;
+            const existingUser = res.user?.existingUser;
+            const findClinic = res.user?.findClinic ?? [];
+            const findAddress = res.user?.findAddress ?? [];
+            const findAssociation = res.user?.findAssociation ?? {
+              clinicid: [],
+            };
+            if (res.user.findClinic != null) {
+              console.log("IF Enter", res.user.findAssociation.clinicid[0]);
+              user = {
+                name: existingUser?.name,
+                email: existingUser?.email,
+                userId: existingUser?.id,
+                founder: existingUser?.founder,
+                images: existingUser?.images?.[0] ?? "",
+                clinicId: findClinic[0]?._id ?? null,
+                isAdmin: existingUser?.isAdmin ?? false,
+                clinicname: findClinic?.[0]?.clinicname ?? "N/A",
+                clinicemail: findClinic?.[0]?.clinicemail ?? "N/A",
+                state: findAddress?.[0].state ?? "N/A",
+                isVerified: findClinic?.[0]?.isVerified,
+                subscription: res.user.subscription,
+              };
+            } else {
+              console.log("ELSE Enter");
+              user = {
+                name: existingUser?.name,
+                email: existingUser?.email,
+                userId: existingUser?.id,
+                founder: existingUser?.founder,
+                images: existingUser?.images?.[0] ?? "",
+                isAdmin: existingUser?.isAdmin ?? false,
+                clinicId: findClinic[0]?._id ?? null,
+                clinicname: findClinic?.[0]?.clinicname ?? "N/A",
+                clinicemail: findClinic?.[0]?.clinicemail ?? "N/A",
+                clinicphone: findClinic?.[0]?.clinicphone ?? "N/A",
+                state: findAddress?.[0]?.state ?? "N/A",
+                isVerified: findClinic?.[0]?.isVerified,
+                subscription: res.user.subscription,
+              };
+            }
+            console.log(" user:", user);
+            if ((res.user?.findAssociation?.clinicid ?? []).length === 0) {
+            }
+
+            localStorage.setItem("user", JSON.stringify(user));
+            localStorage.setItem("images", JSON.stringify(user?.images));
+            setTimeout(() => {
+              if (
+                Array.isArray(res.user?.findClinic) &&
+                res.user.findClinic.length > 0 &&
+                Array.isArray(res.user.findClinic[0].speciesid) &&
+                res.user.findClinic[0].speciesid.length === 0
+              ) {
+                console.log("Clinic route");
+                history("/clinicform");
+              } else {
+                console.log("Home");
+                history("/clinicform");
+              }
+            }, 2000);
+          } else {
+          }
+        } catch (error) {
+          console.log(error);
+        }
+      });
+    }
+  };
+  const handleForgotPasswordNext = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (forgotPasswordStep === 1 && forgotPasswordEmail) {
+      setForgotMsg("Sending...");
+      try {
+        const res = await postData("/api/user/forget-password", {
+          email: forgotPasswordEmail,
         });
-    } catch (error) {
-      console.log(error);
-      setIsLoading(false);
+        if (res.error || res.status === "FAILED") {
+          setForgotMsg(res.msg || "Failed to send reset link.");
+        } else {
+          setForgotMsg("OTP sent! Please check your email.");
+          setForgotPasswordStep(2);
+        }
+      } catch (error) {
+        setForgotMsg("Something went wrong.");
+      }
+    } else if (
+      forgotPasswordStep === 2 &&
+      otpCode &&
+      newPassword &&
+      confirmNewPassword
+    ) {
+      if (newPassword !== confirmNewPassword) {
+        setForgotMsg("Passwords do not match.");
+        return;
+      }
+
+      setForgotMsg("Verifying OTP and resetting password...");
+      try {
+        const res = await postData("/api/user/verify-otp", {
+          email: forgotPasswordEmail,
+          otp: otpCode,
+          newPassword,
+        });
+
+        if (res.success || res.status === "OK") {
+          setForgotPasswordStep(4);
+          setForgotMsg("Password reset successful!");
+        } else {
+          setForgotMsg(res.msg || "Invalid OTP or failed to reset password.");
+        }
+      } catch (err) {
+        console.error(err);
+        setForgotMsg("Something went wrong.");
+      }
+    } else if (
+      forgotPasswordStep === 3 &&
+      newPassword &&
+      confirmNewPassword &&
+      newPassword === confirmNewPassword
+    ) {
+      setForgotMsg("Resetting password...");
+      try {
+        const res = await postData("/api/user/reset-password", {
+          email: forgotPasswordEmail,
+          newPassword,
+        });
+
+        if (res.success || res.status === "OK") {
+          setForgotPasswordStep(4);
+          setForgotMsg("Password reset successfully!");
+        } else {
+          setForgotMsg(res.msg || "Failed to reset password.");
+        }
+      } catch (error) {
+        console.error(error);
+        setForgotMsg("Error resetting password.");
+      }
     }
   };
 
-  return (
-    <div className="min-h-screen bg-hero-gradient flex items-center justify-center p-4">
-      {/* Background decorative elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="w-[300px] h-[300px] bg-brand-yellow opacity-20 rounded-full absolute -top-20 -left-20"></div>
-        <div className="w-[200px] h-[200px] bg-brand-navy opacity-10 rounded-full absolute top-1/4 right-0"></div>
-        <div className="w-[150px] h-[150px] bg-brand-yellow-80 opacity-15 rounded-full absolute bottom-20 left-1/4"></div>
+  const resetForgotPasswordFlow = () => {
+    setShowForgotPassword(false);
+    setForgotPasswordStep(1);
+    setForgotPasswordEmail("");
+    setOtpCode("");
+    setNewPassword("");
+    setConfirmNewPassword("");
+  };
+
+  if (showForgotPassword) {
+    return (
+      <div className="min-h-screen bg-linear-gradient flex items-center justify-center p-4 sm:p-6 lg:p-8">
+        <Card className="w-full max-w-md mx-auto">
+          <CardHeader className="text-center">
+            <div className="w-[120px] h-[40px] bg-primary-dark-blue rounded-lg flex items-center justify-center mx-auto mb-4">
+              <span className="text-neutral-0 font-gabarito font-bold text-lg">
+                PetMart
+              </span>
+            </div>
+
+            {/* Step Indicator */}
+            <div className="flex items-center justify-center mb-4">
+              <div className="flex items-center space-x-2">
+                {[1, 2, 3].map((step) => (
+                  <div key={step} className="flex items-center">
+                    <div
+                      className={`flex items-center justify-center w-8 h-8 rounded-full text-sm ${
+                        step <= forgotPasswordStep
+                          ? "bg-primary-dark-blue text-white"
+                          : "bg-neutral-20 text-neutral-60"
+                      }`}
+                    >
+                      {step}
+                    </div>
+                    {step < 3 && (
+                      <div
+                        className={`w-8 h-0.5 mx-1 ${
+                          step < forgotPasswordStep
+                            ? "bg-primary-dark-blue"
+                            : "bg-neutral-20"
+                        }`}
+                      />
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {forgotPasswordStep === 1 && (
+              <>
+                <CardTitle className="text-2xl font-gabarito font-bold text-primary-dark-blue">
+                  Forgot Password?
+                </CardTitle>
+                <CardDescription className="text-neutral-60">
+                  Enter your email address and we'll send you an OTP to reset
+                  your password.
+                </CardDescription>
+              </>
+            )}
+
+            {forgotPasswordStep === 2 && (
+              <>
+                <CardTitle className="text-2xl font-gabarito font-bold text-primary-dark-blue">
+                  Enter OTP
+                </CardTitle>
+                <CardDescription className="text-neutral-60">
+                  We've sent a 6-digit code to {forgotPasswordEmail}. Enter it
+                  below.
+                </CardDescription>
+              </>
+            )}
+
+            {forgotPasswordStep === 3 && (
+              <>
+                <CardTitle className="text-2xl font-gabarito font-bold text-primary-dark-blue">
+                  Set New Password
+                </CardTitle>
+                <CardDescription className="text-neutral-60">
+                  Choose a strong password for your account.
+                </CardDescription>
+              </>
+            )}
+
+            {forgotPasswordStep === 4 && (
+              <>
+                <div className="flex justify-center mb-4">
+                  <CheckCircle className="w-16 h-16 text-green-500" />
+                </div>
+                <CardTitle className="text-2xl font-gabarito font-bold text-primary-dark-blue">
+                  Password Reset Successful!
+                </CardTitle>
+                <CardDescription className="text-neutral-60">
+                  Your password has been reset successfully. You can now sign in
+                  with your new password.
+                </CardDescription>
+              </>
+            )}
+          </CardHeader>
+
+          <CardContent>
+            {forgotPasswordStep < 4 && (
+              <form onSubmit={handleForgotPasswordNext} className="space-y-4">
+                {forgotPasswordStep === 1 && (
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="reset-email"
+                      className="text-neutral-80 font-gabarito font-bold"
+                    >
+                      Email Address
+                    </Label>
+                    <Input
+                      id="reset-email"
+                      type="email"
+                      value={forgotPasswordEmail}
+                      onChange={(e) => setForgotPasswordEmail(e.target.value)}
+                      placeholder="Enter your email"
+                      className="rounded-lg border-neutral-40 focus:border-primary-dark-blue"
+                      required
+                    />
+                  </div>
+                )}
+
+                {forgotPasswordStep === 2 && (
+                  <>
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="otp-code"
+                        className="text-neutral-80 font-gabarito font-bold"
+                      >
+                        OTP Code
+                      </Label>
+                      <Input
+                        id="otp-code"
+                        type="text"
+                        value={otpCode}
+                        onChange={(e) => setOtpCode(e.target.value)}
+                        placeholder="Enter 6-digit code"
+                        maxLength={6}
+                        className="rounded-lg border-neutral-40 focus:border-primary-dark-blue text-center text-lg tracking-widest"
+                        required
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="new-password"
+                        className="text-neutral-80 font-gabarito font-bold"
+                      >
+                        New Password
+                      </Label>
+                      <Input
+                        id="new-password"
+                        type={showPassword ? "text" : "password"}
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        placeholder="Enter new password"
+                        className="rounded-lg border-neutral-40 focus:border-primary-dark-blue"
+                        required
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="confirm-new-password"
+                        className="text-neutral-80 font-gabarito font-bold"
+                      >
+                        Confirm Password
+                      </Label>
+                      <Input
+                        id="confirm-new-password"
+                        type={showConfirmPassword ? "text" : "password"}
+                        value={confirmNewPassword}
+                        onChange={(e) => setConfirmNewPassword(e.target.value)}
+                        placeholder="Confirm new password"
+                        className="rounded-lg border-neutral-40 focus:border-primary-dark-blue"
+                        required
+                      />
+                    </div>
+
+                    {newPassword &&
+                      confirmNewPassword &&
+                      newPassword !== confirmNewPassword && (
+                        <p className="text-red-500 text-sm">
+                          Passwords do not match
+                        </p>
+                      )}
+                  </>
+                )}
+
+                {forgotPasswordStep === 3 && (
+                  <>
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="new-password"
+                        className="text-neutral-80 font-gabarito font-bold"
+                      >
+                        New Password
+                      </Label>
+                      <div className="relative">
+                        <Input
+                          id="new-password"
+                          type={showPassword ? "text" : "password"}
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                          placeholder="Enter new password"
+                          className="rounded-lg border-neutral-40 focus:border-primary-dark-blue pr-10"
+                          required
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                          onClick={() => setShowPassword(!showPassword)}
+                        >
+                          {showPassword ? (
+                            <EyeOff className="h-4 w-4 text-neutral-40" />
+                          ) : (
+                            <Eye className="h-4 w-4 text-neutral-40" />
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="confirm-new-password"
+                        className="text-neutral-80 font-gabarito font-bold"
+                      >
+                        Confirm New Password
+                      </Label>
+                      <div className="relative">
+                        <Input
+                          id="confirm-new-password"
+                          type={showConfirmPassword ? "text" : "password"}
+                          value={confirmNewPassword}
+                          onChange={(e) =>
+                            setConfirmNewPassword(e.target.value)
+                          }
+                          placeholder="Confirm new password"
+                          className="rounded-lg border-neutral-40 focus:border-primary-dark-blue pr-10"
+                          required
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                          onClick={() =>
+                            setShowConfirmPassword(!showConfirmPassword)
+                          }
+                        >
+                          {showConfirmPassword ? (
+                            <EyeOff className="h-4 w-4 text-neutral-40" />
+                          ) : (
+                            <Eye className="h-4 w-4 text-neutral-40" />
+                          )}
+                        </Button>
+                      </div>
+                      {newPassword &&
+                        confirmNewPassword &&
+                        newPassword !== confirmNewPassword && (
+                          <p className="text-red-500 text-sm">
+                            Passwords do not match
+                          </p>
+                        )}
+                    </div>
+                  </>
+                )}
+
+                <Button
+                  type="submit"
+                  className="w-full bg-primary-dark-blue hover:bg-primary-dark-blue80 text-neutral-0 rounded-lg py-3 font-gabarito font-bold"
+                  disabled={
+                    (forgotPasswordStep === 1 && !forgotPasswordEmail) ||
+                    (forgotPasswordStep === 2 && !otpCode) ||
+                    (forgotPasswordStep === 3 &&
+                      (!newPassword ||
+                        !confirmNewPassword ||
+                        newPassword !== confirmNewPassword))
+                  }
+                >
+                  {forgotPasswordStep === 1 && "Send OTP"}
+                  {forgotPasswordStep === 2 && "Verify OTP"}
+                  {forgotPasswordStep === 3 && "Reset Password"}
+                </Button>
+
+                {forgotPasswordStep > 1 && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full border-neutral-40 hover:bg-secondary-yellow40 flex items-center justify-center space-x-2"
+                    onClick={() =>
+                      setForgotPasswordStep(forgotPasswordStep - 1)
+                    }
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                    <span>Back</span>
+                  </Button>
+                )}
+              </form>
+            )}
+
+            {forgotPasswordStep === 4 && (
+              <Button
+                className="w-full bg-primary-dark-blue hover:bg-primary-dark-blue80 text-neutral-0 rounded-lg py-3 font-gabarito font-bold"
+                onClick={() => setShowForgotPassword(false)}
+              >
+                Back to Login
+              </Button>
+            )}
+
+            {forgotPasswordStep === 1 && (
+              <Button
+                type="button"
+                variant="ghost"
+                className="w-full text-primary-dark-blue hover:bg-secondary-yellow40 mt-4"
+                onClick={resetForgotPasswordFlow}
+              >
+                Back to Login
+              </Button>
+            )}
+          </CardContent>
+        </Card>
       </div>
+    );
+  }
 
-      <div className="w-full max-w-md relative z-10">
-        {/* Logo */}
-        <div className="text-center mb-8">
-          <img
-            src="https://cdn.builder.io/api/v1/image/assets%2Fe33c04ad181d47968df9f3990555750a%2F9cc201b9ffd546c487ca47797b751f54?format=webp&width=800"
-            alt="IndiaVetMart"
-            className="w-48 h-12 mx-auto object-contain mb-4"
-          />
-          <h1
-            className="text-brand-navy text-2xl font-bold mb-2"
-            style={{ fontFamily: "SVN-Gilroy, Inter, sans-serif" }}
-          >
-            Welcome Back
-          </h1>
-          <p
-            className="text-brand-neutral-60 font-medium"
-            style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
-          >
-            Sign in to your veterinary account
-          </p>
-          <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-sm text-red-800 font-bold">
-              ⚠️ API Server Timeout - Use Demo Mode
-            </p>
-            <p className="text-xs text-red-600 mt-1">
-              Email: demo@demo.com | Password: demo123
-            </p>
-          </div>
-        </div>
-
-        {/* Login Form */}
-        <div className="bg-white rounded-2xl shadow-[0px_4px_28px_-2px_rgba(0,0,0,0.08)] p-8">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Email Field */}
-            <div>
-              <label
-                className="block text-brand-neutral-80 text-sm font-bold mb-2"
-                style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
-              >
-                Email Address
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center">
-                  <Mail className="h-5 w-5 text-brand-neutral-40" />
-                </div>
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  disabled={isSubmitting}
-                  className="w-full pl-10 pr-4 py-3 border border-brand-neutral-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-navy focus:border-transparent text-brand-neutral-80 disabled:opacity-50 disabled:cursor-not-allowed"
-                  style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
-                  placeholder="Enter your email"
-                  required
-                />
+  return (
+    <div className="min-h-screen bg-linear-gradient flex items-center justify-center p-4 sm:p-6 lg:p-8">
+      <Card
+        className={`w-full mx-auto ${
+          isLogin ? "max-w-md" : "max-w-2xl p-6 rounded-xl shadow-md bg-white"
+        }`}
+      >
+        {" "}
+        <CardHeader className="text-center">
+          <CardTitle className="heading-36pxbold">
+            {isLogin && "Sign in to Your Account"}
+          </CardTitle>
+          <CardDescription className="text-neutral-60">
+            {!isLogin && (
+              <div className="text-center mb-6">
+                <h1 className="text-2xl md:text-3xl font-bold font-gabarito text-primary-dark-blue">
+                  Let’s create your veterinary practice's purchasing account!
+                </h1>
+                <p className="text-neutral-80 text-base mt-2">
+                  Signing up for IndiaVetMart is fast and free – you’ll be up
+                  and running in under a minute
+                </p>
               </div>
-            </div>
+            )}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {!isLogin && (
+              <>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="yourName"
+                      className="text-neutral-80 font-gabarito font-bold"
+                    >
+                      Your Name
+                    </Label>
+                    <Input
+                      id="yourName"
+                      value={formvalues.name}
+                      onChange={(e) =>
+                        setFormvalues((prev) => ({
+                          ...prev,
+                          name: e.target.value,
+                        }))
+                      }
+                      placeholder="Enter Your Name"
+                      className="rounded-lg border-neutral-40 focus:border-primary-dark-blue"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="yourEmail"
+                      className="text-neutral-80 font-gabarito font-bold"
+                    >
+                      Your Email
+                    </Label>
+                    <Input
+                      id="userEmail"
+                      value={formvalues.email}
+                      onChange={(e) =>
+                        setFormvalues((prev) => ({
+                          ...prev,
+                          email: e.target.value,
+                        }))
+                      }
+                      placeholder="Enter Your Email"
+                      className="rounded-lg border-neutral-40 focus:border-primary-dark-blue"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="phone"
+                      className="text-neutral-80 font-gabarito font-bold"
+                    >
+                      Your Phone Number
+                    </Label>
+                    <Input
+                      id="phone"
+                      value={formvalues.phone}
+                      onChange={(e) =>
+                        setFormvalues((prev) => ({
+                          ...prev,
+                          phone: e.target.value,
+                        }))
+                      }
+                      placeholder="Enter Phone Number"
+                      className="rounded-lg border-neutral-40 focus:border-primary-dark-blue"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="signupPassword"
+                      className="text-neutral-80 font-gabarito font-bold"
+                    >
+                      Password
+                    </Label>
+                    <Input
+                      id="signupPassword"
+                      type={showPassword ? "text" : "password"}
+                      value={formvalues.password}
+                      onChange={(e) =>
+                        setFormvalues((prev) => ({
+                          ...prev,
+                          password: e.target.value,
+                        }))
+                      }
+                      placeholder="Enter Password"
+                      className="rounded-lg border-neutral-40 focus:border-primary-dark-blue"
+                      required
+                    />
+                  </div>
 
-            {/* Password Field */}
-            <div>
-              <label
-                className="block text-brand-neutral-80 text-sm font-bold mb-2"
-                style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
-              >
-                Password
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center">
-                  <Lock className="h-5 w-5 text-brand-neutral-40" />
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="clinicName"
+                      className="text-neutral-80 font-gabarito font-bold"
+                    >
+                      Clinic Name
+                    </Label>
+                    <Input
+                      id="clinicName"
+                      value={formvalues.clinicname}
+                      onChange={(e) =>
+                        setFormvalues((prev) => ({
+                          ...prev,
+                          clinicname: e.target.value,
+                        }))
+                      }
+                      placeholder="Enter Clinic Name"
+                      className="rounded-lg border-neutral-40 focus:border-primary-dark-blue"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="clinicEmail"
+                      className="text-neutral-80 font-gabarito font-bold"
+                    >
+                      Clinic Email
+                    </Label>
+                    <Input
+                      id="clinicEmail"
+                      type="email"
+                      value={formvalues.clinicemail}
+                      onChange={(e) =>
+                        setFormvalues((prev) => ({
+                          ...prev,
+                          clinicemail: e.target.value,
+                        }))
+                      }
+                      placeholder="Enter Clinic Email"
+                      className="rounded-lg border-neutral-40 focus:border-primary-dark-blue"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="clinicPhone"
+                      className="text-neutral-80 font-gabarito font-bold"
+                    >
+                      Clinic Phone Number
+                    </Label>
+                    <Input
+                      id="clinicPhone"
+                      value={formvalues.clinicphone}
+                      onChange={(e) =>
+                        setFormvalues((prev) => ({
+                          ...prev,
+                          clinicphone: e.target.value,
+                        }))
+                      }
+                      placeholder="Enter Clinic Phone Number"
+                      className="rounded-lg border-neutral-40 focus:border-primary-dark-blue"
+                      required
+                    />
+                  </div>
                 </div>
-                <input
-                  type={showPassword ? "text" : "password"}
-                  name="password"
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  disabled={isSubmitting}
-                  className="w-full pl-10 pr-12 py-3 border border-brand-neutral-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-navy focus:border-transparent text-brand-neutral-80 disabled:opacity-50 disabled:cursor-not-allowed"
-                  style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
-                  placeholder="Enter your password"
-                  required
-                />
-                <button
+              </>
+            )}
+
+            {isLogin && (
+              <>
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="email"
+                    className="text-neutral-80 font-gabarito font-bold"
+                  >
+                    Your Email
+                  </Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="Enter Your Email"
+                    className="rounded-lg border-neutral-40 focus:border-primary-dark-blue"
+                    value={formfields.email}
+                    onChange={(e) => {
+                      setFormfields((prev) => ({
+                        ...prev,
+                        email: e.target.value,
+                      }));
+                    }}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="password"
+                    className="text-neutral-80 font-gabarito font-bold"
+                  >
+                    Your Password
+                  </Label>
+                  <div className="relative">
+                    <Input
+                      id="password"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Enter Your Password"
+                      className="rounded-lg border-neutral-40 focus:border-primary-dark-blue pr-10"
+                      value={formfields.password}
+                      onChange={(e) => {
+                        setFormfields((prev) => ({
+                          ...prev,
+                          password: e.target.value,
+                        }));
+                      }}
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-4 w-4 text-neutral-40" />
+                      ) : (
+                        <Eye className="h-4 w-4 text-neutral-40" />
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {isLogin && (
+              <div className="flex justify-end">
+                <Button
                   type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  variant="link"
+                  className="text-primary-dark-blue hover:text-primary-dark-blue80 p-0"
+                  onClick={() => setShowForgotPassword(true)}
                 >
-                  {showPassword ? (
-                    <EyeOff className="h-5 w-5 text-brand-neutral-40" />
-                  ) : (
-                    <Eye className="h-5 w-5 text-brand-neutral-40" />
-                  )}
-                </button>
+                  Forgot password?
+                </Button>
               </div>
-            </div>
+            )}
 
-            {/* Remember Me & Forgot Password */}
-            <div className="flex items-center justify-between">
-              <label className="flex items-center">
-                <input
-                  type="checkbox"
-                  className="w-4 h-4 text-brand-navy bg-brand-neutral-10 border-brand-neutral-20 rounded focus:ring-brand-navy focus:ring-2"
-                />
-                <span
-                  className="ml-2 text-sm text-brand-neutral-60 font-medium"
-                  style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
-                >
-                  Remember me
-                </span>
-              </label>
-              <Link
-                to="/forgot-password"
-                className="text-sm text-brand-navy font-bold hover:text-brand-dark-navy transition-colors"
-                style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
-              >
-                Forgot password?
-              </Link>
-            </div>
-
-            {/* Login Button */}
-            <button
+            <Button
               type="submit"
-              disabled={isSubmitting}
-              className="w-full bg-brand-navy text-white py-3 px-6 rounded-lg font-bold hover:bg-brand-dark-navy transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
+              className="w-full bg-primary-dark-blue hover:bg-primary-dark-blue80 text-neutral-0 rounded-lg py-3 font-gabarito font-bold"
             >
-              {isSubmitting ? "Signing In..." : "Sign In"}
-            </button>
+              {isLogin ? "Sign In" : "Register"}
+            </Button>
+            <div className="text-center">
+              <span className="text-neutral-60 text-sm">
+                {isLogin ? "Need an account?" : "Already have an account?"}
+              </span>
+              <Button
+                type="button"
+                variant="link"
+                className="text-primary-dark-blue hover:text-primary-dark-blue80 ml-1 p-0"
+                onClick={() => setIsLogin(!isLogin)}
+              >
+                {isLogin ? "Sign up for IndiaVetMart" : "Sign in"}
+              </Button>
+            </div>
 
-            {/* Demo Quick Login */}
-            <button
-              type="button"
-              onClick={async () => {
-                setIsSubmitting(true);
-                setIsLoading(true);
-
-                // Simulate demo login
-                try {
-                  const demoUser = {
-                    id: "demo-1",
-                    name: "Demo User",
-                    email: "demo@demo.com",
-                  };
-
-                  localStorage.setItem("token", "demo-token-123");
-                  localStorage.setItem("user", JSON.stringify(demoUser));
-
-                  setUser(demoUser);
-                  setIsLogin(true);
-                  showAlert("Demo mode activated! Welcome to IndiaVetMart 🎉");
-
-                  // Navigate to homepage
-                  setTimeout(() => {
-                    navigate("/", { replace: true });
-                  }, 500);
-                } catch (error) {
-                  showAlert("Demo mode failed", true);
-                } finally {
-                  setTimeout(() => {
-                    setIsSubmitting(false);
-                    setIsLoading(false);
-                  }, 600);
-                }
-              }}
-              disabled={isSubmitting}
-              className="w-full bg-green-500 text-white py-3 px-6 rounded-lg font-bold hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
-            >
-              {isSubmitting
-                ? "Loading Demo..."
-                : "🎯 Enter Demo Mode - Skip API"}
-            </button>
-
-            {/* Divider */}
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-brand-neutral-20"></div>
+                <Separator className="w-full" />
               </div>
-              <div className="relative flex justify-center text-sm">
-                <span
-                  className="px-2 bg-white text-brand-neutral-60 font-medium"
-                  style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
-                >
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-white px-2 text-neutral-60">
                   Or continue with
                 </span>
               </div>
             </div>
 
-            {/* Google Sign In */}
-            <button
+            <Button
               type="button"
-              onClick={handleGoogleSignup}
-              disabled={isSubmitting}
-              className="w-full flex items-center justify-center gap-3 bg-white border border-brand-neutral-20 text-brand-neutral-80 py-3 px-6 rounded-lg font-bold hover:bg-brand-neutral-10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
+              variant="outline"
+              className="w-full rounded-lg border-neutral-40 hover:bg-secondary-yellow40"
+              onClick={handleGoogleAuth}
             >
-              {isSubmitting ? (
-                <div className="animate-spin w-5 h-5 border-2 border-brand-navy border-t-transparent rounded-full"></div>
-              ) : (
-                <svg className="w-5 h-5" viewBox="0 0 24 24">
-                  <path
-                    fill="#4285F4"
-                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                  />
-                  <path
-                    fill="#34A853"
-                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                  />
-                  <path
-                    fill="#FBBC05"
-                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                  />
-                  <path
-                    fill="#EA4335"
-                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                  />
-                </svg>
-              )}
-              {isSubmitting ? "Signing in..." : "Continue with Google"}
-            </button>
+              <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
+                <path
+                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                  fill="#4285F4"
+                />
+                <path
+                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                  fill="#34A853"
+                />
+                <path
+                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                  fill="#FBBC05"
+                />
+                <path
+                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                  fill="#EA4335"
+                />
+              </svg>
+              Continue with Google
+            </Button>
           </form>
-
-          {/* Sign Up Link */}
-          <div className="mt-8 text-center">
-            <p
-              className="text-brand-neutral-60 font-medium"
-              style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
-            >
-              Don't have an account?{" "}
-              <Link
-                to="/signup"
-                className="text-brand-navy font-bold hover:text-brand-dark-navy transition-colors"
-              >
-                Sign up
-              </Link>
-            </p>
-          </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

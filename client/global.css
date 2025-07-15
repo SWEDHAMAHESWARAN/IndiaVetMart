@@ -1,63 +1,29 @@
+@import url(https://db.onlinewebfonts.com/c/d7a74f6ebe99f3f64ac5c9cb859c25f6?family=SVN-GilroyBold);
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
 @layer base {
   /**
-   * Tailwind CSS theme
-   * tailwind.config.ts expects the following color variables to be expressed as HSL values.
-   * A different format will require also updating the theme in tailwind.config.ts.
-  */
+   * Pet eCommerce Design System
+   * Color palette and typography specifications
+   */
   :root {
-    --background: 0 0% 100%;
-    --foreground: 180 100% 6%;
-
-    --card: 0 0% 100%;
-    --card-foreground: 180 100% 6%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 180 100% 6%;
-
-    --primary: 201 100% 17%;
-    --primary-foreground: 0 0% 100%;
-
-    --secondary: 42 72% 86%;
-    --secondary-foreground: 201 100% 17%;
-
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-
-    --accent: 42 72% 86%;
-    --accent-foreground: 201 100% 17%;
-
-    --destructive: 7 87% 65%;
-    --destructive-foreground: 0 0% 100%;
-
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 201 100% 17%;
-
-    --radius: 0.5rem;
-
-    /* Brand Design System Colors */
-    --linear: linear-gradient(
-      13deg,
-      #fceed5 6.17%,
-      #fceed5 75.14%,
-      #ffe7ba 100%
-    );
+    /* Primary Colors */
     --primarycolor-darkblue: #003459;
     --primarycolor-darkblue80: #002a48;
     --primarycolor-darkblue60: #00528c;
     --primarycolor-darkblue40: #0078cd;
+    /* Secondary Colors */
     --secondarycolor-monyellow: #f7dba7;
     --secondarycolor-monyellow80: #eec77e;
     --secondarycolor-monyellow60: #f1d092;
     --secondarycolor-monyellow40: #fceed5;
+    /* State Colors */
     --statecolor-pinkred: #ff564f;
     --statecolor-greenlight: #34c759;
     --statecolor-orangeshine: #ff912c;
     --statecolor-bluesea: #00a7e7;
+    /* Neutral Colors */
     --neutralcolor-100: #00171f;
     --neutralcolor-80: #242b33;
     --neutralcolor-60: #667479;
@@ -65,77 +31,88 @@
     --neutralcolor-20: #ccd1d2;
     --neutralcolor-10: #ebeeef;
     --neutralcolor-00: #ffffff;
+    /* Gradients */
+    --linear: linear-gradient(
+      13deg,
+      #fceed5 6.17%,
+      #fceed5 75.14%,
+      #ffe7ba 100%
+    );
+    /* Typography Scale */
+    --heading-46pxbold: 700 2.875rem/3.75rem "SVN-GilroyBold", sans-serif;
+    --heading-46pxmedium: 500 2.875rem/3.75rem "SVN-GilroyBold", sans-serif;
+    --heading-46pxregular: 300 2.875rem/3.75rem "SVN-GilroyBold", sans-serif;
+    --heading-36pxbold: 700 2.25rem/3.375rem "SVN-GilroyBold", sans-serif;
+    --heading-36pxsemibold: 600 2.25rem/3.375rem "SVN-GilroyBold", sans-serif;
+    --heading-36pxregular: 300 2.25rem/3.375rem "SVN-GilroyBold", sans-serif;
+    --heading-28pxbold: 700 1.75rem/2.375rem "SVN-GilroyBold", sans-serif;
+    --heading-28pxmedium: 500 1.75rem/2.375rem "SVN-GilroyBold", sans-serif;
+    --heading-28pxregular: 300 1.75rem/2.375rem "SVN-GilroyBold", sans-serif;
+    --heading-24pxbold: 700 1.5rem/2.25rem "SVN-GilroyBold", sans-serif;
+    --heading-24pxsemibold: 600 1.5rem/2.25rem "SVN-GilroyBold", sans-serif;
+    --heading-24pxregular: 300 1.5rem/2.25rem "SVN-GilroyBold", sans-serif;
+    --body-20pxbold: 700 1.25rem/2rem "SVN-GilroyBold", sans-serif;
+    --body-20pxmedium: 500 1.25rem/1.75rem "SVN-GilroyBold", sans-serif;
+    --body-20pxregular: 300 1.25rem/1.75rem "SVN-GilroyBold", sans-serif;
+    --body-16pxbold: 700 1rem/1.5rem "SVN-GilroyBold", sans-serif;
+    --body-16pxmedium: 500 1rem/1.5rem "SVN-GilroyBold", sans-serif;
+    --body-16pxregular: 300 1rem/1.5rem "SVN-GilroyBold", sans-serif;
+    --body-14pxbold: 700 0.875rem/1.25rem "SVN-GilroyBold", sans-serif;
+    --body-14pxmedium: 500 0.875rem/1.25rem "SVN-GilroyBold", sans-serif;
+    --body-14pxregular: 300 0.875rem/1.25rem "SVN-GilroyBold", sans-serif;
+    --body-12pxbold: 700 0.75rem/1.125rem "SVN-GilroyBold", sans-serif;
+    --body-12pxmedium: 500 0.75rem/1.125rem "SVN-GilroyBold", sans-serif;
+    --body-12pxregular: 300 0.75rem/1.125rem "SVN-GilroyBold", sans-serif;
+    --body-10pxbold: 700 0.625rem/1rem "SVN-GilroyBold", sans-serif;
+    --body-10pxmedium: 500 0.625rem/1rem "SVN-GilroyBold", sans-serif;
+    --body-10pxregular: 300 0.625rem/1rem "SVN-GilroyBold", sans-serif;
+    --body-08pxbold: 700 0.5rem/0.75rem "SVN-GilroyBold", sans-serif;
+    --body-08pxsemibold: 600 0.5rem/0.75rem "SVN-GilroyBold", sans-serif;
+    --body-08pxregular: 300 0.5rem/0.75rem "SVN-GilroyBold", sans-serif;
 
-    --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* Keep shadcn compatibility */
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 210 91% 18%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+    --radius: 0.5rem;
   }
 
   .dark {
-    --background: 180 100% 9%;
-    --foreground: 0 0% 100%;
-
-    --card: 180 100% 9%;
-    --card-foreground: 0 0% 100%;
-
-    --popover: 180 100% 9%;
-    --popover-foreground: 0 0% 100%;
-
-    --primary: 0 0% 100%;
-    --primary-foreground: 201 100% 17%;
-
-    --secondary: 201 50% 20%;
-    --secondary-foreground: 0 0% 100%;
-
-    --muted: 201 50% 20%;
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 201 50% 20%;
-    --accent-foreground: 0 0% 100%;
-
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 100%;
-
-    --border: 201 50% 20%;
-    --input: 201 50% 20%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
-
-    /* Dark mode brand colors */
-    --primarycolor-darkblue: #ffffff;
-    --primarycolor-darkblue80: #f0f0f0;
-    --primarycolor-darkblue60: #d0d0d0;
-    --primarycolor-darkblue40: #b0b0b0;
-    --secondarycolor-monyellow: #2a3b47;
-    --secondarycolor-monyellow80: #1f2b35;
-    --secondarycolor-monyellow60: #334150;
-    --secondarycolor-monyellow40: #1a252f;
-    --neutralcolor-100: #ffffff;
-    --neutralcolor-80: #f0f0f0;
-    --neutralcolor-60: #d0d0d0;
-    --neutralcolor-40: #b0b0b0;
-    --neutralcolor-20: #808080;
-    --neutralcolor-10: #606060;
-    --neutralcolor-00: #00171f;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
   }
 }
 
@@ -145,15 +122,128 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-neutral-0 text-neutral-100 font-gilroy;
+    font-family: "Inter", sans-serif;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: "Gabarito", sans-serif;
   }
 }
 
 @layer utilities {
-  .line-clamp-2 {
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+  .heading-46-bold {
+    font: var(--heading-46pxbold);
+  }
+
+  .heading-36-bold {
+    font: var(--heading-36pxbold);
+  }
+
+  .heading-28-bold {
+    font: var(--heading-28pxbold);
+  }
+
+  .heading-24-bold {
+    font: var(--heading-24pxbold);
+  }
+
+  .body-16-bold {
+    font: var(--body-16pxbold);
+  }
+
+  .body-14-bold {
+    font: var(--body-14pxbold);
+  }
+
+  .body-12-medium {
+    font: var(--body-12pxmedium);
+  }
+
+  /* Custom scrollbar styles */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Custom scrollbar for better UX on desktop */
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(153, 162, 165) transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: rgb(153, 162, 165);
+    border-radius: 3px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background-color: rgb(102, 116, 121);
+  }
+
+  /* Auto-scroll animation for banner */
+  @keyframes scroll {
+    0% {
+      transform: translateX(0);
+    }
+    33.33% {
+      transform: translateX(-100%);
+    }
+    66.66% {
+      transform: translateX(-200%);
+    }
+    100% {
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes scroll-left-to-right {
+    0% {
+      transform: translateX(0);
+    }
+    33.33% {
+      transform: translateX(calc(-100% - 1rem));
+    }
+    66.66% {
+      transform: translateX(calc(-200% - 2rem));
+    }
+    100% {
+      transform: translateX(0);
+    }
+  }
+
+  .animate-scroll {
+    animation: scroll 15s infinite linear;
+  }
+
+  .animate-scroll:hover {
+    animation-play-state: paused;
+  }
+
+  .animate-scroll-left-to-right {
+    animation: scroll-left-to-right 18s infinite ease-in-out;
+    animation-delay: 2s;
+  }
+
+  .animate-scroll-left-to-right:hover {
+    animation-play-state: paused;
   }
 }

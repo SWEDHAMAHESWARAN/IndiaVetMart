@@ -1,554 +1,771 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Eye, EyeOff, Mail, Lock, User, Phone, Building } from "lucide-react";
-import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
-import { useAuth } from "../contexts/AuthContext";
-import { authAPI } from "../lib/api";
-import { auth, googleProvider } from "../lib/firebase";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { Separator } from "@/components/ui/separator";
+import { Check, ArrowLeft, ArrowRight, Eye, EyeOff } from "lucide-react";
+
+interface UserFormData {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+  phone: string;
+}
+
+interface ClinicFormData {
+  clinicName: string;
+  streetAddress: string;
+  suite: string;
+  zipCode: string;
+  city: string;
+  state: string;
+  practiceTypes: string[];
+  aboutClinic: string;
+  howDidYouHear: string;
+}
+
+interface VendorFormData {
+  belongsToBuyingGroup: string;
+  buyingGroupName: string;
+  isCorporateHospital: string;
+  corporateHospitalName: string;
+}
+
+const practiceTypeOptions = [
+  { id: "general", label: "General Practice", color: "bg-blue-100" },
+  { id: "emergency", label: "Emergency", color: "bg-purple-100" },
+  { id: "specialty", label: "Specialty", color: "bg-green-100" },
+  { id: "exotics", label: "Exotics", color: "bg-orange-100" },
+  { id: "equine", label: "Equine", color: "bg-yellow-100" },
+  { id: "mobile", label: "Mobile", color: "bg-teal-100" },
+  { id: "nonprofit", label: "Nonprofit", color: "bg-pink-100" },
+  { id: "university", label: "University", color: "bg-indigo-100" },
+  { id: "zoo", label: "Zoo/Aquarium", color: "bg-cyan-100" },
+  { id: "shelter", label: "Shelter/Rescue", color: "bg-red-100" },
+];
 
 export default function Signup() {
   const navigate = useNavigate();
-  const { setUser, setIsLogin, setIsLoading, showAlert } = useAuth();
+  const [currentStep, setCurrentStep] = useState(1);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formData, setFormData] = useState({
-    fullName: "",
+
+  const [userData, setUserData] = useState<UserFormData>({
+    firstName: "",
+    lastName: "",
     email: "",
     password: "",
     confirmPassword: "",
-    phoneNumber: "",
-    clinicName: "",
-    clinicEmail: "",
-    clinicPhoneNumber: "",
+    phone: "",
   });
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+  const [clinicData, setClinicData] = useState<ClinicFormData>({
+    clinicName: "",
+    streetAddress: "",
+    suite: "",
+    zipCode: "",
+    city: "",
+    state: "",
+    practiceTypes: [],
+    aboutClinic: "",
+    howDidYouHear: "",
+  });
+
+  const [vendorData, setVendorData] = useState<VendorFormData>({
+    belongsToBuyingGroup: "",
+    buyingGroupName: "",
+    isCorporateHospital: "",
+    corporateHospitalName: "",
+  });
+
+  const totalSteps = 3;
+  const progress = (currentStep / totalSteps) * 100;
+
+  const handleUserDataChange = (field: keyof UserFormData, value: string) => {
+    setUserData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleClinicDataChange = (
+    field: keyof ClinicFormData,
+    value: string | string[],
+  ) => {
+    setClinicData((prev) => ({ ...prev, [field]: value }));
+  };
 
-    // Validation
-    if (formData.password !== formData.confirmPassword) {
-      showAlert("Passwords do not match", true);
-      return;
-    }
+  const handleVendorDataChange = (
+    field: keyof VendorFormData,
+    value: string,
+  ) => {
+    setVendorData((prev) => ({ ...prev, [field]: value }));
+  };
 
-    setIsSubmitting(true);
-    setIsLoading(true);
+  const handlePracticeTypeToggle = (practiceType: string) => {
+    setClinicData((prev) => ({
+      ...prev,
+      practiceTypes: prev.practiceTypes.includes(practiceType)
+        ? prev.practiceTypes.filter((type) => type !== practiceType)
+        : [...prev.practiceTypes, practiceType],
+    }));
+  };
 
-    try {
-      const signupData = {
-        name: formData.fullName,
-        email: formData.email,
-        password: formData.password,
-        phone: formData.phoneNumber,
-        clinicName: formData.clinicName,
-        clinicEmail: formData.clinicEmail,
-        clinicPhoneNumber: formData.clinicPhoneNumber,
-      };
-
-      const response = await authAPI.signUp(signupData);
-
-      if (!response.error) {
-        showAlert(
-          response.msg ||
-            "Account created successfully! Please login to continue.",
+  const validateStep = (step: number): boolean => {
+    switch (step) {
+      case 1:
+        return !!(
+          userData.firstName &&
+          userData.lastName &&
+          userData.email &&
+          userData.password &&
+          userData.confirmPassword &&
+          userData.phone &&
+          userData.password === userData.confirmPassword
         );
-        setTimeout(() => {
-          navigate("/login", { replace: true });
-        }, 1500);
-      } else {
-        showAlert(response.msg || "Signup failed", true);
-      }
-    } catch (error: any) {
-      console.error("Signup error:", error);
-
-      // Handle error object properly
-      let errorMessage = "Signup failed. Please try again.";
-
-      if (typeof error === "object" && error !== null) {
-        if (error.msg) {
-          errorMessage = error.msg;
-        } else if (error.message) {
-          errorMessage = error.message;
-        } else if (typeof error === "string") {
-          errorMessage = error;
-        }
-      }
-
-      showAlert(errorMessage, true);
-    } finally {
-      setIsSubmitting(false);
-      setIsLoading(false);
+      case 2:
+        return !!(
+          clinicData.clinicName &&
+          clinicData.streetAddress &&
+          clinicData.zipCode &&
+          clinicData.city &&
+          clinicData.state &&
+          clinicData.practiceTypes.length > 0
+        );
+      case 3:
+        return !!(
+          vendorData.belongsToBuyingGroup && vendorData.isCorporateHospital
+        );
+      default:
+        return false;
     }
   };
 
-  const handleGoogleSignup = () => {
-    if (!auth || !googleProvider) {
-      showAlert("Google authentication is not configured", true);
-      return;
+  const handleNext = () => {
+    if (validateStep(currentStep) && currentStep < totalSteps) {
+      setCurrentStep(currentStep + 1);
     }
-
-    setIsLoading(true);
-    signInWithPopup(auth, googleProvider)
-      .then(async (result) => {
-        const user = result.user;
-
-        const fields = {
-          name: user.displayName || "",
-          email: user.email || "",
-          password: null,
-          images: user.photoURL || "",
-          phone: user.phoneNumber || "",
-        };
-
-        try {
-          const response = await authAPI.authWithGoogle(fields);
-
-          if (!response.error && response.token && response.user) {
-            localStorage.setItem("token", response.token);
-            const userData = {
-              id: response.user.id,
-              name: response.user.name,
-              email: response.user.email,
-            };
-            localStorage.setItem("user", JSON.stringify(userData));
-
-            setUser(userData);
-            setIsLogin(true);
-            showAlert(response.msg || "Google signup successful!");
-
-            setTimeout(() => {
-              navigate("/", { replace: true });
-            }, 100);
-          } else {
-            showAlert(response.msg || "Google signup failed", true);
-          }
-        } catch (error: any) {
-          console.error("Google signup API error:", error);
-
-          let errorMessage = "Google signup failed";
-          if (typeof error === "object" && error !== null) {
-            if (error.msg) {
-              errorMessage = error.msg;
-            } else if (error.message) {
-              errorMessage = error.message;
-            }
-          }
-
-          showAlert(errorMessage, true);
-        }
-      })
-      .catch((error) => {
-        const errorMessage = error.message;
-        showAlert(errorMessage || "Google signup failed", true);
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
   };
 
-  return (
-    <div className="min-h-screen bg-hero-gradient flex items-center justify-center p-4 py-8">
-      {/* Background decorative elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="w-[300px] h-[300px] bg-brand-yellow opacity-20 rounded-full absolute -top-20 -right-20"></div>
-        <div className="w-[200px] h-[200px] bg-brand-navy opacity-10 rounded-full absolute top-1/3 -left-10"></div>
-        <div className="w-[150px] h-[150px] bg-brand-yellow-80 opacity-15 rounded-full absolute bottom-40 right-1/4"></div>
+  const handlePrevious = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
+
+  const handleSubmit = () => {
+    if (validateStep(currentStep)) {
+      // Handle final submission
+      console.log("Registration data:", { userData, clinicData, vendorData });
+      // Redirect to login or dashboard
+      navigate("/login");
+    }
+  };
+
+  const renderStepIndicator = () => (
+    <div className="flex items-center justify-center mb-8">
+      <div className="flex items-center space-x-4">
+        {[1, 2, 3].map((step) => (
+          <div key={step} className="flex items-center">
+            <div
+              className={`flex items-center justify-center w-10 h-10 rounded-full border-2 ${
+                step <= currentStep
+                  ? "bg-primary-dark-blue border-primary-dark-blue text-white"
+                  : "border-neutral-40 text-neutral-40"
+              }`}
+            >
+              {step < currentStep ? <Check className="w-5 h-5" /> : step}
+            </div>
+            {step < 3 && (
+              <div
+                className={`w-16 h-0.5 mx-2 ${
+                  step < currentStep ? "bg-primary-dark-blue" : "bg-neutral-40"
+                }`}
+              />
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  const renderStepLabels = () => (
+    <div className="flex justify-center mb-8">
+      <div className="flex space-x-8 text-sm">
+        <div
+          className={`text-center ${currentStep === 1 ? "text-primary-dark-blue font-bold" : "text-neutral-60"}`}
+        >
+          <div>User</div>
+          <div>Information</div>
+        </div>
+        <div
+          className={`text-center ${currentStep === 2 ? "text-primary-dark-blue font-bold" : "text-neutral-60"}`}
+        >
+          <div>Clinic</div>
+          <div>Information</div>
+        </div>
+        <div
+          className={`text-center ${currentStep === 3 ? "text-primary-dark-blue font-bold" : "text-neutral-60"}`}
+        >
+          <div>Vendor</div>
+          <div>Information</div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderUserInfoStep = () => (
+    <div className="space-y-6">
+      <div className="text-center mb-6">
+        <h2 className="text-xl font-gabarito font-bold text-primary-dark-blue mb-2">
+          Let's Learn About You!
+        </h2>
+        <p className="text-neutral-60 text-sm">
+          This information is used to verify your registration and customize
+          your shopping experience.
+        </p>
       </div>
 
-      <div className="w-full max-w-2xl relative z-10">
-        {/* Logo */}
-        <div className="text-center mb-8">
-          <img
-            src="https://cdn.builder.io/api/v1/image/assets%2Fe33c04ad181d47968df9f3990555750a%2F9cc201b9ffd546c487ca47797b751f54?format=webp&width=800"
-            alt="IndiaVetMart"
-            className="w-48 h-12 mx-auto object-contain mb-4"
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label
+            htmlFor="firstName"
+            className="text-neutral-80 font-gabarito font-bold"
+          >
+            First Name
+          </Label>
+          <Input
+            id="firstName"
+            value={userData.firstName}
+            onChange={(e) => handleUserDataChange("firstName", e.target.value)}
+            placeholder="First name"
+            className="rounded-lg border-neutral-40 focus:border-primary-dark-blue"
+            required
           />
-          <h1
-            className="text-brand-navy text-2xl font-bold mb-2"
-            style={{ fontFamily: "SVN-Gilroy, Inter, sans-serif" }}
-          >
-            Join IndiaVetMart
-          </h1>
-          <p
-            className="text-brand-neutral-60 font-medium"
-            style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
-          >
-            Create your veterinary practice account
-          </p>
         </div>
+        <div className="space-y-2">
+          <Label
+            htmlFor="lastName"
+            className="text-neutral-80 font-gabarito font-bold"
+          >
+            Last Name
+          </Label>
+          <Input
+            id="lastName"
+            value={userData.lastName}
+            onChange={(e) => handleUserDataChange("lastName", e.target.value)}
+            placeholder="Last name"
+            className="rounded-lg border-neutral-40 focus:border-primary-dark-blue"
+            required
+          />
+        </div>
+      </div>
 
-        {/* Signup Form */}
-        <div className="bg-white rounded-2xl shadow-[0px_4px_28px_-2px_rgba(0,0,0,0.08)] p-8">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Personal Information Section */}
-            <div>
-              <h2
-                className="text-brand-navy text-lg font-bold mb-4"
-                style={{ fontFamily: "SVN-Gilroy, Inter, sans-serif" }}
-              >
-                Personal Information
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Full Name */}
-                <div>
-                  <label
-                    className="block text-brand-neutral-80 text-sm font-bold mb-2"
-                    style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
-                  >
-                    Full Name
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center">
-                      <User className="h-5 w-5 text-brand-neutral-40" />
-                    </div>
-                    <input
-                      type="text"
-                      name="fullName"
-                      value={formData.fullName}
-                      onChange={handleInputChange}
-                      className="w-full pl-10 pr-4 py-3 border border-brand-neutral-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-navy focus:border-transparent text-brand-neutral-80"
-                      style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
-                      placeholder="Enter your full name"
-                      required
-                    />
-                  </div>
-                </div>
+      <div className="space-y-2">
+        <Label
+          htmlFor="email"
+          className="text-neutral-80 font-gabarito font-bold"
+        >
+          Email Address
+        </Label>
+        <Input
+          id="email"
+          type="email"
+          value={userData.email}
+          onChange={(e) => handleUserDataChange("email", e.target.value)}
+          placeholder="Enter your email"
+          className="rounded-lg border-neutral-40 focus:border-primary-dark-blue"
+          required
+        />
+      </div>
 
-                {/* Phone Number */}
-                <div>
-                  <label
-                    className="block text-brand-neutral-80 text-sm font-bold mb-2"
-                    style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
-                  >
-                    Phone Number
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center">
-                      <Phone className="h-5 w-5 text-brand-neutral-40" />
-                    </div>
-                    <input
-                      type="tel"
-                      name="phoneNumber"
-                      value={formData.phoneNumber}
-                      onChange={handleInputChange}
-                      className="w-full pl-10 pr-4 py-3 border border-brand-neutral-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-navy focus:border-transparent text-brand-neutral-80"
-                      style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
-                      placeholder="+91 9876543210"
-                      required
-                    />
-                  </div>
-                </div>
-              </div>
+      <div className="space-y-2">
+        <Label
+          htmlFor="phone"
+          className="text-neutral-80 font-gabarito font-bold"
+        >
+          Phone Number
+        </Label>
+        <Input
+          id="phone"
+          type="tel"
+          value={userData.phone}
+          onChange={(e) => handleUserDataChange("phone", e.target.value)}
+          placeholder="Enter your phone number"
+          className="rounded-lg border-neutral-40 focus:border-primary-dark-blue"
+          required
+        />
+      </div>
 
-              {/* Email */}
-              <div className="mt-4">
-                <label
-                  className="block text-brand-neutral-80 text-sm font-bold mb-2"
-                  style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
-                >
-                  Email Address
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center">
-                    <Mail className="h-5 w-5 text-brand-neutral-40" />
-                  </div>
-                  <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    className="w-full pl-10 pr-4 py-3 border border-brand-neutral-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-navy focus:border-transparent text-brand-neutral-80"
-                    style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
-                    placeholder="Enter your email"
-                    required
-                  />
-                </div>
-              </div>
-            </div>
+      <div className="space-y-2">
+        <Label
+          htmlFor="password"
+          className="text-neutral-80 font-gabarito font-bold"
+        >
+          Password
+        </Label>
+        <div className="relative">
+          <Input
+            id="password"
+            type={showPassword ? "text" : "password"}
+            value={userData.password}
+            onChange={(e) => handleUserDataChange("password", e.target.value)}
+            placeholder="Create a password"
+            className="rounded-lg border-neutral-40 focus:border-primary-dark-blue pr-10"
+            required
+          />
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+            onClick={() => setShowPassword(!showPassword)}
+          >
+            {showPassword ? (
+              <EyeOff className="h-4 w-4 text-neutral-40" />
+            ) : (
+              <Eye className="h-4 w-4 text-neutral-40" />
+            )}
+          </Button>
+        </div>
+      </div>
 
-            {/* Clinic Information Section */}
-            <div>
-              <h2
-                className="text-brand-navy text-lg font-bold mb-4"
-                style={{ fontFamily: "SVN-Gilroy, Inter, sans-serif" }}
-              >
-                Clinic Information
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Clinic Name */}
-                <div>
-                  <label
-                    className="block text-brand-neutral-80 text-sm font-bold mb-2"
-                    style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
-                  >
-                    Clinic Name
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center">
-                      <Building className="h-5 w-5 text-brand-neutral-40" />
-                    </div>
-                    <input
-                      type="text"
-                      name="clinicName"
-                      value={formData.clinicName}
-                      onChange={handleInputChange}
-                      className="w-full pl-10 pr-4 py-3 border border-brand-neutral-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-navy focus:border-transparent text-brand-neutral-80"
-                      style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
-                      placeholder="Enter clinic name"
-                      required
-                    />
-                  </div>
-                </div>
+      <div className="space-y-2">
+        <Label
+          htmlFor="confirmPassword"
+          className="text-neutral-80 font-gabarito font-bold"
+        >
+          Confirm Password
+        </Label>
+        <div className="relative">
+          <Input
+            id="confirmPassword"
+            type={showConfirmPassword ? "text" : "password"}
+            value={userData.confirmPassword}
+            onChange={(e) =>
+              handleUserDataChange("confirmPassword", e.target.value)
+            }
+            placeholder="Confirm your password"
+            className="rounded-lg border-neutral-40 focus:border-primary-dark-blue pr-10"
+            required
+          />
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+          >
+            {showConfirmPassword ? (
+              <EyeOff className="h-4 w-4 text-neutral-40" />
+            ) : (
+              <Eye className="h-4 w-4 text-neutral-40" />
+            )}
+          </Button>
+        </div>
+        {userData.password &&
+          userData.confirmPassword &&
+          userData.password !== userData.confirmPassword && (
+            <p className="text-red-500 text-sm">Passwords do not match</p>
+          )}
+      </div>
+    </div>
+  );
 
-                {/* Clinic Phone */}
-                <div>
-                  <label
-                    className="block text-brand-neutral-80 text-sm font-bold mb-2"
-                    style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
-                  >
-                    Clinic Phone Number
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center">
-                      <Phone className="h-5 w-5 text-brand-neutral-40" />
-                    </div>
-                    <input
-                      type="tel"
-                      name="clinicPhoneNumber"
-                      value={formData.clinicPhoneNumber}
-                      onChange={handleInputChange}
-                      className="w-full pl-10 pr-4 py-3 border border-brand-neutral-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-navy focus:border-transparent text-brand-neutral-80"
-                      style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
-                      placeholder="+91 9876543210"
-                      required
-                    />
-                  </div>
-                </div>
-              </div>
+  const renderClinicInfoStep = () => (
+    <div className="space-y-6">
+      <div className="text-center mb-6">
+        <h2 className="text-xl font-gabarito font-bold text-primary-dark-blue mb-2">
+          Let's Learn About Your Clinic!
+        </h2>
+        <p className="text-neutral-60 text-sm">
+          This information is used to verify your registration and customize
+          your shopping experience.
+        </p>
+      </div>
 
-              {/* Clinic Email */}
-              <div className="mt-4">
-                <label
-                  className="block text-brand-neutral-80 text-sm font-bold mb-2"
-                  style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
-                >
-                  Clinic Email Address
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center">
-                    <Mail className="h-5 w-5 text-brand-neutral-40" />
-                  </div>
-                  <input
-                    type="email"
-                    name="clinicEmail"
-                    value={formData.clinicEmail}
-                    onChange={handleInputChange}
-                    className="w-full pl-10 pr-4 py-3 border border-brand-neutral-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-navy focus:border-transparent text-brand-neutral-80"
-                    style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
-                    placeholder="clinic@example.com"
-                    required
-                  />
-                </div>
-              </div>
-            </div>
+      <div className="space-y-4">
+        <h3 className="text-lg font-gabarito font-bold text-neutral-80 mb-4">
+          SELECT ALL SPECIES TREATED AT YOUR PRACTICE
+        </h3>
 
-            {/* Password Section */}
-            <div>
-              <h2
-                className="text-brand-navy text-lg font-bold mb-4"
-                style={{ fontFamily: "SVN-Gilroy, Inter, sans-serif" }}
-              >
-                Security
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Password */}
-                <div>
-                  <label
-                    className="block text-brand-neutral-80 text-sm font-bold mb-2"
-                    style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
-                  >
-                    Password
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center">
-                      <Lock className="h-5 w-5 text-brand-neutral-40" />
-                    </div>
-                    <input
-                      type={showPassword ? "text" : "password"}
-                      name="password"
-                      value={formData.password}
-                      onChange={handleInputChange}
-                      className="w-full pl-10 pr-12 py-3 border border-brand-neutral-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-navy focus:border-transparent text-brand-neutral-80"
-                      style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
-                      placeholder="Create password"
-                      required
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                    >
-                      {showPassword ? (
-                        <EyeOff className="h-5 w-5 text-brand-neutral-40" />
-                      ) : (
-                        <Eye className="h-5 w-5 text-brand-neutral-40" />
-                      )}
-                    </button>
-                  </div>
-                </div>
-
-                {/* Confirm Password */}
-                <div>
-                  <label
-                    className="block text-brand-neutral-80 text-sm font-bold mb-2"
-                    style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
-                  >
-                    Confirm Password
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center">
-                      <Lock className="h-5 w-5 text-brand-neutral-40" />
-                    </div>
-                    <input
-                      type={showConfirmPassword ? "text" : "password"}
-                      name="confirmPassword"
-                      value={formData.confirmPassword}
-                      onChange={handleInputChange}
-                      className="w-full pl-10 pr-12 py-3 border border-brand-neutral-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-navy focus:border-transparent text-brand-neutral-80"
-                      style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
-                      placeholder="Confirm password"
-                      required
-                    />
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setShowConfirmPassword(!showConfirmPassword)
-                      }
-                      className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                    >
-                      {showConfirmPassword ? (
-                        <EyeOff className="h-5 w-5 text-brand-neutral-40" />
-                      ) : (
-                        <Eye className="h-5 w-5 text-brand-neutral-40" />
-                      )}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Terms & Conditions */}
-            <div className="flex items-start">
-              <input
-                type="checkbox"
-                className="w-4 h-4 text-brand-navy bg-brand-neutral-10 border-brand-neutral-20 rounded focus:ring-brand-navy focus:ring-2 mt-1"
-                required
-              />
-              <span
-                className="ml-3 text-sm text-brand-neutral-60 font-medium"
-                style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
-              >
-                I agree to the{" "}
-                <Link
-                  to="/terms"
-                  className="text-brand-navy font-bold hover:text-brand-dark-navy"
-                >
-                  Terms of Service
-                </Link>{" "}
-                and{" "}
-                <Link
-                  to="/privacy"
-                  className="text-brand-navy font-bold hover:text-brand-dark-navy"
-                >
-                  Privacy Policy
-                </Link>
-              </span>
-            </div>
-
-            {/* Signup Button */}
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full bg-brand-navy text-white py-3 px-6 rounded-lg font-bold hover:bg-brand-dark-navy transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+          {practiceTypeOptions.map((option) => (
+            <div
+              key={option.id}
+              className={`p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                clinicData.practiceTypes.includes(option.id)
+                  ? "border-primary-dark-blue bg-primary-dark-blue/10"
+                  : "border-neutral-40 hover:border-neutral-60"
+              }`}
+              onClick={() => handlePracticeTypeToggle(option.id)}
             >
-              {isSubmitting ? "Creating Account..." : "Create Account"}
-            </button>
-
-            {/* Divider */}
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-brand-neutral-20"></div>
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span
-                  className="px-2 bg-white text-brand-neutral-60 font-medium"
-                  style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
+              <div className="flex items-center space-x-2">
+                <div
+                  className={`w-8 h-8 rounded-lg ${option.color} flex items-center justify-center`}
                 >
-                  Or continue with
+                  <div className="w-4 h-4 bg-white rounded-full"></div>
+                </div>
+                <span className="text-sm font-medium text-neutral-80">
+                  {option.label}
                 </span>
               </div>
             </div>
+          ))}
+        </div>
+      </div>
 
-            {/* Google Sign Up */}
-            <button
-              type="button"
-              onClick={handleGoogleSignup}
-              disabled={isSubmitting}
-              className="w-full flex items-center justify-center gap-3 bg-white border border-brand-neutral-20 text-brand-neutral-80 py-3 px-6 rounded-lg font-bold hover:bg-brand-neutral-10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
-            >
-              {isSubmitting ? (
-                <div className="animate-spin w-5 h-5 border-2 border-brand-navy border-t-transparent rounded-full"></div>
+      <div className="space-y-2">
+        <Label
+          htmlFor="clinicName"
+          className="text-neutral-80 font-gabarito font-bold"
+        >
+          Clinic Name
+        </Label>
+        <Input
+          id="clinicName"
+          value={clinicData.clinicName}
+          onChange={(e) => handleClinicDataChange("clinicName", e.target.value)}
+          placeholder="Your clinic name"
+          className="rounded-lg border-neutral-40 focus:border-primary-dark-blue"
+          required
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label className="text-neutral-80 font-gabarito font-bold">
+          CLINIC STREET ADDRESS*
+        </Label>
+        <Input
+          value={clinicData.streetAddress}
+          onChange={(e) =>
+            handleClinicDataChange("streetAddress", e.target.value)
+          }
+          placeholder="Street Address"
+          className="rounded-lg border-neutral-40 focus:border-primary-dark-blue"
+          required
+        />
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label className="text-neutral-80 font-gabarito font-bold">
+            SUITE
+          </Label>
+          <Input
+            value={clinicData.suite}
+            onChange={(e) => handleClinicDataChange("suite", e.target.value)}
+            placeholder="Suite, building, etc."
+            className="rounded-lg border-neutral-40 focus:border-primary-dark-blue"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label className="text-neutral-80 font-gabarito font-bold">
+            ZIP CODE*
+          </Label>
+          <Input
+            value={clinicData.zipCode}
+            onChange={(e) => handleClinicDataChange("zipCode", e.target.value)}
+            placeholder="Zipcode"
+            className="rounded-lg border-neutral-40 focus:border-primary-dark-blue"
+            required
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label className="text-neutral-80 font-gabarito font-bold">
+            CITY*
+          </Label>
+          <Input
+            value={clinicData.city}
+            onChange={(e) => handleClinicDataChange("city", e.target.value)}
+            placeholder="City"
+            className="rounded-lg border-neutral-40 focus:border-primary-dark-blue"
+            required
+          />
+        </div>
+        <div className="space-y-2">
+          <Label className="text-neutral-80 font-gabarito font-bold">
+            STATE*
+          </Label>
+          <Select
+            value={clinicData.state}
+            onValueChange={(value) => handleClinicDataChange("state", value)}
+          >
+            <SelectTrigger className="rounded-lg border-neutral-40 focus:border-primary-dark-blue">
+              <SelectValue placeholder="Select state" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="CA">California</SelectItem>
+              <SelectItem value="NY">New York</SelectItem>
+              <SelectItem value="TX">Texas</SelectItem>
+              <SelectItem value="FL">Florida</SelectItem>
+              <SelectItem value="IL">Illinois</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label className="text-neutral-80 font-gabarito font-bold">
+          HOW DID YOU HEAR ABOUT US?
+        </Label>
+        <Textarea
+          value={clinicData.howDidYouHear}
+          onChange={(e) =>
+            handleClinicDataChange("howDidYouHear", e.target.value)
+          }
+          placeholder="Referral/show, Conference, etc."
+          className="rounded-lg border-neutral-40 focus:border-primary-dark-blue"
+          rows={3}
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label className="text-neutral-80 font-gabarito font-bold">
+          HOW DO YOU HEAR DETAILS?
+        </Label>
+        <Textarea
+          value={clinicData.aboutClinic}
+          onChange={(e) =>
+            handleClinicDataChange("aboutClinic", e.target.value)
+          }
+          placeholder="Email specifically, etc."
+          className="rounded-lg border-neutral-40 focus:border-primary-dark-blue"
+          rows={3}
+        />
+      </div>
+    </div>
+  );
+
+  const renderVendorInfoStep = () => (
+    <div className="space-y-6">
+      <div className="text-center mb-6">
+        <h2 className="text-xl font-gabarito font-bold text-primary-dark-blue mb-2">
+          Vendor Information
+        </h2>
+        <p className="text-neutral-60 text-sm">
+          Help us understand your purchasing relationships.
+        </p>
+      </div>
+
+      <div className="space-y-6">
+        <div className="space-y-4">
+          <Label className="text-neutral-80 font-gabarito font-bold">
+            DO YOU BELONG TO A BUYING GROUP / GROUP PURCHASING ORGANIZATION
+            (GPO)?
+          </Label>
+          <RadioGroup
+            value={vendorData.belongsToBuyingGroup}
+            onValueChange={(value) =>
+              handleVendorDataChange("belongsToBuyingGroup", value)
+            }
+          >
+            <div className="flex items-center space-x-6">
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="yes" id="buying-group-yes" />
+                <Label htmlFor="buying-group-yes" className="text-neutral-80">
+                  Yes
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="no" id="buying-group-no" />
+                <Label htmlFor="buying-group-no" className="text-neutral-80">
+                  No
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="not-sure" id="buying-group-not-sure" />
+                <Label
+                  htmlFor="buying-group-not-sure"
+                  className="text-neutral-80"
+                >
+                  Not Sure
+                </Label>
+              </div>
+            </div>
+          </RadioGroup>
+
+          {vendorData.belongsToBuyingGroup === "yes" && (
+            <div className="space-y-2">
+              <Label className="text-neutral-80 font-gabarito font-bold">
+                IF YES, WHICH ONE? (OR WHICH ONES?)
+              </Label>
+              <Textarea
+                value={vendorData.buyingGroupName}
+                onChange={(e) =>
+                  handleVendorDataChange("buyingGroupName", e.target.value)
+                }
+                placeholder="Example: CS, BuyVet, PBI, Vetcove, etc."
+                className="rounded-lg border-neutral-40 focus:border-primary-dark-blue"
+                rows={3}
+              />
+            </div>
+          )}
+        </div>
+
+        <Separator />
+
+        <div className="space-y-4">
+          <Label className="text-neutral-80 font-gabarito font-bold">
+            IS YOUR PRACTICE OWNED BY A CORPORATE / HOSPITAL GROUP?
+          </Label>
+          <RadioGroup
+            value={vendorData.isCorporateHospital}
+            onValueChange={(value) =>
+              handleVendorDataChange("isCorporateHospital", value)
+            }
+          >
+            <div className="flex items-center space-x-6">
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="yes" id="corporate-yes" />
+                <Label htmlFor="corporate-yes" className="text-neutral-80">
+                  Yes
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="no" id="corporate-no" />
+                <Label htmlFor="corporate-no" className="text-neutral-80">
+                  No
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="not-sure" id="corporate-not-sure" />
+                <Label htmlFor="corporate-not-sure" className="text-neutral-80">
+                  Not Sure
+                </Label>
+              </div>
+            </div>
+          </RadioGroup>
+
+          {vendorData.isCorporateHospital === "yes" && (
+            <div className="space-y-2">
+              <Label className="text-neutral-80 font-gabarito font-bold">
+                IF YES, WHICH ONE? (OR WHICH ONES?)
+              </Label>
+              <Textarea
+                value={vendorData.corporateHospitalName}
+                onChange={(e) =>
+                  handleVendorDataChange(
+                    "corporateHospitalName",
+                    e.target.value,
+                  )
+                }
+                placeholder="Example: VCA, BluePearl, NVA, Ethos, etc."
+                className="rounded-lg border-neutral-40 focus:border-primary-dark-blue"
+                rows={3}
+              />
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="min-h-screen bg-linear-gradient flex items-center justify-center p-4 sm:p-6 lg:p-8">
+      <Card className="w-full max-w-2xl mx-auto">
+        <CardHeader className="text-center">
+          <div className="w-[120px] h-[40px] bg-primary-dark-blue rounded-lg flex items-center justify-center mx-auto mb-4">
+            <span className="text-neutral-0 font-gabarito font-bold text-lg">
+              PetMart
+            </span>
+          </div>
+          <Progress value={progress} className="mb-4" />
+          {renderStepIndicator()}
+          {renderStepLabels()}
+        </CardHeader>
+
+        <CardContent>
+          <form className="space-y-6">
+            {currentStep === 1 && renderUserInfoStep()}
+            {currentStep === 2 && renderClinicInfoStep()}
+            {currentStep === 3 && renderVendorInfoStep()}
+
+            {/* Navigation Buttons */}
+            <div className="flex justify-between pt-6">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handlePrevious}
+                disabled={currentStep === 1}
+                className="flex items-center space-x-2"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span>Previous</span>
+              </Button>
+
+              {currentStep < totalSteps ? (
+                <Button
+                  type="button"
+                  onClick={handleNext}
+                  disabled={!validateStep(currentStep)}
+                  className="bg-primary-dark-blue hover:bg-primary-dark-blue80 text-neutral-0 flex items-center space-x-2"
+                >
+                  <span>Next</span>
+                  <ArrowRight className="w-4 h-4" />
+                </Button>
               ) : (
-                <svg className="w-5 h-5" viewBox="0 0 24 24">
-                  <path
-                    fill="#4285F4"
-                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                  />
-                  <path
-                    fill="#34A853"
-                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                  />
-                  <path
-                    fill="#FBBC05"
-                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                  />
-                  <path
-                    fill="#EA4335"
-                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                  />
-                </svg>
+                <Button
+                  type="button"
+                  onClick={handleSubmit}
+                  disabled={!validateStep(currentStep)}
+                  className="bg-primary-dark-blue hover:bg-primary-dark-blue80 text-neutral-0"
+                >
+                  Complete Registration
+                </Button>
               )}
-              {isSubmitting ? "Creating account..." : "Continue with Google"}
-            </button>
-          </form>
+            </div>
 
-          {/* Sign In Link */}
-          <div className="mt-8 text-center">
-            <p
-              className="text-brand-neutral-60 font-medium"
-              style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
-            >
-              Already have an account?{" "}
+            {/* Help Text */}
+            <div className="text-center pt-4">
+              <span className="text-neutral-60 text-sm">
+                Need help? Let's chat!
+              </span>
+              <Button
+                type="button"
+                variant="link"
+                className="text-primary-dark-blue hover:text-primary-dark-blue80 ml-1 p-0 text-sm"
+              >
+                NEED HELP? LET'S CHAT!
+              </Button>
+            </div>
+
+            {/* Login Link */}
+            <div className="text-center">
+              <span className="text-neutral-60 text-sm">
+                Already have an account?
+              </span>
               <Link
                 to="/login"
-                className="text-brand-navy font-bold hover:text-brand-dark-navy transition-colors"
+                className="text-primary-dark-blue hover:text-primary-dark-blue80 ml-1 font-medium"
               >
                 Sign in
               </Link>
-            </p>
-          </div>
-        </div>
-      </div>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 }

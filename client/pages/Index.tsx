@@ -1,186 +1,158 @@
-import { Header } from "../components/Header";
-import { ProductCard } from "../components/ProductCard";
-import { CategoryCard } from "../components/CategoryCard";
-import { Footer } from "../components/Footer";
-import { ChevronRight, ChevronLeft, Info, Play } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { useContext, useState, useEffect } from "react";
+import { Badge } from "@/components/ui/badge";
+import {
+  ArrowRight,
+  Play,
+  ShoppingCart,
+  Star,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
+import { MyContext } from "../App";
+import { Rupee, RupeeName } from "@/components/constants/CurrencyConst";
+import { fetchDataFromApi } from "@/lib/api";
+import Discount from "./Discount";
+import { Rating } from "@mui/material";
 
-export default function Index() {
-  const featuredProducts = [
-    {
-      id: 1,
-      image: "https://picsum.photos/264/264?random=1",
-      title: "Relief 500mg CBD Oil for Cats & Dogs",
-      vendor: "CureByDesign",
-      price: "₹2000",
-    },
-    {
-      id: 2,
-      image: "https://picsum.photos/264/264?random=2",
-      title: "Hemp Healing Balm (Unscented)",
-      vendor: "CureByDesign",
-      price: "₹320",
-    },
-    {
-      id: 3,
-      image: "https://picsum.photos/264/264?random=3",
-      title: "Dog Coat Cotton Quilted | Double Strap | Navy Blue",
-      vendor: "Flury",
-      price: "₹1699",
-    },
-    {
-      id: 4,
-      image: "https://picsum.photos/264/264?random=4",
-      title: "Hemp Spray for Dogs - Pain 100mg CBD",
-      vendor: "CureByDesign",
-      price: "₹800",
-    },
-  ];
+export default function HomeScreen() {
+  const navigate = useNavigate();
+  const context = useContext(MyContext);
+  const { orders, cat, popularProducts, vendors, user } = context;
+  const [recentOrder, setRecentOrder] = useState<any[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
+  const [popular, setPopular] = useState<any[]>([]);
+  const [isPopularLoading, setIsPopularLoading] = useState(true);
+  const [newProducts, setNewProducts] = useState<any[]>([]);
+  const [featureProducts, setFeatureProducts] = useState<any[]>([]);
+  const [vendorsData, setVendorsData] = useState<any[]>([]);
+  const [randomCatProducts, setRandomProducts] = useState<any[]>([]);
+  useEffect(() => {
+    if (orders?.length) setRecentOrder(orders);
+  }, [orders]);
 
-  const additionalProducts = [
-    {
-      id: 5,
-      image: "https://picsum.photos/264/264?random=5",
-      title: "Dog Coat Cotton Quilted | Double Strap | Blue Matrix",
-      vendor: "Flury",
-      price: "₹2000",
-    },
-    {
-      id: 6,
-      image: "https://picsum.photos/264/264?random=6",
-      title: "Hemp Oil for Equine 3000mg CBD",
-      vendor: "CureByDesign",
-      price: "₹1700",
-    },
-    {
-      id: 7,
-      image: "https://picsum.photos/264/264?random=7",
-      title: "Dog Coat Cotton Quilted | Double Strap | Geometric Phool",
-      vendor: "Flury",
-      price: "₹1900",
-    },
-    {
-      id: 8,
-      image: "https://picsum.photos/264/264?random=8",
-      title: "Relief 1000mg CBD MCT for Large Dogs",
-      vendor: "CureByDesign",
-      price: "₹200",
-    },
-  ];
+  useEffect(() => {
+    if (cat?.length) setCategories(cat);
+  }, [cat]);
 
-  const petAccessories = [
-    {
-      id: 9,
-      image: "https://picsum.photos/264/264?random=9",
-      title: "Flury | Assorted Bandanas for Your Stylish Pet|",
-      vendor: "Flury",
-      price: "₹499",
-    },
-    {
-      id: 10,
-      image: "https://picsum.photos/264/264?random=10",
-      title: "Flury | Assorted Bandanas for Your Stylish Pet|",
-      vendor: "Flury",
-      price: "₹599",
-    },
-    {
-      id: 11,
-      image: "https://picsum.photos/264/264?random=11",
-      title: "Flury | Assorted Bandanas for Your Stylish Pet|",
-      vendor: "Flury",
-      price: "₹699",
-    },
-    {
-      id: 12,
-      image: "https://picsum.photos/264/264?random=12",
-      title: "Flury | Assorted Bandanas for Your Stylish Pet|",
-      vendor: "Flury",
-      price: "₹699",
-    },
-  ];
+  useEffect(() => {
+    if (vendors?.length) {
+      setVendorsData(vendors);
+    }
+  }, [vendors]);
 
-  const categories = [
-    {
-      name: "Pet Cares",
-      icon: "https://picsum.photos/120/120?random=20",
-      bgColor: "bg-[#FFE7BA]",
-    },
-    {
-      name: "Pet Health",
-      icon: "https://picsum.photos/120/120?random=21",
-      bgColor: "bg-[#EEC77E]",
-    },
-    {
-      name: "CBP for Pet",
-      icon: "https://picsum.photos/120/120?random=22",
-      bgColor: "bg-[#F7DBA7]",
-    },
-    {
-      name: "Pet Accessories",
-      icon: "https://picsum.photos/120/120?random=23",
-      bgColor: "bg-[#EEC77E]",
-    },
-    {
-      name: "Frocks",
-      icon: "https://picsum.photos/120/120?random=24",
-      bgColor: "bg-[#F7DBA7]",
-    },
-  ];
+  useEffect(() => {
+    if (popularProducts?.length > 0) {
+      console.log(`------`);
+      setPopular(popularProducts);
+      fetchNewProducts();
+      fetchFeaturedProducts();
+      fetchRandomProducts();
+      setIsPopularLoading(false);
+    }
+  }, [popularProducts]);
+
+  const fetchNewProducts = async () => {
+    try {
+      const userDetails = JSON.parse(user);
+      console.log("User details:", userDetails);
+      if (userDetails) {
+        const res = await fetchDataFromApi(
+          `/api/products?page=1&perPage=10&userid=${userDetails?.userId}`,
+        );
+
+        setNewProducts(res?.products || []);
+      }
+    } catch (error) {
+      console.error("Error fetching new products:", error);
+    }
+  };
+
+  const fetchFeaturedProducts = async () => {
+    try {
+      const userDetails = JSON.parse(user);
+      if (userDetails) {
+        const res = await fetchDataFromApi(
+          `/api/products/featured?userid=${userDetails?.userId}`,
+        );
+        setFeatureProducts(res || []);
+      }
+    } catch (error) {
+      console.error("Error fetching featured products:", error);
+    }
+  };
+
+  const fetchRandomProducts = async () => {
+    try {
+      if (categories?.length > 0) {
+        console.log(`-pokn`);
+        const userDetails = JSON.parse(user);
+
+        const randomIndex = Math.floor(Math.random() * categories.length);
+        const catId = categories[randomIndex]?.id;
+
+        const res = await fetchDataFromApi(
+          `/api/products/catId?catIds=${catId}&userid=${userDetails?.userId}`,
+        );
+        console.log("random", res);
+        setRandomProducts(res?.products || []);
+      }
+    } catch (error) {
+      console.error("Error fetching random products:", error);
+    }
+  };
+  const handleAddToCart = (productName: string) => {
+    alert(`Added ${productName} to cart!`);
+    navigate("/shopping");
+  };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-neutral-10">
       {/* Hero Section */}
-      <section className="w-full h-[695px] bg-hero-gradient rounded-br-[40px] rounded-bl-[40px] relative overflow-hidden">
-        {/* Background Decorative Elements */}
+      <section className="bg-linear-gradient relative overflow-hidden rounded-b-[20px] md:rounded-b-[40px]">
+        {/* Decorative elements */}
         <div className="absolute inset-0">
-          <div className="w-[635px] h-[635px] bg-brand-navy rounded-[99px] absolute left-[699px] top-[268px] rotate-[9.35deg]"></div>
-          <div className="w-[635px] h-[635px] bg-brand-light-yellow rounded-[99px] absolute left-[866px] top-[180px] rotate-[25.23deg]"></div>
-          <div className="w-[635px] h-[635px] bg-brand-light-yellow rounded-[99px] opacity-40 absolute left-[438px] top-[564px] rotate-[56.47deg]"></div>
-          <div className="w-[635px] h-[635px] bg-brand-light-yellow rounded-[99px] absolute left-[-64px] top-[-697px] rotate-[25.23deg]"></div>
-          <div className="w-[67px] h-[67px] bg-brand-light-yellow rounded-[20px] absolute left-[141px] top-[163px] rotate-[25.23deg]"></div>
-          <div className="w-[14px] h-[14px] bg-brand-light-yellow rounded-full absolute left-[762px] top-[148px] rotate-[20.79deg]"></div>
-          <div className="w-[27px] h-[27px] bg-brand-light-yellow rounded-[9px] absolute left-[728px] top-[211px] rotate-[-22.85deg]"></div>
-          <div className="w-[21px] h-[21px] bg-brand-dark-navy rounded-md absolute left-[727px] top-[224px] rotate-[-43deg]"></div>
+          <div className="absolute w-[200px] h-[200px] md:w-[400px] md:h-[400px] bg-primary-dark-blue rounded-full transform rotate-12 -right-16 md:-right-32 top-16 md:top-32 opacity-80"></div>
+          <div className="absolute w-[150px] h-[150px] md:w-[300px] md:h-[300px] bg-secondary-yellow rounded-full transform rotate-45 -right-8 md:-right-16 top-4 md:top-8 opacity-90"></div>
+          <div className="absolute w-[100px] h-[100px] md:w-[200px] md:h-[200px] bg-secondary-yellow rounded-full transform -rotate-12 right-32 md:right-64 bottom-8 md:bottom-16 opacity-60"></div>
+          <div className="absolute w-6 h-6 md:w-12 md:h-12 bg-secondary-yellow rounded-lg transform rotate-25 left-16 md:left-32 top-20 md:top-40"></div>
+          <div className="absolute w-3 h-3 md:w-6 md:h-6 bg-secondary-yellow rounded transform rotate-20 right-36 md:right-72 top-16 md:top-32"></div>
         </div>
 
-        {/* Header */}
-        <Header />
-
-        {/* Hero Content */}
-        <div className="relative z-10 px-[130px] max-lg:px-8 max-sm:px-4 pt-12">
-          <div className="flex items-center justify-between">
-            <div className="max-w-md">
-              <h1
-                className="text-brand-neutral-80 text-6xl max-lg:text-4xl max-sm:text-3xl font-light leading-[68px] max-lg:leading-tight mb-4"
-                style={{ fontFamily: "SVN-Gilroy, Inter, sans-serif" }}
-              >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-16 relative z-10">
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+            <div className="space-y-4 md:space-y-6 text-center lg:text-left">
+              <h1 className="text-3xl md:text-4xl lg:text-6xl font-gilroy font-light text-primary-dark-blue leading-tight">
                 One more friend
               </h1>
-              <h2
-                className="text-brand-navy text-[46px] max-lg:text-3xl max-sm:text-2xl font-bold leading-[60px] max-lg:leading-tight mb-6"
-                style={{ fontFamily: "SVN-Gilroy, Inter, sans-serif" }}
-              >
+              <h2 className="text-2xl md:text-3xl lg:text-5xl font-gabarito font-bold text-primary-dark-blue leading-tight">
                 Thousands more fun!
               </h2>
-              <p
-                className="text-brand-neutral-80 font-bold mb-8 max-w-sm"
-                style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
-              >
+              <p className="text-base md:text-lg text-neutral-80 max-w-lg font-gabarito font-bold mx-auto lg:mx-0">
                 Having a pet means you have more joy, a new friend, a happy
                 person who will always be with you to have fun. We have 200+
                 different pets that can meet your needs!
               </p>
-              <button
-                className="flex items-center gap-2.5 pt-3.5 pb-2.5 px-7 bg-brand-navy rounded-[57px] text-white font-bold hover:bg-brand-dark-navy transition-colors"
-                style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
-              >
-                Explore Now
-              </button>
+              <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center lg:justify-start">
+                <Button className="bg-primary-dark-blue hover:bg-primary-dark-blue80 text-neutral-0 rounded-full px-6 md:px-8 py-3 font-gabarito font-bold">
+                  Explore Now
+                </Button>
+                <Button
+                  variant="outline"
+                  className="border-primary-dark-blue text-primary-dark-blue hover:bg-secondary-yellow40 rounded-full px-6 md:px-8 py-3 font-gabarito font-bold"
+                >
+                  <Play className="w-4 h-4 mr-2" />
+                  View Intro
+                </Button>
+              </div>
             </div>
-            <div className="hidden lg:block">
+            <div className="relative order-first lg:order-last">
               <img
-                src="https://cdn.builder.io/api/v1/image/assets%2Fe33c04ad181d47968df9f3990555750a%2F4a5c546fecc64bb5a0e3be69d1984208?format=webp&width=800"
-                alt="Happy person with dog - One more friend, thousands more fun!"
-                className="w-[600px] h-[450px] object-cover rounded-2xl"
+                src="https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=600&h=600&fit=crop&crop=center"
+                alt="Happy person with pet"
+                className="w-full h-[300px] md:h-[400px] lg:h-[500px] object-cover rounded-xl md:rounded-2xl shadow-2xl"
               />
             </div>
           </div>
@@ -188,413 +160,618 @@ export default function Index() {
       </section>
 
       {/* Notification Banner */}
-      <section className="w-full h-[102px] flex justify-center items-center py-7 px-[130px] max-lg:px-8 max-sm:px-4">
-        <div className="w-full h-[44px] flex items-center justify-between gap-4 p-2.5 border-l-[3px] border-brand-dark-navy rounded-[5px] bg-hero-gradient">
-          <p
-            className="text-brand-navy text-sm font-bold"
-            style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
-          >
+      {/* <div className="bg-linear-gradient border-l-4 border-primary-dark-blue mx-4 sm:mx-6 lg:mx-8 my-6 md:my-8 p-3 md:p-4 rounded-lg">
+        <div className="flex items-center justify-between gap-4">
+          <p className="text-primary-dark-blue text-xs sm:text-sm font-gabarito font-bold flex-1">
             New offers just dropped! Check them out before they're gone. Up to
             50% off on winter wear—new arrivals included!
           </p>
-          <Info className="w-6 h-6 text-brand-navy flex-shrink-0" />
+          <div className="w-5 h-5 md:w-6 md:h-6 bg-state-blue-sea rounded-full flex items-center justify-center flex-shrink-0">
+            <span className="text-neutral-0 text-xs">!</span>
+          </div>
+        </div>
+      </div> */}
+
+       {/* Dashboard Section */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="w-full bg-white relative rounded-lg shadow-sm border border-neutral-20">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-0">
+            {/* Seven Pet Vet Hospital Orders Table */}
+            <div className="lg:col-span-1 p-6 border-r border-neutral-20">
+              <div className="flex flex-col gap-4">
+                <div className="flex justify-center items-start flex-col gap-2">
+                  <h3 className="text-black text-sm font-gabarito font-bold">
+                    Seven Pet Vet Hospital
+                  </h3>
+                </div>
+                <div className="flex flex-col gap-4">
+                  {/* Header Row */}
+                  <div className="flex justify-start items-center flex-row ">
+                    <div className="w-20 text-xs text-black font-gabarito font-bold text-left">
+                      DATE
+                    </div>
+                    <div className="w-32 text-xs text-black font-gabarito font-bold text-left">
+                      SUPPLIER
+                    </div>
+                    <div className="w-24 text-xs text-black font-gabarito font-bold text-left">
+                      TOTAL
+                    </div>
+                    <div className="w-24 text-xs text-black font-gabarito font-bold text-left">
+                      STATUS
+                    </div>
+                  </div>
+
+                  {/* Data Rows */}
+                  {recentOrder.slice(0, 5).map((order) => (
+                    <div
+                      key={order._id}
+                      className="flex items-center flex-row  py-2"
+                    >
+                      <div className="w-20 text-xs text-black  font-gilroy font-light text-left ">
+                        
+
+                        {new Date(order.createdAt).toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                        })}
+                      
+                      </div>
+                      <div className="w-32 text-xs text-black font-gilroy font-light text-left">
+                        {order.products[0]?.sellerName}
+                      </div>
+                      <div className="w-24 text-xs text-black font-gilroy font-light text-left">
+                        
+                        {Rupee}
+                        {order.amount}
+                      </div>
+                      <div className="w-24 text-xs text-red-500 font-gabarito font-bold text-left">
+                        {order.status}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Featured Categories */}
+            <div className="lg:col-span-2 p-6">
+              <div className="flex flex-col gap-6">
+                <div className="flex justify-center items-start flex-col gap-2">
+                  <h3 className="text-black text-sm font-gabarito font-bold">
+                    Featured Categories
+                  </h3>
+                </div>
+
+                <div className="flex justify-center items-center flex-row gap-4 overflow-x-auto">
+                  <button className="h-6 flex justify-center items-center flex-row gap-2 bg-primary-dark-blue/20 rounded-md px-2">
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+
+                  <div className="flex justify-start items-center flex-row gap-4">
+                    {categories.slice(0, 5).map((category) => (
+                      <Link to="/category" className="block group">
+                        <div className="w-32 flex justify-start items-center flex-col bg-secondary-yellow40 border-primary-dark-blue border-[0.5px] rounded-2xl hover:shadow-md transition-shadow">
+                          <div className="w-16 flex justify-center items-center flex-row gap-2 py-2">
+                            <span className="text-primary-dark-blue text-sm font-gabarito font-bold text-center">
+                              {category.name}
+                            </span>
+                          </div>
+                          <div>
+                            <img
+                              src={category?.images[0]}
+                              alt="Pet Cares"
+                              className="w-30 h-30 object-cover rounded-b-2xl"
+                            />
+                          </div>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+
+                  <button className="h-6 flex justify-start items-center flex-row gap-2 bg-primary-dark-blue/20 rounded-md px-2">
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* Dashboard and Categories Section */}
-      <section className="w-full bg-white px-[130px] max-lg:px-8 max-sm:px-4 py-8">
-        <div className="flex flex-col lg:flex-row gap-8">
-          {/* Dashboard */}
-          <div className="lg:w-[386px] bg-white p-4">
-            <h3
-              className="text-brand-neutral-100 text-sm font-bold mb-4"
-              style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
-            >
-              Seven Pet Vet Hospital
-            </h3>
-            <div className="grid grid-cols-4 gap-4 text-xs">
-              <div className="text-center">
-                <div
-                  className="font-bold mb-2"
-                  style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
-                >
-                  DATE
-                </div>
-                <div className="space-y-2">
-                  <div
-                    className="font-light"
-                    style={{ fontFamily: "SVN-Gilroy, Inter, sans-serif" }}
-                  >
-                    JUN 26
-                  </div>
-                  <div
-                    className="font-light"
-                    style={{ fontFamily: "SVN-Gilroy, Inter, sans-serif" }}
-                  >
-                    JUN 26
-                  </div>
-                  <div
-                    className="font-light"
-                    style={{ fontFamily: "SVN-Gilroy, Inter, sans-serif" }}
-                  >
-                    JUN 26
-                  </div>
-                  <div
-                    className="font-light"
-                    style={{ fontFamily: "SVN-Gilroy, Inter, sans-serif" }}
-                  >
-                    JUN 26
-                  </div>
-                  <div
-                    className="font-light"
-                    style={{ fontFamily: "SVN-Gilroy, Inter, sans-serif" }}
-                  >
-                    JUN 26
-                  </div>
-                </div>
-              </div>
-              <div className="text-center">
-                <div
-                  className="font-bold mb-2"
-                  style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
-                >
-                  SUPPLIER
-                </div>
-                <div className="space-y-2">
-                  <div
-                    className="font-light"
-                    style={{ fontFamily: "SVN-Gilroy, Inter, sans-serif" }}
-                  >
-                    Coveture
-                  </div>
-                  <div
-                    className="font-light"
-                    style={{ fontFamily: "SVN-Gilroy, Inter, sans-serif" }}
-                  >
-                    Amatheon
-                  </div>
-                  <div
-                    className="font-light"
-                    style={{ fontFamily: "SVN-Gilroy, Inter, sans-serif" }}
-                  >
-                    Zootice
-                  </div>
-                  <div
-                    className="font-light"
-                    style={{ fontFamily: "SVN-Gilroy, Inter, sans-serif" }}
-                  >
-                    Pet Shop
-                  </div>
-                  <div
-                    className="font-light"
-                    style={{ fontFamily: "SVN-Gilroy, Inter, sans-serif" }}
-                  >
-                    Amour
-                  </div>
-                </div>
-              </div>
-              <div className="text-center">
-                <div
-                  className="font-bold mb-2"
-                  style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
-                >
-                  Total
-                </div>
-                <div className="space-y-2">
-                  <div
-                    className="font-light"
-                    style={{ fontFamily: "SVN-Gilroy, Inter, sans-serif" }}
-                  >
-                    ₹1000
-                  </div>
-                  <div
-                    className="font-light"
-                    style={{ fontFamily: "SVN-Gilroy, Inter, sans-serif" }}
-                  >
-                    ₹2500
-                  </div>
-                  <div
-                    className="font-light"
-                    style={{ fontFamily: "SVN-Gilroy, Inter, sans-serif" }}
-                  >
-                    ₹7000
-                  </div>
-                  <div
-                    className="font-light"
-                    style={{ fontFamily: "SVN-Gilroy, Inter, sans-serif" }}
-                  >
-                    ₹9020
-                  </div>
-                  <div
-                    className="font-light"
-                    style={{ fontFamily: "SVN-Gilroy, Inter, sans-serif" }}
-                  >
-                    ₹6000
-                  </div>
-                </div>
-              </div>
-              <div className="text-center">
-                <div
-                  className="font-bold mb-2"
-                  style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
-                >
-                  STATUS
-                </div>
-                <div className="space-y-2">
-                  <div
-                    className="text-brand-red font-bold"
-                    style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
-                  >
-                    Processed
-                  </div>
-                  <div
-                    className="text-brand-green font-bold"
-                    style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
-                  >
-                    Completed
-                  </div>
-                  <div
-                    className="text-brand-green font-bold"
-                    style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
-                  >
-                    Completed
-                  </div>
-                  <div
-                    className="text-brand-green font-bold"
-                    style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
-                  >
-                    Completed
-                  </div>
-                  <div
-                    className="text-brand-green font-bold"
-                    style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
-                  >
-                    Completed
-                  </div>
-                </div>
-              </div>
+      {/* Trending Pet Care Banner */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8 md:mb-16">
+        <Card className="bg-gradient-to-r from-secondary-yellow40 to-secondary-yellow60 rounded-2xl p-6 md:p-8 shadow-lg">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h3 className="text-xl md:text-2xl font-gabarito font-bold text-primary-dark-blue">
+                🏆 Trending Pet Care Essentials
+              </h3>
+              <p className="text-primary-dark-blue/80 mt-1">
+                Most loved products by pet parents this month
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="w-10 h-10 bg-primary-dark-blue/10 hover:bg-primary-dark-blue/20 text-primary-dark-blue rounded-full"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="w-10 h-10 bg-primary-dark-blue/10 hover:bg-primary-dark-blue/20 text-primary-dark-blue rounded-full"
+              >
+                <ChevronRight className="w-5 h-5" />
+              </Button>
             </div>
           </div>
 
-          {/* Categories */}
-          <div className="flex-1">
-            <div className="mb-6">
-              <h3
-                className="text-brand-neutral-100 text-sm font-bold mb-4"
-                style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
-              >
-                Featured Categories
-              </h3>
-              <div className="flex items-center justify-between gap-4">
-                <button className="h-6 w-6 flex items-center justify-center bg-[rgba(16,53,89,0.18)] rounded-[5px]">
-                  <ChevronLeft className="w-4 h-4" />
-                </button>
-                <div className="flex items-center gap-4 overflow-x-auto">
-                  {categories.map((category, index) => (
-                    <CategoryCard
-                      key={index}
-                      name={category.name}
-                      icon={category.icon}
-                      bgColor={category.bgColor}
-                    />
-                  ))}
-                </div>
-                <button className="h-6 w-6 flex items-center justify-center bg-[rgba(16,53,89,0.18)] rounded-[5px]">
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
+          <div className="flex gap-4 md:gap-6 overflow-x-auto pb-4 scrollbar-hide">
+            {popular
+              .sort(
+                (a, b) =>
+                  new Date(b.updatedAt).getTime() -
+                  new Date(a.updatedAt).getTime(),
+              )
+              .map((product) => (
+                <Card
+                  key={product._id}
+                  className="bg-neutral-0 border border-primary-dark-blue/20 min-w-[280px] md:min-w-[320px] cursor-pointer hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex-shrink-0 relative"
+                >
+                  <div className="absolute top-3 left-3 z-10">
+                    <Badge className="bg-state-green-light text-neutral-0 text-xs px-2 py-1 rounded-full">
+                      Popular
+                    </Badge>
+                  </div>
+                  <CardContent className="p-4">
+                    <div className="h-[200px] w-full bg-neutral-10 rounded-lg mb-4 overflow-hidden flex items-center justify-center">
+                      <img
+                        src={product.images?.[0]}
+                        alt={product.name}
+                        className="h-full w-full object-contain p-2"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <h4 className="font-gabarito font-bold text-primary-dark-blue text-sm">
+                        {product.name.substr(0, 20) + "..."}
+                      </h4>
+                      {product?.variants?.some(
+                        (v: any) =>
+                          v.stock_status === "instock" ||
+                          v.stock_status === "in_stock",
+                      ) ? (
+                        <span className="text-green-600 block">In Stock</span>
+                      ) : (
+                        <span className="text-red-600 block">Out of Stock</span>
+                      )}
+
+                      <div className="flex items-center gap-2">
+                        <Rating
+                          className="mt-2 mb-2"
+                          name="read-only"
+                          value={product?.rating || 0}
+                          readOnly
+                          size="small"
+                          precision={0.5}
+                        />
+                        <span className="text-xs text-neutral-60">
+                          {product.reviews}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <span className="text-lg font-gabarito font-bold text-primary-dark-blue">
+                          {(() => {
+                            const vendorPrices =
+                              product?.vendors
+                                ?.map((vendor) => vendor.price)
+                                .filter((price) => price !== undefined) || [];
+                            const lowestVendorPrice =
+                              vendorPrices.length > 0
+                                ? Math.min(...vendorPrices)
+                                : null;
+
+                            const basePrice =
+                              product?.variants[0]?.price ??
+                              product?.variants?.[0]?.price;
+
+                            const priceDisplay = basePrice
+                              ? `From ${RupeeName} ${basePrice}`
+                              : lowestVendorPrice
+                                ? `From ${RupeeName} ${lowestVendorPrice}`
+                                : ``;
+
+                            return priceDisplay;
+                          })()}
+                        </span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
           </div>
-        </div>
+        </Card>
       </section>
 
       {/* Featured Products */}
-      <section className="w-full px-[130px] max-lg:px-8 max-sm:px-4 py-16">
-        <div className="flex justify-between items-center mb-8">
-          <div className="flex flex-col gap-0.5">
-            <span
-              className="text-brand-neutral-100 font-bold"
-              style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
-            >
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-16">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 md:mb-8 gap-4">
+          <div>
+            <p className="text-neutral-100 font-gabarito font-bold mb-1 text-sm md:text-base">
               Featured Products from your search
-            </span>
-            <span
-              className="text-brand-navy text-2xl font-bold leading-9"
-              style={{ fontFamily: "SVN-Gilroy, Inter, sans-serif" }}
-            >
+            </p>
+            <h2 className="text-xl md:text-2xl font-gabarito font-bold text-primary-dark-blue">
               Our Products
-            </span>
+            </h2>
           </div>
-          <button
-            className="flex items-center gap-2 py-3 px-7 border-[1.5px] border-brand-navy rounded-[57px] text-brand-navy text-sm font-bold hover:bg-brand-navy hover:text-white transition-colors"
-            style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
+          <Button
+            variant="outline"
+            className="border-primary-dark-blue text-primary-dark-blue hover:bg-secondary-yellow40 rounded-full self-start sm:self-auto"
           >
             View more
-            <ChevronRight className="w-5 h-5" />
-          </button>
+            <ArrowRight className="w-4 h-4 ml-2" />
+          </Button>
         </div>
 
-        {/* Product Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
-          {featuredProducts.map((product) => (
-            <ProductCard key={product.id} {...product} />
-          ))}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+          {newProducts
+            .slice(0, 8)
+            .sort(
+              (a, b) =>
+                new Date(b.updatedAt).getTime() -
+                new Date(a.updatedAt).getTime(),
+            )
+            .map((product) => (
+              <Card
+                key={product.id}
+                className="hover:shadow-lg transition-shadow cursor-pointer"
+              >
+                <CardContent className="p-3 md:p-4">
+                  <div className="aspect-square bg-neutral-10 rounded-lg mb-3 md:mb-4 overflow-hidden">
+                    <img
+                      src={product.images[0]}
+                      alt={product.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="space-y-1 md:space-y-2">
+                    <h3 className="font-gilroy font-light text-neutral-100 line-clamp-2 text-sm md:text-base">
+                      {product.name}
+                    </h3>
+                    {product?.variants?.some(
+                      (v: any) =>
+                        v.stock_status === "instock" ||
+                        v.stock_status === "in_stock",
+                    ) ? (
+                      <span className="text-green-600 block">In Stock</span>
+                    ) : (
+                      <span className="text-red-600 block">Out of Stock</span>
+                    )}
+                    <div className="flex items-center gap-2 text-xs text-neutral-60">
+                      <span className="font-gabarito font-medium">Vendor:</span>
+                      <span className="font-gabarito font-medium">
+                        {product.sellername}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Rating
+                        className="mt-2 mb-2"
+                        name="read-only"
+                        value={product?.rating || 0}
+                        readOnly
+                        size="small"
+                        precision={0.5}
+                      />
+                      <span className="text-xs text-neutral-60">
+                        {product.reviews}
+                      </span>
+                    </div>
+                    <p className="text-sm font-gilroy font-light text-neutral-100 font-semibold">
+                      {(() => {
+                        const vendorPrices =
+                          product?.vendors
+                            ?.map((vendor) => vendor.price)
+                            .filter((price) => price !== undefined) || [];
+                        const lowestVendorPrice =
+                          vendorPrices.length > 0
+                            ? Math.min(...vendorPrices)
+                            : null;
+
+                        const basePrice =
+                          product?.variants[0]?.price ??
+                          product?.variants?.[0]?.price;
+
+                        const priceDisplay = basePrice
+                          ? `From ${RupeeName} ${basePrice}`
+                          : lowestVendorPrice
+                            ? `From ${RupeeName} ${lowestVendorPrice}`
+                            : ``;
+
+                        return priceDisplay;
+                      })()}
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          {additionalProducts.map((product) => (
-            <ProductCard key={product.id} {...product} />
-          ))}
-        </div>
+        {/* Additional Products Row for larger screens */}
+      </section>
 
-        {/* Vendors Section */}
-        <div className="flex justify-between items-center mt-16 mb-8">
+      {/* Full-Width Auto-Scrollable Banner */}
+      <section className="w-full mb-8 md:mb-16 overflow-hidden px-4">
+        <div className="flex animate-scroll-left-to-right gap-4">
+          <div className="flex-shrink-0 w-full">
+            <img
+              src="https://cdn.builder.io/api/v1/image/assets%2Fa5840e9b6f06467fa264b75489f10060%2F019dc29902f34a30ae519bd975578458?format=webp&width=800"
+              alt="Pet Care Banner"
+              className="w-full h-[200px] md:h-[300px] object-cover rounded-lg"
+            />
+          </div>
+          <div className="flex-shrink-0 w-full">
+            <img
+              src="https://cdn.builder.io/api/v1/image/assets%2Fa5840e9b6f06467fa264b75489f10060%2Fe9f5a07c63ad42ee9da7350378cc22dc?format=webp&width=800"
+              alt="CBD Wellness Banner"
+              className="w-full h-[200px] md:h-[300px] object-cover rounded-lg"
+            />
+          </div>
+          <div className="flex-shrink-0 w-full">
+            <img
+              src="https://cdn.builder.io/api/v1/image/assets%2Fa5840e9b6f06467fa264b75489f10060%2F019dc29902f34a30ae519bd975578458?format=webp&width=800"
+              alt="Pet Care Banner"
+              className="w-full h-[200px] md:h-[300px] object-cover rounded-lg"
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* CBD Mental Health Scrollable Banner */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8 md:mb-16">
+        <div className="bg-primary-dark-blue rounded-2xl p-6 md:p-8 relative overflow-hidden">
+          <div className="absolute inset-0">
+            <div className="absolute w-[200px] h-[200px] md:w-[300px] md:h-[300px] bg-secondary-yellow40 rounded-full transform rotate-25 -right-12 md:-right-24 -top-12 md:-top-24 opacity-80"></div>
+            <div className="absolute w-[150px] h-[150px] md:w-[200px] md:h-[200px] bg-primary-dark-blue80 rounded-full transform rotate-28 -left-8 md:-left-16 -bottom-8 md:-bottom-16"></div>
+          </div>
+
+          <div className="relative z-10">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h3 className="text-lg md:text-xl font-gabarito font-bold text-secondary-yellow40">
+                  Balance your mind naturally
+                </h3>
+                <h2 className="text-2xl md:text-3xl font-gilroy font-light text-neutral-0 leading-tight">
+                  CBD for Mental Health, Sleep & Mood
+                </h2>
+                <p className="text-sm md:text-base text-neutral-80 font-gabarito font-bold mt-2">
+                  Explore CBD products for mental wellness and relaxation
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="w-10 h-10 bg-secondary-yellow40/20 hover:bg-secondary-yellow40/30 text-secondary-yellow40 rounded-full"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="w-10 h-10 bg-secondary-yellow40/20 hover:bg-secondary-yellow40/30 text-secondary-yellow40 rounded-full"
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </Button>
+              </div>
+            </div>
+
+            <div className="flex gap-4 md:gap-6 overflow-x-auto pb-4 scrollbar-hide">
+              {featureProducts.map((product) => (
+                <Card
+                  key={product.id}
+                  className="bg-neutral-0/95 border border-secondary-yellow40/30 min-w-[280px] md:min-w-[320px] cursor-pointer hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex-shrink-0"
+                >
+                  <CardContent className="p-4">
+                    <div className="h-[300px] w-full bg-neutral-10 rounded-lg mb-4 overflow-hidden flex items-center justify-center">
+                      <img
+                        src={product.images?.[0]}
+                        alt={product.name}
+                        className="h-full w-full object-contain p-2"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <h4 className="font-gabarito font-bold text-primary-dark-blue text-sm">
+                        {product.name}
+                      </h4>
+                      <p className="text-xs text-neutral-60">
+                        {product?.variants?.some(
+                          (v: any) =>
+                            v.stock_status === "instock" ||
+                            v.stock_status === "in_stock",
+                        ) ? (
+                          <span className="text-green-600 block">In Stock</span>
+                        ) : (
+                          <span className="text-red-600 block">
+                            Out of Stock
+                          </span>
+                        )}
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <Rating
+                          className="mt-2 mb-2"
+                          name="read-only"
+                          value={product?.rating || 0}
+                          readOnly
+                          size="small"
+                          precision={0.5}
+                        />
+                        <span className="text-xs text-neutral-60">
+                          {product.reviews}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-lg font-gabarito font-bold text-primary-dark-blue">
+                          {(() => {
+                            const vendorPrices =
+                              product?.vendors
+                                ?.map((vendor) => vendor.price)
+                                .filter((price) => price !== undefined) || [];
+                            const lowestVendorPrice =
+                              vendorPrices.length > 0
+                                ? Math.min(...vendorPrices)
+                                : null;
+
+                            const basePrice =
+                              product?.variants[0]?.price ??
+                              product?.variants?.[0]?.price;
+
+                            const priceDisplay = basePrice
+                              ? `From ${RupeeName} ${basePrice}`
+                              : lowestVendorPrice
+                                ? `From ${RupeeName} ${lowestVendorPrice}`
+                                : ``;
+
+                            return priceDisplay;
+                          })()}
+                        </span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            <div className="flex justify-center mt-6">
+              <Button className="bg-secondary-yellow40 text-primary-dark-blue hover:bg-secondary-yellow rounded-full font-gabarito font-bold px-8">
+                Explore All CBD Products
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Vendors Section */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-16">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 md:mb-8 gap-4">
           <div className="flex items-end gap-2">
-            <span
-              className="text-brand-neutral-100 font-light leading-[31px]"
-              style={{ fontFamily: "SVN-Gilroy, Inter, sans-serif" }}
-            >
+            <span className="text-neutral-100 font-gilroy font-light text-lg md:text-xl">
               Proud to be part of
             </span>
-            <span
-              className="text-brand-navy text-2xl font-bold leading-9"
-              style={{ fontFamily: "SVN-Gilroy, Inter, sans-serif" }}
-            >
+            <span className="text-primary-dark-blue text-xl md:text-2xl font-gabarito font-bold">
               Vendors
             </span>
           </div>
-          <button
-            className="flex items-center gap-2 py-3 px-7 border-[1.5px] border-brand-navy rounded-[57px] text-brand-navy text-sm font-bold hover:bg-brand-navy hover:text-white transition-colors"
-            style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
+          <Button
+            variant="outline"
+            className="border-primary-dark-blue text-primary-dark-blue hover:bg-secondary-yellow40 rounded-full self-start sm:self-auto"
           >
             View all Our Vendors
-            <ChevronRight className="w-5 h-5" />
-          </button>
+            <ArrowRight className="w-4 h-4 ml-2" />
+          </Button>
         </div>
 
-        <div className="flex items-center gap-5">
-          <img
-            src="https://picsum.photos/151/112?random=vendor1"
-            alt="Vendor 1"
-            className="w-[151px] h-[112px] object-cover"
-          />
-          <img
-            src="https://picsum.photos/151/112?random=vendor2"
-            alt="Vendor 2"
-            className="w-[151px] h-[112px] object-cover"
-          />
-          <div className="flex-1 h-[112px] bg-gray-100 rounded-lg"></div>
-          <div className="flex-1 h-[112px] bg-gray-100 rounded-lg"></div>
-          <div className="flex-1 h-[112px] bg-gray-100 rounded-lg"></div>
-        </div>
-      </section>
+        <div className="flex gap-4 md:gap-6 overflow-x-auto pb-4 scrollbar-hide">
+          {vendorsData.map((vendor) => (
+            <div
+              key={vendor?._id}
+              className="bg-neutral-0 rounded-lg p-4 md:p-6 shadow-sm hover:shadow-md transition-shadow cursor-pointer flex items-center justify-center min-w-[140px] md:min-w-[160px] aspect-square flex-shrink-0"
+            >
+              <div className="flex flex-col items-center justify-center gap-2">
+                <span className="text-neutral-60 font-gabarito font-bold text-xs md:text-sm text-center">
+                  {vendor.sellername}
+                </span>
 
-      {/* Promotional Banner */}
-      <section className="w-full px-[127px] max-lg:px-8 max-sm:px-4 py-8">
-        <div className="w-full h-[378px] bg-brand-navy rounded-[20px] relative overflow-hidden">
-          {/* Background Elements */}
-          <div className="absolute inset-0">
-            <div className="w-[782px] h-[635px] bg-brand-cream rounded-[99px] absolute left-[777px] top-[-360px] rotate-[25.23deg]"></div>
-            <div className="w-[787px] h-[787px] bg-brand-dark-navy rounded-[99px] absolute left-[41px] top-[29px] rotate-[28.25deg]"></div>
-          </div>
-
-          {/* Content */}
-          <div className="relative z-10 h-full flex items-center justify-end pr-16 max-lg:pr-8">
-            <div className="text-right max-w-md">
-              <h2
-                className="text-brand-navy text-[52px] max-lg:text-3xl font-light leading-[68px] max-lg:leading-tight mb-2"
-                style={{ fontFamily: "SVN-Gilroy, Inter, sans-serif" }}
-              >
-                One more friend
-              </h2>
-              <h3
-                className="text-brand-navy text-4xl max-lg:text-2xl font-bold leading-[54px] max-lg:leading-tight mb-4"
-                style={{ fontFamily: "SVN-Gilroy, Inter, sans-serif" }}
-              >
-                Thousands more fun!
-              </h3>
-              <p
-                className="text-brand-neutral-80 text-xs font-bold mb-6 max-w-sm ml-auto"
-                style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
-              >
-                Having a pet means you have more joy, a new friend, a happy
-                person who will always be with you to have fun. We have 200+
-                different pets that can meet your needs!
-              </p>
-              <div className="flex items-center gap-4 justify-end">
-                <button
-                  className="flex items-center gap-2 pt-3.5 pb-2.5 px-7 border-[1.5px] border-brand-navy rounded-[57px] text-brand-navy font-bold hover:bg-brand-navy hover:text-white transition-colors"
-                  style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
-                >
-                  View Intro
-                  <Play className="w-6 h-6" />
-                </button>
-                <button
-                  className="flex items-center gap-2.5 pt-3.5 pb-2.5 px-7 bg-brand-navy rounded-[57px] text-white font-bold hover:bg-brand-dark-navy transition-colors"
-                  style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
-                >
-                  Explore Now
-                </button>
+                <div className="w-16 h-16 md:w-20 md:h-20 bg-neutral-10 rounded-lg overflow-hidden flex items-center justify-center">
+                  <img
+                    src={vendor.logo}
+                    alt={vendor.sellername}
+                    className="object-contain w-full h-full"
+                  />
+                </div>
               </div>
-            </div>
-          </div>
-
-          {/* Background Image Overlay */}
-          <img
-            src="https://picsum.photos/1180/378?random=promo"
-            alt="Promotional background"
-            className="absolute inset-0 w-full h-full object-cover opacity-20"
-          />
-        </div>
-      </section>
-
-      {/* Pet Accessories */}
-      <section className="w-full px-[130px] max-lg:px-8 max-sm:px-4 py-16">
-        <div className="flex justify-between items-center mb-8">
-          <div className="flex flex-col gap-0.5">
-            <span
-              className="text-brand-neutral-100 font-bold"
-              style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
-            >
-              Pet Accessories
-            </span>
-            <span
-              className="text-brand-navy text-2xl font-bold leading-9"
-              style={{ fontFamily: "SVN-Gilroy, Inter, sans-serif" }}
-            >
-              Do not miss the current offers until the end of June
-            </span>
-          </div>
-          <button
-            className="flex items-center gap-2 py-3 px-7 border-[1.5px] border-brand-navy rounded-[57px] text-brand-navy text-sm font-bold hover:bg-brand-navy hover:text-white transition-colors"
-            style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
-          >
-            View more
-            <ChevronRight className="w-5 h-5" />
-          </button>
-        </div>
-
-        {/* Accessories Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-5">
-          {petAccessories.map((product) => (
-            <div key={product.id} className="lg:col-span-2">
-              <ProductCard {...product} />
             </div>
           ))}
         </div>
-
-        {/* Large background image */}
-        <div className="mt-8">
-          <img
-            src="https://picsum.photos/1182/394?random=accessories"
-            alt="Pet accessories banner"
-            className="w-full h-[394px] object-cover rounded-2xl"
-          />
-        </div>
       </section>
 
-      {/* Footer */}
-      <Footer />
+      {/* Pet Accessories Current Offers */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-16">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 md:mb-8 gap-4">
+          <div>
+            <p className="text-neutral-100 font-gabarito font-bold mb-1 text-sm md:text-base">
+              Pet Accessories
+            </p>
+            <h2 className="text-xl md:text-2xl font-gabarito font-bold text-primary-dark-blue">
+              Do not miss the current offers until the end of June
+            </h2>
+          </div>
+          <Button
+            variant="outline"
+            className="border-primary-dark-blue text-primary-dark-blue hover:bg-secondary-yellow40 rounded-full self-start sm:self-auto"
+          >
+            View more
+            <ArrowRight className="w-4 h-4 ml-2" />
+          </Button>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+          {randomCatProducts.slice(0, 8).map((product, index) => (
+            <Card
+              key={index}
+              className="hover:shadow-lg transition-shadow cursor-pointer"
+            >
+              <CardContent className="p-3 md:p-4">
+                <div className="aspect-square bg-neutral-10 rounded-lg mb-3 md:mb-4 overflow-hidden">
+                  <img
+                    src={product?.images[0]}
+                    alt="Pet bandana"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="space-y-1 md:space-y-2">
+                  <h3 className="font-gilroy font-light text-neutral-100 line-clamp-2 text-sm md:text-base">
+                    {product?.name}
+                  </h3>
+                  <div className="flex items-center gap-2 text-xs text-neutral-60">
+                    <span className="font-gabarito font-medium">Vendor:</span>
+                    <span className="font-gabarito font-medium">
+                      {product?.vendors[0]?.vendorName}
+                    </span>
+                  </div>
+                  <p className="text-sm font-gilroy font-light text-neutral-100 font-semibold">
+                    {(() => {
+                      const vendorPrices =
+                        product?.vendors
+                          ?.map((vendor) => vendor.price)
+                          .filter((price) => price !== undefined) || [];
+                      const lowestVendorPrice =
+                        vendorPrices.length > 0
+                          ? Math.min(...vendorPrices)
+                          : null;
+
+                      const basePrice =
+                        product?.variants[0]?.price ??
+                        product?.variants?.[0]?.price;
+
+                      const priceDisplay = basePrice
+                        ? `From ${RupeeName} ${basePrice}`
+                        : lowestVendorPrice
+                          ? `From ${RupeeName} ${lowestVendorPrice}`
+                          : ``;
+
+                      return priceDisplay;
+                    })()}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }
