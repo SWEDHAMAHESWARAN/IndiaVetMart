@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import { handleDemo } from "./routes/demo";
+import { proxyHandler } from "./routes/proxy";
 
 export function createServer() {
   const app = express();
@@ -9,6 +10,9 @@ export function createServer() {
   app.use(cors());
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
+
+  // Proxy route for external API calls (handles CORS)
+  app.all("/api/proxy/*", proxyHandler);
 
   // Example API routes
   app.get("/api/ping", (_req, res) => {
