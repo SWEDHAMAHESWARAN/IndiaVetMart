@@ -76,10 +76,19 @@ export const proxyHandler: RequestHandler = async (req, res) => {
     // Return the response
     res.status(response.status).json(responseData);
   } catch (error: any) {
-    console.error("Proxy error:", error);
+    console.error("Proxy error:", {
+      message: error.message,
+      stack: error.stack,
+      name: error.name,
+    });
+
     res.status(500).json({
       error: true,
       message: "Proxy server error: " + error.message,
+      details:
+        error.name === "TypeError"
+          ? "Network connectivity issue"
+          : "Unknown error",
     });
   }
 };
