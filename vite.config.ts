@@ -12,7 +12,7 @@ export default defineConfig(({ mode }) => ({
       "/api/proxy": {
         target: "http://20.235.173.36:3001",
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api\/proxy/, "/api"),
+        rewrite: (path) => path.replace(/^\/api\/proxy\/api/, "/api"),
         configure: (proxy, options) => {
           proxy.on("error", (err, req, res) => {
             console.log("proxy error", err);
