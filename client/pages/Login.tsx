@@ -65,7 +65,7 @@ export default function Login() {
           phone: user.providerData[0].phoneNumber,
         };
 
-        postData("/api/user/authWithGoogle", fields).then((res) => {
+        postData("/user/authWithGoogle", fields).then((res) => {
           console.log("formvalues", fields);
           console.log("res", res);
           localStorage.setItem(
@@ -150,7 +150,7 @@ export default function Login() {
       console.log("Sign In Data:", formfields);
       setIsLoading(true);
 
-      postData("/api/user/signin", formfields).then((res) => {
+      postData("/user/signin", formfields).then((res) => {
         console.log("formvalues", formfields);
         console.log("res:", res);
 

@@ -1,7 +1,7 @@
 import axios from "axios";
 
 // Use local proxy to handle CORS
-const API_BASE_URL = "/api/proxy";
+const API_BASE_URL = "/api/proxy"; // This will be prefixed to all API calls
 
 const getAuthHeaders = () => {
   const token = localStorage.getItem("token");
