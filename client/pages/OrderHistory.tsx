@@ -49,6 +49,7 @@ interface Order {
 
 export default function OrderHistory() {
   const context = useContext(MyContext);
+  const navigate = useNavigate();
   const [openId, setOpenId] = useState<string | null>(null);
   console.log("usecontex", context);
   const { user } = context;
