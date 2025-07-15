@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useContext, useEffect, useState } from "react";
+import { Link, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -15,7 +15,15 @@ import {
   ChevronRight,
   Star,
   Lock,
+  Truck,
+  Info,
+  ShoppingCart,
 } from "lucide-react";
+import  DOMPurify  from "dompurify";
+import { fetchDataFromApi } from "@/lib/api";
+import { MyContext } from "@/App";
+import { Tab } from "../components/ui/tab";
+import { Rupee } from "@/components/constants/CurrencyConst";
 
 // Define types for API integration
 interface VendorPrice {
@@ -47,6 +55,27 @@ interface CategoryData {
 }
 
 export default function Category() {
+  //get the Params id
+  const { id } = useParams();
+  //context
+  const context = useContext(MyContext);
+  const { frequencyProducts, recentOrders, cat, vendors, user, Permission } =
+    context;
+  //variable set useState
+  const [products, setProducts] = useState<any>([]);
+  const [selectedCategoryId, setSelectedCategoryId] = useState(id);
+  const [selectedVendorId, setSelectedVendorId] = useState(null);
+  const [availability, setSelectedAvailability] = useState(null);
+  const [range, setRange] = useState({ min: "", max: "" });
+  const [price, setPrice] = useState(null);
+  const [verified, setVerified] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 12;
+  const totalItems = products.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const [minValue, setMinValue] = useState<number | undefined>(undefined);
+  const [maxValue, setMaxValue] = useState<number | undefined>(undefined);
+
   const [selectedFilters, setSelectedFilters] = useState({
     recentlyPurchased: ["Flury pert Bow| Add a T..."],
     frequentlyOrdered: ["Flury pert Bow| Add a Touch...."],
@@ -76,6 +105,14 @@ export default function Category() {
     }));
   };
 
+  const handleRangeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log(range.max, range.min);
+    const { name, value } = e.target;
+    setRange((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
   const handleCheckboxFilter = (
     filterType: string,
     item: string,
@@ -106,147 +143,37 @@ export default function Category() {
     console.log(`Adding product ${productId} from ${vendor} to cart`);
   };
 
-  // Sample data - in real app, this would come from API
-  const products: Product[] = [
-    {
-      id: 1,
-      name: "Hemp Seed Oil For Pet",
-      gene: "Female",
-      price: "Rs. 245",
-      category: "Pet Health",
-      vendor: "Cure By Design",
-      rating: 4.5,
-      reviewCount: 128,
-      inStock: true,
-      image:
-        "https://images.unsplash.com/photo-1605568427561-40dd23c2acea?w=264&h=264&fit=crop",
-      vendors: [
-        {
-          vendor: "Cure By Design",
-          price: "Rs. 245",
-          inStock: true,
-          shipping: "Free",
-        },
-        {
-          vendor: "PetCare Plus",
-          price: "Rs. 280",
-          inStock: true,
-          shipping: "Rs. 50",
-        },
-        {
-          vendor: "VetMart",
-          price: "Rs. 260",
-          inStock: false,
-          shipping: "Free",
-        },
-      ],
-    },
-    {
-      id: 2,
-      name: "Hemp Healing Balm",
-      gene: "Male",
-      price: "Rs. 520",
-      category: "Pet Care",
-      vendor: "Flury",
-      rating: 4.8,
-      reviewCount: 85,
-      inStock: true,
-      image:
-        "https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=264&h=264&fit=crop",
-      vendors: [
-        { vendor: "Flury", price: "Rs. 520", inStock: true, shipping: "Free" },
-        {
-          vendor: "Pet World",
-          price: "Rs. 495",
-          inStock: true,
-          shipping: "Rs. 30",
-        },
-      ],
-    },
-    {
-      id: 3,
-      name: "Hemp Spray for Dogs",
-      gene: "Male",
-      price: "Rs. 4522",
-      category: "CBD for Pets",
-      vendor: "Pets & Pawlsco",
-      rating: 4.2,
-      reviewCount: 56,
-      inStock: false,
-      image:
-        "https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?w=264&h=264&fit=crop",
-      vendors: [
-        {
-          vendor: "Pets & Pawlsco",
-          price: "Rs. 4522",
-          inStock: false,
-          shipping: "Rs. 100",
-        },
-        {
-          vendor: "Pet Wellness",
-          price: "Rs. 4200",
-          inStock: true,
-          shipping: "Free",
-        },
-      ],
-    },
-    {
-      id: 4,
-      name: "Hemp Healing Balm",
-      gene: "Female",
-      price: "Rs. 854",
-      category: "Pet Health",
-      vendor: "Cure By Design",
-      rating: 4.6,
-      reviewCount: 92,
-      inStock: true,
-      image:
-        "https://images.unsplash.com/photo-1612277795421-9bc7706a4a34?w=264&h=264&fit=crop",
-      vendors: [
-        {
-          vendor: "Cure By Design",
-          price: "Rs. 854",
-          inStock: true,
-          shipping: "Free",
-        },
-        {
-          vendor: "Health Pet",
-          price: "Rs. 820",
-          inStock: true,
-          shipping: "Rs. 40",
-        },
-      ],
-    },
-    {
-      id: 5,
-      name: "Natural Pet Supplement",
-      gene: "Unisex",
-      price: "Rs. 1,299",
-      category: "Pet Health",
-      vendor: "HealthyPaws",
-      rating: 4.7,
-      reviewCount: 156,
-      inStock: true,
-      image:
-        "https://images.unsplash.com/photo-1628009368231-7bb7cfcb0def?w=264&h=264&fit=crop",
-    },
-    {
-      id: 6,
-      name: "Organic Pet Treats",
-      gene: "Unisex",
-      price: "Rs. 399",
-      category: "Pet Food",
-      vendor: "NaturalTreats",
-      rating: 4.4,
-      reviewCount: 203,
-      inStock: true,
-      image:
-        "https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=264&h=264&fit=crop",
-    },
-  ];
-
+  // Sample data - in real app, this would come from API added useEffect
+  useEffect(() => {
+    const isVerified = localStorage.getItem("isVerified");
+    setVerified(isVerified);
+    let userDetails: any;
+    try {
+      const users = user;
+      userDetails = JSON.parse(users);
+      console.log(userDetails.userId);
+    } catch {
+      console.error("Failed to Parse user from context");
+    }
+    let apiEndPoint = `/api/products/fiterByPrice?catId=${selectedCategoryId}&userid=${userDetails?.userId}&clinicid=${userDetails.clinicId}`;
+    if (selectedVendorId) {
+      apiEndPoint += `&sellerid=${selectedVendorId}`;
+    }
+    if (availability) {
+      apiEndPoint += `&availability=${availability}`;
+    }
+    if (range.max && range.min) {
+     
+      apiEndPoint += `&minPrice=${range.min ? range.min : ""}&maxPrice=${range.max ? range.max : ""}`;
+      console.log("apiend", apiEndPoint);
+    }
+    fetchDataFromApi(apiEndPoint).then((res) => {
+      console.log("res", res.products);
+      setProducts(Array.isArray(res?.products) ? res.products : []);
+    });
+  }, [selectedCategoryId, selectedVendorId, availability, range]);
   // Filter products based on selected filters
-  const filteredProducts = products.filter((product) => {
+  const filteredProducts = products.filter((product: any) => {
     // Category filter
     if (
       selectedFilters.categories.length > 0 &&
@@ -306,44 +233,126 @@ export default function Category() {
 
     return true;
   });
-
-  const filterSections = [
+  const [filterSections, setFilterSections] = useState([
     {
       title: "Recently Purchased Products",
-      items: [
-        "Dog Frock | Cotton | Assorted",
-        "Flury pert Bow| Add a T...",
-        "CBD Transdermal Patch for Pets..",
-        "Hemp Oil for Equine 3000mg CBD",
-      ],
-      selected: selectedFilters.recentlyPurchased,
+      items: frequencyProducts.map((item) => item.name),
+      selected: frequencyProducts
+        .filter((item) => String(item._id) === String(id))
+        .map((item) => item.name),
     },
     {
       title: "Frequently Ordered Products",
-      items: [
-        "Dog Frock | Cotton | Assorted",
-        "Flury pert Bow| Add a Touch....",
-        "Relief 1000mg CBD MCT f...",
-        "Hemp Oil for Equine 3000mg CBD",
-      ],
+      items: recentOrders.map((item) => item.name),
       selected: selectedFilters.frequentlyOrdered,
     },
     {
       title: "Product Categories",
-      items: ["Pet Health & Wellness", "Pet Care", "CBD For Pets", "Frocks"],
-      selected: selectedFilters.categories,
+      items: cat.map((item) => item.name),
+
+      selected: cat
+        .filter((item) => id.includes(item._id))
+        .map((item) => item.name),
     },
     {
       title: "Vendors",
-      items: ["Flury", "Cure By Design"],
-      selected: selectedFilters.vendors,
+      items: vendors.map((item) => item.businessname),
+      selected: [],
     },
     {
       title: "Availability",
       items: ["In Stock", "Out Of Stock"],
-      selected: selectedFilters.availability,
+      selected: [],
     },
-  ];
+  ]);
+  const toggleSelection = (sectionIndex: any, item: any) => {
+    setFilterSections((prev) =>
+      prev.map((section, idx) => {
+        if (idx !== sectionIndex) return section;
+
+        const isSingleSelect = [
+          "Product Categories",
+          "Vendors",
+          "Availability",
+        ].includes(section.title);
+
+        const alreadySelected = section.selected.includes(item);
+
+        const newSelected = isSingleSelect
+          ? alreadySelected
+            ? []
+            : [item]
+          : alreadySelected
+            ? section.selected.filter((i) => i !== item)
+            : [...section.selected, item];
+
+        if (section.title === "Product Categories") {
+          const selectedCat = cat.find((c) => c.name === item);
+          setSelectedCategoryId(
+            !alreadySelected && selectedCat?._id ? selectedCat._id : null,
+          );
+        }
+
+        if (section.title === "Vendors") {
+          const selectedVendor = vendors.find((v) => v.businessname === item);
+          if (alreadySelected) {
+            setSelectedVendorId(null);
+          } else if (selectedVendor?._id) {
+            setSelectedVendorId(selectedVendor._id);
+          }
+        }
+
+        if (section.title === "Availability") {
+          if (alreadySelected) {
+            setSelectedAvailability(null);
+          } else {
+            const value = item.toLowerCase().includes("in")
+              ? "instock"
+              : "outofstock";
+            setSelectedAvailability(value);
+          }
+        }
+
+        return { ...section, selected: newSelected };
+      }),
+    );
+  };
+  const selectedCategory = cat.find((c) => c._id === selectedCategoryId);
+  const displayProducts = products.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage,
+  );
+  const getPageNumbers = () => {
+    const pages = [];
+    if (totalPages <= 7) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      if (currentPage <= 4) {
+        pages.push(1, 2, 3, 4, 5, "....", totalPages);
+      } else if (currentPage >= totalPages - 3) {
+        pages.push(
+          1,
+          "...",
+          totalPages - 4,
+          totalPages - 3,
+          totalPages - 2,
+          totalPages - 1,
+          totalPages,
+        );
+      } else {
+        pages.push(
+          1,
+          "...",
+          currentPage - 1,
+          currentPage,
+          currentPage + 1,
+          "...",
+          totalPages,
+        );
+      }
+    }
+    return pages;
+  };
 
   return (
     <div className="bg-white min-h-screen">
@@ -363,10 +372,10 @@ export default function Category() {
               />
             </div>
             <div className="space-y-6 text-right">
-              <h1 className="text-4xl lg:text-5xl font-gilroy font-light text-white leading-tight">
+              <h1 className="text-4xl lg:text-5xl  font-light text-white leading-tight">
                 One more friend
               </h1>
-              <h2 className="text-3xl lg:text-4xl font-gilroy font-bold text-white leading-tight">
+              <h2 className="text-3xl lg:text-4xl  font-bold text-white leading-tight">
                 Thousands more fun!
               </h2>
               <p className="text-neutral-200 text-sm font-gabarito font-bold max-w-lg ml-auto">
@@ -398,10 +407,10 @@ export default function Category() {
           </Button>
         </div>
 
-        <div className="flex flex-col lg:flex-row gap-8">
+        <div className="flex flex-col lg:flex-row gap-8 ">
           {/* Filter Sidebar */}
           <div
-            className={`lg:w-[280px] flex-shrink-0 ${showFilters ? "block" : "hidden lg:block"}`}
+            className={` lg:w-[280px] flex-shrink-0 ${showFilters ? "block " : "hidden lg:block"} `}
           >
             <h3 className="text-2xl font-gabarito font-medium text-primary-dark-blue mb-6">
               Filter
@@ -413,7 +422,7 @@ export default function Category() {
                   key={sectionIndex}
                   className="border-b border-neutral-30 pb-4"
                 >
-                  <h4 className="font-gilroy font-bold text-neutral-100 mb-4 text-base">
+                  <h4 className=" font-bold text-neutral-100 mb-4 text-base">
                     {section.title}
                   </h4>
                   <div className="space-y-2">
@@ -421,6 +430,7 @@ export default function Category() {
                       <label
                         key={itemIndex}
                         className="flex items-center gap-2.5 cursor-pointer"
+                        onClick={() => toggleSelection(sectionIndex, item)}
                       >
                         <div
                           className={`w-4 h-4 border border-neutral-60 rounded flex items-center justify-center ${
@@ -443,7 +453,7 @@ export default function Category() {
                             </svg>
                           )}
                         </div>
-                        <span className="text-sm font-gilroy font-light text-neutral-100">
+                        <span className="text-sm  font-light text-neutral-100">
                           {item}
                         </span>
                       </label>
@@ -451,14 +461,6 @@ export default function Category() {
                   </div>
                 </div>
               ))}
-
-              {/* Favorite Items Toggle */}
-              <div className="flex items-center justify-between border-b border-neutral-30 pb-4">
-                <span className="font-gilroy font-bold text-neutral-100">
-                  Filter by Favorite Items
-                </span>
-                <div className="w-5 h-5 bg-neutral-30 rounded-full"></div>
-              </div>
 
               {/* Price Range */}
               <div className="border-b border-neutral-30 pb-4">
@@ -468,18 +470,28 @@ export default function Category() {
                 <div className="flex gap-2.5">
                   <div className="flex-1 border-b border-neutral-30 pb-2.5">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-gilroy font-light text-neutral-100">
-                        Min
-                      </span>
-                      <ChevronDown className="w-3.5 h-3.5 text-neutral-60" />
+                      <input
+                        type="number"
+                        value={range.min ?? ""}
+                        min={0}
+                        name="min"
+                        placeholder="Min"
+                        onChange={handleRangeChange}
+                        className="text-sm  font-light text-neutral-100 border border-gray-300 rounded-md px-2 py-1  focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+                      />
                     </div>
                   </div>
                   <div className="flex-1 border-b border-neutral-30 pb-2.5">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-gilroy font-light text-neutral-100">
-                        Max
-                      </span>
-                      <ChevronDown className="w-3.5 h-3.5 text-neutral-60" />
+                      <input
+                        type="number"
+                        value={range.max ?? ""}
+                        name="max"
+                        min={0}
+                        placeholder="Min"
+                        onChange={handleRangeChange}
+                        className="text-sm  font-light text-neutral-100 border border-gray-300 rounded-md px-2 py-1  focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+                      />
                     </div>
                   </div>
                 </div>
@@ -541,239 +553,362 @@ export default function Category() {
 
           {/* Products Section */}
           <div className="flex-1">
-            {/* Header with filters and view options */}
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-6 gap-4">
-              <div className="flex items-center gap-4">
-                <h2 className="text-2xl font-gabarito font-medium text-primary-dark-blue">
-                  Hemp Healing
-                </h2>
-                <span className="text-sm font-gabarito font-medium text-neutral-60 bg-neutral-10 px-3 py-1 rounded-full">
-                  {filteredProducts.length} Products
-                </span>
-              </div>
-
-              <div className="flex items-center gap-3">
-                {/* View Mode Toggle */}
-                <div className="flex items-center border border-neutral-30 rounded-lg p-1">
-                  <button
-                    onClick={() => setViewMode("grid")}
-                    className={`p-2 rounded ${viewMode === "grid" ? "bg-primary-dark-blue text-white" : "text-neutral-60"}`}
-                  >
-                    <svg
-                      className="w-4 h-4"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-                    </svg>
-                  </button>
-                  <button
-                    onClick={() => setViewMode("list")}
-                    className={`p-2 rounded ${viewMode === "list" ? "bg-primary-dark-blue text-white" : "text-neutral-60"}`}
-                  >
-                    <svg
-                      className="w-4 h-4"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 8a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 12a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 16a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" />
-                    </svg>
-                  </button>
+            <div className="sticky top-24">
+              {/* Header with filters and view options */}
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-6 gap-4">
+                <div className="flex items-center gap-4">
+                  <h2 className="text-2xl font-gabarito font-black text-primary-dark-blue">
+                    {selectedCategory?.vendorCategoryName ||
+                      selectedCategory?.name ||
+                      "Category"}{" "}
+                  </h2>
+                  <span className="text-sm font-medium text-neutral-60 px-3 py-1 rounded-full">
+                    {products.length} Products
+                  </span>
                 </div>
 
-                {/* Sort Dropdown */}
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  className="border border-neutral-30 rounded-lg px-4 py-2 text-sm font-gabarito font-medium text-neutral-60 bg-white focus:outline-none focus:ring-2 focus:ring-primary-dark-blue/20"
-                >
-                  <option value="newest">Newest</option>
-                  <option value="price-low">Price: Low to High</option>
-                  <option value="price-high">Price: High to Low</option>
-                  <option value="rating">Highest Rated</option>
-                  <option value="popular">Most Popular</option>
-                </select>
+                <div className="flex items-center gap-3">
+                  {/* View Mode Toggle */}
+                  <div className="flex items-center  rounded-lg p-1">
+                    <button
+                      onClick={() => setViewMode("grid")}
+                      className={`p-2 rounded ${viewMode === "grid" ? "bg-primary-dark-blue text-white" : "text-neutral-60"}`}
+                    >
+                      <svg
+                        className="w-4 h-4"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={() => setViewMode("list")}
+                      className={`p-2 rounded ${viewMode === "list" ? "bg-primary-dark-blue text-white" : "text-neutral-60"}`}
+                    >
+                      <svg
+                        className="w-4 h-4"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 8a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 12a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 16a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" />
+                      </svg>
+                    </button>
+                  </div>
+
+                  {/* Sort Dropdown */}
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
+                    className="border border-neutral-30 rounded-lg px-4 py-2 text-sm font-gabarito font-medium text-neutral-60 bg-white focus:outline-none focus:ring-2 focus:ring-primary-dark-blue/20"
+                  >
+                    <option value="newest">Newest</option>
+                    <option value="price-low">Price: Low to High</option>
+                    <option value="price-high">Price: High to Low</option>
+                    <option value="rating">Highest Rated</option>
+                    <option value="popular">Most Popular</option>
+                  </select>
+                </div>
               </div>
-            </div>
 
-            {/* Products Grid/List */}
-            <div
-              className={`gap-6 ${
-                viewMode === "grid"
-                  ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
-                  : "flex flex-col space-y-4"
-              }`}
-            >
-              {filteredProducts.map((product) => (
-                <Link
-                  key={product.id}
-                  to={`/product/${product.id}`}
-                  className="block group"
-                >
-                  {viewMode === "grid" ? (
-                    <Card className="bg-white shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer rounded-xl overflow-hidden border border-neutral-20 group-hover:border-primary-dark-blue/30">
-                      <CardContent className="p-4">
-                        <div className="relative">
-                          <div className="aspect-square bg-neutral-10 rounded-lg mb-4 overflow-hidden">
-                            <img
-                              src={product.image}
-                              alt={product.name}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                            />
-                          </div>
-                          {!product.inStock && (
-                            <div className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full">
-                              Out of Stock
+              {/* Products Grid/List */}
+              <div
+                className={`gap-6 ${
+                  viewMode === "grid"
+                    ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3"
+                    : "flex flex-col space-y-4"
+                }`}
+              >
+                {displayProducts.map((product: any) => (
+                  <>
+                    {viewMode === "grid" ? (
+                      <Card className="bg-white shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer rounded-xl overflow-hidden border border-neutral-20 group-hover:border-primary-dark-blue/30">
+                        <CardContent className="p-4">
+                          <Link to={`/product/${product._id}`}>
+                          <div className="relative">
+                            <div className="aspect-square bg-neutral-10 rounded-lg mb-4 overflow-hidden">
+                              <img
+                                src={product.images}
+                                alt={product.name}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                              />
                             </div>
-                          )}
-                          {product.rating && (
-                            <div className="absolute top-2 left-2 bg-white/90 backdrop-blur-sm rounded-lg px-2 py-1 flex items-center gap-1">
-                              <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
-                              <span className="text-xs font-medium">
-                                {product.rating}
-                              </span>
-                            </div>
-                          )}
-                        </div>
+                            {product.vendors?.some((vendor) =>
+                              vendor.variants?.some((variant) =>
+                                ["instock", "in_stock"].includes(
+                                  variant.stock_status?.toLowerCase(),
+                                ),
+                              ),
+                            ) ? (
+                              <div className="absolute top-2 right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full">
+                                In Stock
+                              </div>
+                            ) : (
+                              <div className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+                                Out of Stock
+                              </div>
+                            )}
 
-                        <div className="space-y-2">
-                          <h3 className="font-gilroy font-medium text-neutral-100 leading-5 line-clamp-2 group-hover:text-primary-dark-blue transition-colors">
-                            {product.name}
-                          </h3>
-                          <div className="flex items-center gap-4 text-xs text-neutral-60">
-                            <span>By {product.vendor}</span>
-                            {product.reviewCount && (
-                              <span>({product.reviewCount} reviews)</span>
+                            {product.rating && (
+                              <div className="absolute top-2 left-2 bg-white/90 backdrop-blur-sm rounded-lg px-2 py-1 flex items-center gap-1">
+                                <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
+                                <span className="text-xs font-medium">
+                                  {product.rating}
+                                </span>
+                              </div>
                             )}
                           </div>
-                          <div className="flex items-center justify-between">
-                            <p className="text-lg font-gabarito font-bold text-primary-dark-blue">
-                              {product.price}
-                            </p>
-                            <Button
-                              size="sm"
-                              className={`rounded-lg opacity-0 group-hover:opacity-100 transition-opacity ${
-                                isVendorConnected(product.vendor)
-                                  ? "bg-primary-dark-blue hover:bg-primary-dark-blue80 text-white"
-                                  : "bg-neutral-40 text-neutral-60 cursor-not-allowed"
-                              }`}
-                              onClick={(e) => {
-                                e.preventDefault();
-                                handleAddToCart(product.vendor, product.id);
-                              }}
-                              disabled={!isVendorConnected(product.vendor)}
-                            >
-                              {isVendorConnected(product.vendor) ? (
-                                "Add to Cart"
-                              ) : (
-                                <>
-                                  <Lock className="w-3 h-3 mr-1" />
-                                  Connect
-                                </>
-                              )}
-                            </Button>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ) : (
-                    <Card className="bg-white shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer rounded-xl overflow-hidden border border-neutral-20 group-hover:border-primary-dark-blue/30">
-                      <CardContent className="p-4">
-                        <div className="flex gap-4">
-                          <div className="w-24 h-24 bg-neutral-10 rounded-lg overflow-hidden flex-shrink-0">
-                            <img
-                              src={product.image}
-                              alt={product.name}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                            />
-                          </div>
-                          <div className="flex-1 space-y-3">
-                            <div>
-                              <h3 className="font-gilroy font-medium text-neutral-100 leading-5 group-hover:text-primary-dark-blue transition-colors">
-                                {product.name}
-                              </h3>
-                              <div className="flex items-center gap-4 text-xs text-neutral-60 mt-1">
-                                <span>Category: {product.category}</span>
-                                {product.reviewCount && (
-                                  <div className="flex items-center gap-1">
-                                    <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
-                                    <span>
-                                      {product.rating} ({product.reviewCount})
-                                    </span>
-                                  </div>
+                          </Link>
+                          
+
+                          <div className="space-y-2">
+                            <h3 className=" font-medium text-neutral-100 leading-5 line-clamp-2 group-hover:text-primary-dark-blue transition-colors">
+                              {product.name}
+                            </h3>
+                            <div className="flex items-center gap-4 text-xs text-neutral-60">
+                              <span>
+                                By{" "}
+                                {product.vendors.map(
+                                  (item: any) => item?.vendorName,
                                 )}
-                              </div>
+                              </span>
+                              {product.reviewCount && (
+                                <span>({product.reviewCount} reviews)</span>
+                              )}
                             </div>
 
-                            {/* Multiple Vendors Section */}
-                            {product.vendors && product.vendors.length > 0 ? (
-                              <div className="space-y-2">
-                                <p className="text-xs font-gabarito font-bold text-neutral-80">
-                                  Available from {product.vendors.length}{" "}
-                                  vendors:
-                                </p>
-                                {product.vendors.map(
-                                  (vendorInfo, vendorIndex) => (
-                                    <div
-                                      key={vendorIndex}
-                                      className="flex items-center justify-between bg-neutral-10 p-2 rounded-lg"
-                                    >
-                                      <div className="flex items-center gap-3">
+                            <div className="flex items-center justify-between">
+                              <p className="text-lg font-gabarito font-bold text-primary-dark-blue">
+                                {Rupee}
+                                {product.vendors.map((item: any) => item.price)}
+                              </p>
+                              {verified === "approved" &&
+                                Permission?.some(
+                                  (perm) =>
+                                    typeof perm === "string" &&
+                                    perm.trim().toLowerCase() === "add to cart",
+                                ) &&
+                                product.vendors?.some(
+                                  (vendor) =>
+                                    vendor.isAssociated &&
+                                    vendor.variants?.some((variant) =>
+                                      ["instock", "in_stock"].includes(
+                                        variant.stock_status?.toLowerCase(),
+                                      ),
+                                    ),
+                                ) && (
+                                  <Button
+                                    size="sm"
+                                    className="bg-primary-dark-blue hover:bg-primary-dark-blue80 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      // Your add-to-cart logic here
+                                    }}
+                                  >
+                                    Add to Cart
+                                  </Button>
+                                )}
+
+                              {verified === "approved" &&
+                                Permission?.some(
+                                  (perm) =>
+                                    typeof perm === "string" &&
+                                    perm.trim().toLowerCase() ===
+                                      "vendor management",
+                                ) &&
+                                product.vendors?.some(
+                                  (vendor:any) =>
+                                    !vendor?.isAssociated &&
+                                    vendor.variants?.some((variant:any) =>
+                                      ["instock", "in_stock"].includes(
+                                        variant.stock_status?.toLowerCase(),
+                                      ),
+                                    ),
+                                ) && (
+                                  <Button
+                                    size="sm"
+                                    className="bg-primary-dark-blue hover:bg-primary-dark-blue80 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      // Your add-to-cart logic here
+                                    }}
+                                  >
+                                    Connect
+                                  </Button>
+                                )}
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ) : (
+                      <Card className="bg-white shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer rounded-xl overflow-hidden border border-neutral-20 group-hover:border-primary-dark-blue/30">
+                        <CardContent className="p-4">
+                          <div className="flex flex-col md:flex-row gap-4">
+                            {/* Product Image */}
+                            <div className="w-full md:w-24 h-40 md:h-24 bg-neutral-10 rounded-lg overflow-hidden flex-shrink-0">
+                              <img
+                                src={product.images}
+                                alt={product.name}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                              />
+                            </div>
+
+                            {/* Product Content */}
+                            <CardContent className="p-4">
+                              <div className="flex flex-col md:flex-row md:items-start md:gap-6">
+                                <div className="flex-1 space-y-3">
+                                  <div>
+                                    <h3 className="font-medium text-neutral-100 leading-5 group-hover:text-primary-dark-blue transition-colors">
+                                      {product.name}
+                                    </h3>
+
+                                    <div className="flex flex-wrap items-center gap-2 text-xs text-neutral-60 mt-1">
+                                      <span>
+                                        Category:&nbsp;
+                                        {product.vendors
+                                          .map((v: any) => v?.vendorName)
+                                          .join(", ")}
+                                      </span>
+
+                                      {product.reviewCount && (
+                                        <div className="flex items-center gap-1">
+                                          <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
+                                          <span>
+                                            {product.rating} (
+                                            {product.reviewCount})
+                                          </span>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div className="mt-4 md:mt-0 md:w-72 xl:w-80 space-y-2">
+                                  {product.vendors &&
+                                  product.vendors.length > 0 ? (
+                                    <>
+                                      <p className="text-xs font-bold text-neutral-80">
+                                        Available from {product.vendors.length}{" "}
+                                        vendor
+                                        {product.vendors.length > 1 && "s"}:
+                                      </p>
+
+                                      {product.vendors.map(
+                                        (v: any, i: number) => (
+                                          <div
+                                            key={i}
+                                            className="flex justify-between items-center bg-neutral-10 p-2 rounded-lg gap-2"
+                                          >
+                                            {/* vendor name / stock / shipping */}
+                                            <div className="flex items-center gap-2">
+                                              <span className="text-sm font-gabarito font-medium text-primary-dark-blue">
+                                                {v.vendorName}
+                                              </span>
+
+                                              <span
+                                                className={`text-xs px-2 py-1 rounded-full ${
+                                                  v.inStock
+                                                    ? "bg-green-50 text-green-800"
+                                                    : "bg-red-50 text-red-800"
+                                                }`}
+                                              >
+                                                <Truck className="inline-block w-4 h-4" />
+                                              </span>
+
+                                              {v.shipping && (
+                                                <span className="text-xs text-neutral-60">
+                                                  Shipping: {v.shipping}
+                                                </span>
+                                              )}
+                                            </div>
+
+                                            <div className="flex items-center gap-2">
+                                              <span className="text-lg font-gabarito font-bold text-primary-dark-blue">
+                                                {Rupee} {v.price}
+                                              </span>
+
+                                              <Button
+                                                size="sm"
+                                                disabled={
+                                                  !v.inStock ||
+                                                  !isVendorConnected(v.vendor)
+                                                }
+                                                className={`rounded-lg ${
+                                                  v.inStock &&
+                                                  isVendorConnected(v.vendor)
+                                                    ? "bg-primary-dark-blue hover:bg-primary-dark-blue80 text-white"
+                                                    : "bg-neutral-40 text-neutral-60 cursor-not-allowed"
+                                                }`}
+                                                onClick={(e) => {
+                                                  e.preventDefault();
+                                                  handleAddToCart(
+                                                    v.vendor,
+                                                    product.id,
+                                                  );
+                                                }}
+                                              >
+                                                {isVendorConnected(v.vendor) ? (
+                                                  v.inStock ? (
+                                                    "Add to Cart"
+                                                  ) : (
+                                                    "Out of Stock"
+                                                  )
+                                                ) : (
+                                                  <>
+                                                    <Lock className="w-3 h-3 mr-1" />
+                                                    Connect
+                                                  </>
+                                                )}
+                                              </Button>
+                                            </div>
+                                          </div>
+                                        ),
+                                      )}
+                                    </>
+                                  ) : (
+                                    /* single‑vendor fallback */
+                                    <div className="flex justify-between items-center bg-neutral-10 p-2 rounded-lg">
+                                      <div className="space-y-1">
                                         <span className="text-sm font-gabarito font-medium text-primary-dark-blue">
-                                          {vendorInfo.vendor}
+                                          By {product.vendor}
                                         </span>
                                         <span
                                           className={`text-xs px-2 py-1 rounded-full ${
-                                            vendorInfo.inStock
+                                            product.inStock
                                               ? "bg-green-100 text-green-800"
                                               : "bg-red-100 text-red-800"
                                           }`}
                                         >
-                                          {vendorInfo.inStock
+                                          {product.inStock
                                             ? "In Stock"
                                             : "Out of Stock"}
                                         </span>
-                                        {vendorInfo.shipping && (
-                                          <span className="text-xs text-neutral-60">
-                                            Shipping: {vendorInfo.shipping}
-                                          </span>
-                                        )}
                                       </div>
-                                      <div className="flex items-center gap-2">
-                                        <span className="text-lg font-gabarito font-bold text-primary-dark-blue">
-                                          {vendorInfo.price}
-                                        </span>
+
+                                      <div className="text-right space-y-1">
+                                        <p className="text-lg font-gabarito font-bold text-primary-dark-blue">
+                                          {product.price}
+                                        </p>
                                         <Button
                                           size="sm"
+                                          disabled={
+                                            !isVendorConnected(product.vendor)
+                                          }
                                           className={`rounded-lg ${
-                                            isVendorConnected(
-                                              vendorInfo.vendor,
-                                            ) && vendorInfo.inStock
+                                            isVendorConnected(product.vendor)
                                               ? "bg-primary-dark-blue hover:bg-primary-dark-blue80 text-white"
                                               : "bg-neutral-40 text-neutral-60 cursor-not-allowed"
                                           }`}
-                                          disabled={
-                                            !vendorInfo.inStock ||
-                                            !isVendorConnected(
-                                              vendorInfo.vendor,
-                                            )
-                                          }
                                           onClick={(e) => {
                                             e.preventDefault();
                                             handleAddToCart(
-                                              vendorInfo.vendor,
+                                              product.vendor,
                                               product.id,
                                             );
                                           }}
                                         >
-                                          {isVendorConnected(
-                                            vendorInfo.vendor,
-                                          ) ? (
-                                            vendorInfo.inStock ? (
-                                              "Add to Cart"
-                                            ) : (
-                                              "Out of Stock"
-                                            )
+                                          {isVendorConnected(product.vendor) ? (
+                                            "Add to Cart"
                                           ) : (
                                             <>
                                               <Lock className="w-3 h-3 mr-1" />
@@ -783,102 +918,97 @@ export default function Category() {
                                         </Button>
                                       </div>
                                     </div>
-                                  ),
-                                )}
-                              </div>
-                            ) : (
-                              <div className="flex items-center justify-between">
-                                <div className="space-y-1">
-                                  <span className="text-sm font-gabarito font-medium text-primary-dark-blue">
-                                    By {product.vendor}
-                                  </span>
-                                  <div className="flex items-center gap-2">
-                                    <span
-                                      className={`text-xs px-2 py-1 rounded-full ${
-                                        product.inStock
-                                          ? "bg-green-100 text-green-800"
-                                          : "bg-red-100 text-red-800"
-                                      }`}
-                                    >
-                                      {product.inStock
-                                        ? "In Stock"
-                                        : "Out of Stock"}
-                                    </span>
-                                  </div>
-                                </div>
-                                <div className="text-right space-y-2">
-                                  <p className="text-lg font-gabarito font-bold text-primary-dark-blue">
-                                    {product.price}
-                                  </p>
-                                  <Button
-                                    size="sm"
-                                    className={`rounded-lg ${
-                                      isVendorConnected(product.vendor)
-                                        ? "bg-primary-dark-blue hover:bg-primary-dark-blue80 text-white"
-                                        : "bg-neutral-40 text-neutral-60 cursor-not-allowed"
-                                    }`}
-                                    onClick={(e) => {
-                                      e.preventDefault();
-                                      handleAddToCart(
-                                        product.vendor,
-                                        product.id,
-                                      );
-                                    }}
-                                    disabled={
-                                      !isVendorConnected(product.vendor)
-                                    }
-                                  >
-                                    {isVendorConnected(product.vendor) ? (
-                                      "Add to Cart"
-                                    ) : (
-                                      <>
-                                        <Lock className="w-3 h-3 mr-1" />
-                                        Connect
-                                      </>
-                                    )}
-                                  </Button>
+                                  )}
                                 </div>
                               </div>
-                            )}
+                            </CardContent>
                           </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  )}
-                </Link>
-              ))}
-            </div>
+                        </CardContent>
+                        <Tab
+                          defaultTabId="details"
+                          tabs={[
+                            {
+                              id: "details",
+                              label: "Details",
+                              icon: <Info size={18} />,
+                              content: <p>{product.description}</p>,
+                            },
+                            {
+                              id: "orders",
+                              label: "Orders",
+                              icon: <ShoppingCart size={18} />,
+                              content: (
+                                <p>Order history, delivery info, etc.</p>
+                              ),
+                            },
+                            {
+                              id: "reviews",
+                              label: "Reviews",
+                              icon: <Star size={18} />,
+                              content: (
+                                <p>⭐️⭐️⭐️⭐️☆ 4.2 / 5 · 166 reviews</p>
+                              ),
+                            },
+                          ]}
+                        />
+                      </Card>
+                    )}
+                  </>
+                ))}
+              </div>
 
-            {/* Pagination */}
-            <div className="mt-8 flex items-center justify-between">
-              <p className="text-sm text-neutral-60">
-                Showing 1-{products.length} of 156 products
-              </p>
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" className="text-neutral-60">
-                  <ChevronLeft className="w-4 h-4" />
-                  Previous
-                </Button>
-                <div className="flex items-center gap-1">
-                  {[1, 2, 3, "...", 26].map((page, index) => (
-                    <Button
-                      key={index}
-                      variant={page === 1 ? "default" : "ghost"}
-                      size="sm"
-                      className={
-                        page === 1
-                          ? "bg-primary-dark-blue text-white"
-                          : "text-neutral-60"
-                      }
-                    >
-                      {page}
-                    </Button>
-                  ))}
+              {/* Pagination */}
+              <div className="mt-8 flex items-center justify-between">
+                <p className="text-sm text-neutral-60">
+                  Showing {(currentPage - 1) * itemsPerPage + 1}–
+                  {Math.min(currentPage * itemsPerPage, totalItems)} of{" "}
+                  {totalItems} products
+                </p>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-neutral-60"
+                    onClick={() =>
+                      currentPage > 1 && setCurrentPage(currentPage - 1)
+                    }
+                    disabled={currentPage === 1}
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </Button>
+                  <div className="flex items-center gap-1">
+                    {getPageNumbers().map((page, index) => (
+                      <Button
+                        key={index}
+                        variant={page === currentPage ? "default" : "ghost"}
+                        size="sm"
+                        disabled={page === "..."}
+                        onClick={() =>
+                          typeof page === "number" && setCurrentPage(page)
+                        }
+                        className={
+                          page === currentPage
+                            ? "bg-primary-dark-blue text-white"
+                            : "text-neutral-60"
+                        }
+                      >
+                        {page}
+                      </Button>
+                    ))}
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-neutral-60"
+                    onClick={() =>
+                      currentPage < totalPages &&
+                      setCurrentPage(currentPage + 1)
+                    }
+                    disabled={currentPage === totalPages}
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </Button>
                 </div>
-                <Button variant="outline" size="sm" className="text-neutral-60">
-                  Next
-                  <ChevronRight className="w-4 h-4" />
-                </Button>
               </div>
             </div>
           </div>

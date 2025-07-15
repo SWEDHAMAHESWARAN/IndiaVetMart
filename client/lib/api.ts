@@ -61,6 +61,8 @@ export const deleteData = async (url: string) => {
 };
 
 export const uploadImage = async (url: string, formData: any) => {
+  console.log("Uploading image to:", API_BASE_URL + url);
+  console.log("Form data:", formData);
   try {
     const { data } = await axios.post(API_BASE_URL + url, formData, {
       headers: {
@@ -88,3 +90,4 @@ export const deleteImages = async (url: string, imageData: any) => {
     throw error;
   }
 };
+

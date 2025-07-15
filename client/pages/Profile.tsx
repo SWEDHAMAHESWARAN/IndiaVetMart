@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import ClinicManagementForm from "@/components/ClinicManagementForm";
 import { useNavigate, useLocation, Routes, Route } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -28,7 +27,8 @@ import {
   Edit,
   ChevronRight,
 } from "lucide-react";
-
+import AddressManagement from "./ShippingAddress";
+import Accounts from "./Account";
 // Define types for profile data
 interface ProfileData {
   personalInfo: {
@@ -374,25 +374,9 @@ export default function Profile() {
           {/* Main Content */}
           <div className="col-span-1 lg:col-span-3 space-y-8">
             <Routes>
-              <Route path="account" element={<AccountSettings />} />
+              <Route path="account" element={<Accounts />} />
               <Route path="address" element={<AddressManagement />} />
-              <Route path="clinic" element={<ClinicManagementForm 
-  clinics={clinics}
-  showClinicForm={showClinicForm}
-  setShowClinicForm={setShowClinicForm}
-  selectedClinic={selectedClinic}
-  setSelectedClinic={setSelectedClinic}
-  selectedCountry={selectedCountry}
-  setSelectedCountry={setSelectedCountry}
-  selectedState={selectedState}
-  setSelectedState={setSelectedState}
-  selectedCity={selectedCity}
-  setSelectedCity={setSelectedCity}
-  handleSave={handleSave}
-  countryStateCity={countryStateCity}
-  speciesOptions={speciesOptions}
-  practiceTypeOptions={practiceTypeOptions}
-/>} />
+              {/* <Route path="clinic" element={<ClinicManagement />} /> */}
               <Route path="users" element={<UserManagement />} />
             </Routes>
           </div>
@@ -593,332 +577,367 @@ export default function Profile() {
     </div>
   );
 
-  // Account Settings Component
-  function AccountSettings() {
+
+   <Accounts />;
+  <AddressManagement />;
+
+  // Clinic Management Component
+  function ClinicManagement() {
     return (
       <div className="space-y-8">
-        <Card className="bg-white shadow-lg border border-neutral-20 rounded-2xl">
-          <CardHeader className="p-6 border-b border-neutral-20">
-            <CardTitle className="text-2xl font-gabarito font-bold text-primary-dark-blue">
-              Account & Settings
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-6 space-y-8">
-            {/* Profile Picture / Logo Upload */}
-            <div>
-              <h3 className="text-lg font-gabarito font-semibold text-primary-dark-blue mb-4">
-                Profile Picture / Clinic Logo
-              </h3>
-              <div className="flex flex-col sm:flex-row items-start gap-6">
-                <div className="relative">
-                  <div className="w-32 h-32 border-2 border-dashed border-neutral-30 rounded-lg flex items-center justify-center bg-neutral-10 overflow-hidden">
-                    {logoPreview || profileData.clinicInfo.logo ? (
-                      <img
-                        src={logoPreview || profileData.clinicInfo.logo || ""}
-                        alt="Profile/Logo"
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="text-center">
-                        <Camera className="w-8 h-8 text-neutral-60 mx-auto mb-2" />
-                        <span className="text-xs text-neutral-60">
-                          No image
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                  {(logoPreview || profileData.clinicInfo.logo) && (
-                    <button
-                      onClick={() => {
-                        setLogoPreview(null);
-                        setProfileData((prev) => ({
-                          ...prev,
-                          clinicInfo: {
-                            ...prev.clinicInfo,
-                            logo: null,
-                          },
-                        }));
-                      }}
-                      className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors"
+        {!showClinicForm ? (
+          <Card className="bg-white shadow-lg border border-neutral-20 rounded-2xl">
+            <CardHeader className="p-6 border-b border-neutral-20">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-2xl font-gabarito font-bold text-primary-dark-blue">
+                  Clinic Management
+                </CardTitle>
+                <Button
+                  onClick={() => {
+                    setSelectedClinic(null);
+                    setShowClinicForm("create");
+                  }}
+                  className="bg-primary-dark-blue hover:bg-primary-dark-blue80 text-white rounded-lg"
+                >
+                  Create New Clinic
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="space-y-4">
+                <h3 className="text-lg font-gabarito font-semibold text-primary-dark-blue">
+                  All Clinic Branches
+                </h3>
+                <div className="grid grid-cols-1 gap-4">
+                  {clinics.map((clinic) => (
+                    <Card
+                      key={clinic.id}
+                      className="border border-neutral-20 hover:border-primary-dark-blue/30 transition-colors"
                     >
-                      <X className="w-4 h-4" />
-                    </button>
-                  )}
+                      <CardContent className="p-4">
+                        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-2">
+                              <h4 className="text-lg font-gabarito font-semibold text-primary-dark-blue">
+                                {clinic.name}
+                              </h4>
+                              <span className="px-2 py-1 bg-state-green-light text-white text-xs rounded-full">
+                                {clinic.status}
+                              </span>
+                            </div>
+                            <div className="space-y-1 text-sm text-neutral-60">
+                              <div className="flex items-center gap-2">
+                                <MapPin className="w-4 h-4" />
+                                <span>{clinic.address}</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Phone className="w-4 h-4" />
+                                <span>{clinic.phone}</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Mail className="w-4 h-4" />
+                                <span>{clinic.email}</span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              onClick={() => {
+                                setSelectedClinic(clinic);
+                                setSelectedCountry(clinic.country);
+                                setSelectedState(clinic.state);
+                                setSelectedCity(clinic.city);
+                                setShowClinicForm("edit");
+                              }}
+                              className="border-primary-dark-blue text-primary-dark-blue hover:bg-secondary-yellow40 rounded-lg"
+                            >
+                              Update
+                            </Button>
+                            <Button
+                              variant="outline"
+                              className="border-red-500 text-red-500 hover:bg-red-50 rounded-lg"
+                            >
+                              Delete
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
                 </div>
-                <div className="flex-1">
-                  <Label className="text-primary-dark-blue font-gabarito font-medium">
-                    Upload Profile Picture or Clinic Logo
-                  </Label>
-                  <div className="mt-2">
-                    <label className="relative cursor-pointer">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleLogoUpload}
-                        className="sr-only"
-                        disabled={isUploading}
-                      />
-                      <div
-                        className={`border-2 border-dashed border-neutral-30 rounded-lg p-6 text-center hover:border-primary-dark-blue transition-colors ${
-                          isUploading
-                            ? "opacity-50 cursor-not-allowed"
-                            : "cursor-pointer"
-                        }`}
-                      >
-                        <Upload className="w-8 h-8 text-neutral-60 mx-auto mb-2" />
-                        <p className="text-neutral-80 font-gabarito font-medium">
-                          {isUploading
-                            ? "Uploading..."
-                            : "Click to upload or drag and drop"}
-                        </p>
-                        <p className="text-neutral-60 text-sm mt-1">
-                          PNG, JPG up to 5MB
-                        </p>
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          <Card className="bg-white shadow-lg border border-neutral-20 rounded-2xl">
+            <CardHeader className="p-6 border-b border-neutral-20">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-2xl font-gabarito font-bold text-primary-dark-blue">
+                  {showClinicForm === "create"
+                    ? "Create New Clinic"
+                    : "Update Clinic"}
+                </CardTitle>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowClinicForm(null)}
+                  className="border-neutral-30 text-neutral-60"
+                >
+                  Back to List
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="p-6 space-y-8">
+              {/* Species Selection */}
+              <div>
+                <h3 className="text-lg font-gabarito font-semibold text-primary-dark-blue mb-4">
+                  SELECT ALL SPECIES TREATED BY YOUR PRACTICE{" "}
+                  <span className="text-red-500">*</span>
+                </h3>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                  {speciesOptions.map((species) => (
+                    <div
+                      key={species}
+                      className={`cursor-pointer border-2 rounded-lg p-4 text-center transition-all ${
+                        species === "DOG"
+                          ? "border-primary-dark-blue bg-secondary-yellow40"
+                          : "border-neutral-30 hover:border-primary-dark-blue/50"
+                      }`}
+                    >
+                      <div className="w-16 h-16 mx-auto mb-2 bg-neutral-10 rounded-lg flex items-center justify-center">
+                        <span className="text-2xl">📷</span>
                       </div>
+                      <span className="font-gabarito font-medium text-primary-dark-blue">
+                        {species}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Practice Type */}
+              <div>
+                <h3 className="text-lg font-gabarito font-semibold text-primary-dark-blue mb-4">
+                  PRACTICE TYPE(SELECT ALL THAT APPLY){" "}
+                  <span className="text-red-500">*</span>
+                </h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {practiceTypeOptions.map((type) => (
+                    <label
+                      key={type}
+                      className="flex items-center gap-3 cursor-pointer"
+                    >
+                      <input
+                        type="checkbox"
+                        defaultChecked={
+                          type === "General Practice" || type === "Spay/Neuter"
+                        }
+                        className="w-5 h-5 text-primary-dark-blue rounded border-neutral-30 focus:ring-primary-dark-blue/20"
+                      />
+                      <span className="text-primary-dark-blue font-gabarito font-medium text-sm">
+                        {type}
+                      </span>
                     </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* Clinic Information Form */}
+              <div>
+                <h3 className="text-lg font-gabarito font-semibold text-primary-dark-blue mb-4">
+                  CLINIC INFORMATION <span className="text-red-500">*</span>
+                </h3>
+                <div className="bg-neutral-10 p-6 rounded-lg">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <Label className="text-primary-dark-blue font-gabarito font-medium">
+                        Clinic Name
+                      </Label>
+                      <Input
+                        placeholder="Enter the Clinic Name"
+                        defaultValue={selectedClinic?.name || ""}
+                        className="mt-2"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-primary-dark-blue font-gabarito font-medium">
+                        Clinic Email
+                      </Label>
+                      <Input
+                        placeholder="Enter the Clinic Email"
+                        defaultValue={selectedClinic?.email || ""}
+                        className="mt-2"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-primary-dark-blue font-gabarito font-medium">
+                        Clinic Phone
+                      </Label>
+                      <Input
+                        placeholder="Enter the Clinic Phone"
+                        defaultValue={selectedClinic?.phone || ""}
+                        className="mt-2"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-primary-dark-blue font-gabarito font-medium">
+                        Clinic Street Address
+                      </Label>
+                      <Input
+                        placeholder="Enter the Clinic Street Address"
+                        className="mt-2"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-primary-dark-blue font-gabarito font-medium">
+                        Suite/Building, etc.
+                      </Label>
+                      <Input
+                        placeholder="Enter the Suite, Building, etc."
+                        className="mt-2"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-primary-dark-blue font-gabarito font-medium">
+                        Zip Code
+                      </Label>
+                      <Input
+                        placeholder="Enter the Zip Code"
+                        className="mt-2"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-primary-dark-blue font-gabarito font-medium">
+                        Select Country
+                      </Label>
+                      <select
+                        value={selectedCountry}
+                        onChange={(e) => {
+                          setSelectedCountry(e.target.value);
+                          setSelectedState("");
+                          setSelectedCity("");
+                        }}
+                        className="mt-2 w-full border border-neutral-30 rounded-lg px-3 py-2"
+                      >
+                        <option value="">Select Country</option>
+                        {Object.keys(countryStateCity).map((country) => (
+                          <option key={country} value={country}>
+                            {country}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <Label className="text-primary-dark-blue font-gabarito font-medium">
+                        Select State
+                      </Label>
+                      <select
+                        value={selectedState}
+                        onChange={(e) => {
+                          setSelectedState(e.target.value);
+                          setSelectedCity("");
+                        }}
+                        className="mt-2 w-full border border-neutral-30 rounded-lg px-3 py-2"
+                        disabled={!selectedCountry}
+                      >
+                        <option value="">Select State</option>
+                        {selectedCountry &&
+                          Object.keys(countryStateCity[selectedCountry]).map(
+                            (state) => (
+                              <option key={state} value={state}>
+                                {state}
+                              </option>
+                            ),
+                          )}
+                      </select>
+                    </div>
+                    <div>
+                      <Label className="text-primary-dark-blue font-gabarito font-medium">
+                        Select City
+                      </Label>
+                      <select
+                        value={selectedCity}
+                        onChange={(e) => setSelectedCity(e.target.value)}
+                        className="mt-2 w-full border border-neutral-30 rounded-lg px-3 py-2"
+                        disabled={!selectedState}
+                      >
+                        <option value="">Select City</option>
+                        {selectedCountry &&
+                          selectedState &&
+                          countryStateCity[selectedCountry][selectedState].map(
+                            (city) => (
+                              <option key={city} value={city}>
+                                {city}
+                              </option>
+                            ),
+                          )}
+                      </select>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            {/* Personal Information */}
-            <div className="border-t border-neutral-20 pt-8">
-              <h3 className="text-lg font-gabarito font-semibold text-primary-dark-blue mb-2">
-                Personal Information
-              </h3>
-              <p className="text-neutral-60 text-sm mb-6">
-                Update your personal information below. This information will
-                always be kept private and confidential.
-              </p>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Additional Questions */}
+              <div className="space-y-6">
                 <div>
-                  <Label
-                    htmlFor="firstName"
-                    className="text-primary-dark-blue font-gabarito font-medium"
-                  >
-                    First Name
-                  </Label>
-                  <Input
-                    id="firstName"
-                    value={profileData.personalInfo.firstName}
-                    onChange={(e) =>
-                      setProfileData((prev) => ({
-                        ...prev,
-                        personalInfo: {
-                          ...prev.personalInfo,
-                          firstName: e.target.value,
-                        },
-                      }))
-                    }
-                    className="mt-2 border-neutral-30 focus:border-primary-dark-blue focus:ring-primary-dark-blue/20"
-                  />
-                </div>
-                <div>
-                  <Label
-                    htmlFor="lastName"
-                    className="text-primary-dark-blue font-gabarito font-medium"
-                  >
-                    Last Name
-                  </Label>
-                  <Input
-                    id="lastName"
-                    value={profileData.personalInfo.lastName}
-                    onChange={(e) =>
-                      setProfileData((prev) => ({
-                        ...prev,
-                        personalInfo: {
-                          ...prev.personalInfo,
-                          lastName: e.target.value,
-                        },
-                      }))
-                    }
-                    className="mt-2 border-neutral-30 focus:border-primary-dark-blue focus:ring-primary-dark-blue/20"
-                  />
-                </div>
-                <div className="md:col-span-2">
-                  <Label
-                    htmlFor="position"
-                    className="text-primary-dark-blue font-gabarito font-medium"
-                  >
-                    Position (e.g., Inventory Manager, Doctor)
-                  </Label>
-                  <Input
-                    id="position"
-                    value={profileData.personalInfo.position}
-                    onChange={(e) =>
-                      setProfileData((prev) => ({
-                        ...prev,
-                        personalInfo: {
-                          ...prev.personalInfo,
-                          position: e.target.value,
-                        },
-                      }))
-                    }
-                    className="mt-2 border-neutral-30 focus:border-primary-dark-blue focus:ring-primary-dark-blue/20"
-                  />
-                </div>
-              </div>
-
-              <Button
-                onClick={() => handleSave("personal")}
-                className="mt-6 bg-primary-dark-blue hover:bg-primary-dark-blue80 text-white rounded-lg px-8"
-              >
-                Update Personal Information
-              </Button>
-            </div>
-
-            {/* Password Update */}
-            <div className="border-t border-neutral-20 pt-8">
-              <h3 className="text-lg font-gabarito font-semibold text-primary-dark-blue mb-2">
-                Update Password
-              </h3>
-              <p className="text-neutral-60 text-sm mb-6">
-                If you need to update your password, you may do so using the
-                form below. Your new password must be at least 8 characters.
-              </p>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl">
-                <div className="md:col-span-2">
-                  <Label
-                    htmlFor="currentPassword"
-                    className="text-primary-dark-blue font-gabarito font-medium"
-                  >
-                    Old Password
-                  </Label>
-                  <Input
-                    id="currentPassword"
-                    type="password"
-                    value={passwordData.currentPassword}
-                    onChange={(e) =>
-                      setPasswordData((prev) => ({
-                        ...prev,
-                        currentPassword: e.target.value,
-                      }))
-                    }
-                    placeholder="Enter the Old Password"
-                    className="mt-2 border-neutral-30 focus:border-primary-dark-blue focus:ring-primary-dark-blue/20"
-                  />
-                </div>
-                <div>
-                  <Label
-                    htmlFor="newPassword"
-                    className="text-primary-dark-blue font-gabarito font-medium"
-                  >
-                    New Password
-                  </Label>
-                  <Input
-                    id="newPassword"
-                    type="password"
-                    value={passwordData.newPassword}
-                    onChange={(e) =>
-                      setPasswordData((prev) => ({
-                        ...prev,
-                        newPassword: e.target.value,
-                      }))
-                    }
-                    placeholder="Enter the New Password"
-                    className="mt-2 border-neutral-30 focus:border-primary-dark-blue focus:ring-primary-dark-blue/20"
-                  />
-                </div>
-                <div>
-                  <Label
-                    htmlFor="confirmPassword"
-                    className="text-primary-dark-blue font-gabarito font-medium"
-                  >
-                    Confirm New Password
-                  </Label>
-                  <Input
-                    id="confirmPassword"
-                    type="password"
-                    value={passwordData.confirmPassword}
-                    onChange={(e) =>
-                      setPasswordData((prev) => ({
-                        ...prev,
-                        confirmPassword: e.target.value,
-                      }))
-                    }
-                    placeholder="Enter the Confirm New Password"
-                    className="mt-2 border-neutral-30 focus:border-primary-dark-blue focus:ring-primary-dark-blue/20"
-                  />
-                </div>
-              </div>
-
-              <Button
-                onClick={() => handleSave("password")}
-                className="mt-6 bg-primary-dark-blue hover:bg-primary-dark-blue80 text-white rounded-lg px-8"
-              >
-                Update Password
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  // Address Management Component
-  function AddressManagement() {
-    return (
-      <Card className="bg-white shadow-lg border border-neutral-20 rounded-2xl">
-        <CardHeader className="p-6 border-b border-neutral-20">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-2xl font-gabarito font-bold text-primary-dark-blue">
-              Manage Shipping Addresses
-            </CardTitle>
-            <Button
-              onClick={() => setShowAddressForm(true)}
-              className="bg-primary-dark-blue hover:bg-primary-dark-blue80 text-white rounded-lg"
-            >
-              CREATE NEW ADDRESS
-            </Button>
-          </div>
-          <p className="text-neutral-60 text-sm mt-2">
-            Add or remove shipping addresses from the list below. A valid
-            address is required for purchasing Indian Vet Mart Commerce items
-            and redeeming Indian Vet Mart rewards.
-          </p>
-        </CardHeader>
-        <CardContent className="p-6">
-          <div className="space-y-4">
-            {addresses.map((address) => (
-              <div
-                key={address.id}
-                className="flex items-center justify-between p-4 border border-neutral-20 rounded-lg"
-              >
-                <div>
-                  <h4 className="font-gabarito font-semibold text-primary-dark-blue">
-                    {address.name}
-                  </h4>
-                  <p className="text-neutral-60 text-sm whitespace-pre-line">
-                    {address.address}
+                  <h3 className="text-lg font-gabarito font-semibold text-primary-dark-blue mb-2">
+                    Do You Belong to a Buying Group / Group Purchasing
+                    Organization (GPO)?
+                  </h3>
+                  <p className="text-neutral-60 text-sm mb-4">
+                    Examples: PSI, VWG, PVO, Vetcove, etc.
                   </p>
+                  <div className="flex gap-4">
+                    <Button className="bg-primary-dark-blue text-white">
+                      Yes
+                    </Button>
+                    <Button variant="outline">No</Button>
+                    <Button variant="outline">Not Sure</Button>
+                  </div>
                 </div>
-                <div className="flex gap-2">
-                  <Button
-                    variant={address.isDefault ? "default" : "outline"}
-                    className={
-                      address.isDefault
-                        ? "bg-primary-dark-blue text-white"
-                        : "border-primary-dark-blue text-primary-dark-blue"
-                    }
-                    size="sm"
-                  >
-                    SET AS DEFAULT
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="border-red-500 text-red-500 hover:bg-red-50"
-                    size="sm"
-                  >
-                    DELETE
-                  </Button>
+
+                <div>
+                  <h3 className="text-lg font-gabarito font-semibold text-primary-dark-blue mb-2">
+                    Is Your Practice Owned by a Corporate Hospital Group?
+                  </h3>
+                  <p className="text-neutral-60 text-sm mb-4">
+                    Examples: VCA, PVA, VetCare, etc.
+                  </p>
+                  <div className="flex gap-4">
+                    <Button variant="outline">Yes</Button>
+                    <Button className="bg-primary-dark-blue text-white">
+                      No
+                    </Button>
+                    <Button variant="outline">Not Sure</Button>
+                  </div>
                 </div>
               </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+
+              {/* Form Actions */}
+              <div className="flex gap-4 pt-6 border-t border-neutral-20">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowClinicForm(null)}
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={() => {
+                    handleSave("clinic");
+                    setShowClinicForm(null);
+                  }}
+                  className="flex-1 bg-primary-dark-blue text-white"
+                >
+                  {showClinicForm === "create"
+                    ? "Create Clinic"
+                    : "Update Clinic"}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
     );
   }
 

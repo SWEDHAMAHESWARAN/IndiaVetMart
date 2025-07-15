@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -32,6 +32,9 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
+import { MyContext } from "@/App";
+import { fetchDataFromApi } from "@/lib/api";
+import { Rupee } from "@/components/constants/CurrencyConst";
 
 interface Order {
   id: string;
@@ -45,65 +48,25 @@ interface Order {
 }
 
 export default function OrderHistory() {
+  const context = useContext(MyContext);
+  const [openId, setOpenId] = useState<string | null>(null);
+  console.log("usecontex", context);
+  const { user } = context;
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [dateFilter, setDateFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedOrders, setSelectedOrders] = useState<string[]>([]);
-
+  const [orders, setOrders] = useState([]);
   // Sample order data
-  const orders: Order[] = [
-    {
-      id: "1",
-      orderNumber: "ORD-2024-001",
-      date: "2024-01-15",
-      vendor: "Zootice",
-      total: 13228.01,
-      status: "processing",
-      items: 12,
-      paymentMethod: "Credit Card",
-    },
-    {
-      id: "2",
-      orderNumber: "ORD-2024-002",
-      date: "2024-01-14",
-      vendor: "Covetrus",
-      total: 8945.5,
-      status: "processing",
-      items: 8,
-      paymentMethod: "Bank Transfer",
-    },
-    {
-      id: "3",
-      orderNumber: "ORD-2024-003",
-      date: "2024-01-13",
-      supplier: "Vetcove",
-      total: 7731.45,
-      status: "processing",
-      items: 15,
-      paymentMethod: "Credit Card",
-    },
-    {
-      id: "4",
-      orderNumber: "ORD-2024-004",
-      date: "2024-01-12",
-      supplier: "Amatheon",
-      total: 2414.52,
-      status: "pending",
-      items: 5,
-      paymentMethod: "Cash on Delivery",
-    },
-    {
-      id: "5",
-      orderNumber: "ORD-2024-005",
-      date: "2024-01-11",
-      supplier: "PetSupply Co",
-      total: 5678.9,
-      status: "cancelled",
-      items: 7,
-      paymentMethod: "Credit Card",
-    },
-  ];
+  useEffect(() => {
+    const userDetails = JSON.parse(user);
+    let apiUrl = `/api/orders/client/allorders?clinicId=${userDetails.clinicId}`;
+    fetchDataFromApi(apiUrl).then((res) => {
+      console.log("order", res);
+      setOrders(res);
+    });
+  }, []);
 
   const getStatusColor = (status: Order["status"]) => {
     switch (status) {
@@ -131,22 +94,19 @@ export default function OrderHistory() {
     }
   };
 
-  const filteredOrders = orders.filter((order) => {
-    const matchesSearch =
-      order.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.vendor.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus =
-      statusFilter === "all" || order.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
+  // const filteredOrders = orders.filter((order) => {
+  //   const matchesSearch =
+  //     order.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  //     order.vendor.toLowerCase().includes(searchTerm.toLowerCase());
+  //   const matchesStatus =
+  //     statusFilter === "all" || order.status === statusFilter;
+  //   return matchesSearch && matchesStatus;
+  // });
 
   const itemsPerPage = 10;
-  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
+  const totalPages = Math.ceil(orders.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedOrders = filteredOrders.slice(
-    startIndex,
-    startIndex + itemsPerPage,
-  );
+  const paginatedOrders = orders.slice(startIndex, startIndex + itemsPerPage);
 
   return (
     <div className="min-h-screen bg-neutral-10">
@@ -281,9 +241,6 @@ export default function OrderHistory() {
                       Vendor
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-gabarito font-bold text-neutral-100 uppercase tracking-wider">
-                      Items
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-gabarito font-bold text-neutral-100 uppercase tracking-wider">
                       Total
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-gabarito font-bold text-neutral-100 uppercase tracking-wider">
@@ -295,70 +252,161 @@ export default function OrderHistory() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-neutral-20">
-                  {paginatedOrders.map((order) => (
-                    <tr
-                      key={order.id}
-                      className="hover:bg-neutral-10/50 transition-colors"
-                    >
-                      <td className="px-6 py-4">
-                        <div className="flex flex-col">
-                          <span className="text-sm font-gabarito font-bold text-primary-dark-blue">
-                            {order.orderNumber}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-neutral-80 font-gilroy">
-                        {new Date(order.date).toLocaleDateString()}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-neutral-100 font-gabarito font-medium">
-                        {order.vendor}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-neutral-100 font-gabarito">
-                        {order.items} items
-                      </td>
-                      <td className="px-6 py-4 text-sm text-neutral-100 font-gabarito font-bold">
-                        ₹{order.total.toLocaleString()}
-                      </td>
-                      <td className="px-6 py-4">
-                        <Badge
-                          className={`${getStatusColor(order.status)} text-xs px-3 py-1 rounded-full font-medium flex items-center gap-1 w-fit`}
+                  {paginatedOrders.map((order) => {
+                    const isOpen = openId === order._id;
+                    return (
+                      <>
+                        <tr
+                          key={order.id}
+                          onClick={() => setOpenId(isOpen ? null : order._id)}
+                          className="hover:bg-neutral-10/50 transition-colors"
                         >
-                          {getStatusIcon(order.status)}
-                          {order.status.charAt(0).toUpperCase() +
-                            order.status.slice(1)}
-                        </Badge>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-primary-dark-blue hover:bg-secondary-yellow40"
-                          >
-                            <Eye className="w-4 h-4" />
-                          </Button>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
+                          <td className="px-6 py-4">
+                            <div className="flex flex-col">
+                              <span className="text-sm font-gabarito font-bold text-primary-dark-blue">
+                                {order._id}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 text-sm text-neutral-80 font-gilroy">
+                            {new Date(order.date).toLocaleDateString()}
+                          </td>
+                          <td className="px-6 py-4 text-sm text-neutral-100 font-gabarito font-medium">
+                            {[
+                              ...new Set(
+                                order.products?.map(
+                                  (item: any) => item.sellerName,
+                                ),
+                              ),
+                            ].map((name: any, idx) => (
+                              <div key={idx}>{name}</div>
+                            ))}
+                          </td>
+
+                          <td className="px-6 py-4 text-sm text-neutral-100 font-gabarito font-bold">
+                            ₹{order.amount?.toLocaleString()}
+                          </td>
+                          <td className="px-6 py-4">
+                            <Badge
+                              className={`${getStatusColor(order.status)} text-xs px-3 py-1 rounded-full font-medium flex items-center gap-1 w-fit`}
+                            >
+                              {getStatusIcon(order.status)}
+                              {order.status.charAt(0).toUpperCase() +
+                                order.status.slice(1)}
+                            </Badge>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-2">
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className="text-neutral-60 hover:bg-neutral-10"
+                                className="text-primary-dark-blue hover:bg-secondary-yellow40"
                               >
-                                <MoreVertical className="w-4 h-4" />
+                                <Eye className="w-4 h-4" />
                               </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem>View Details</DropdownMenuItem>
-                              <DropdownMenuItem>
-                                Download Invoice
-                              </DropdownMenuItem>
-                              <DropdownMenuItem>Reorder Items</DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="text-neutral-60 hover:bg-neutral-10"
+                                  >
+                                    <MoreVertical className="w-4 h-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem>
+                                    View Details
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem>
+                                    Download Invoice
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem>
+                                    Reorder Items
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </div>
+                          </td>
+                        </tr>
+                        <div
+                          className={`transition-all duration-300 ease-in-out ${
+                            isOpen
+                              ? "max-h-[1000px] opacity-100"
+                              : "max-h-0 opacity-0"
+                          } overflow-hidden px-4 bg-white`}
+                        >
+                          {
+                            order.products?.map((product)=>(
+                                                        <div className=" p-4 md:p-6 w-full max-w-4xl mx-auto bg-white">
+                            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
+                              <p className="font-semibold text-sm md:text-base">
+                                <span className="text-gray-800">Order Id:</span>{" "}
+                                {order._id}
+                              </p>
+                              <p className="text-sm md:text-base text-gray-700">
+                                <span className="font-medium">
+                              {product.sellerName}
+                                </span>
+                              </p>
+                            </div>
+
+                            <div className="flex flex-col md:flex-row gap-4">
+                              {/* Left: Image and Product Info */}
+                              <div className="flex gap-4 w-full md:w-1/2">
+                                <img
+                                  src={product.image}
+                                  alt="Product"
+                                  className="w-24 h-24 object-cover rounded-lg shadow-sm"
+                                />
+                                <div className="flex flex-col justify-between">
+                                  <p className="font-medium text-sm md:text-base text-gray-800">
+                                    {product.productTitle}
+                                  </p>
+                                  <div className="flex items-center gap-2 text-xs mt-1">
+                                    <span className="border px-2 py-0.5 rounded-md bg-gray-100">
+                                      {product.quantity} Qty
+                                    </span>
+                                  </div>
+                                  <p className="text-sm font-semibold mt-2">
+                                    Price: {Rupee}{product.price}
+                                  </p>
+                                </div>
+                              </div>
+
+                              {/* Right: Price Summary */}
+                              <div className="border-l border-gray-200 pl-4 w-full md:w-1/2 text-sm text-gray-800">
+                                <div className="flex justify-between py-1">
+                                  <span>No. of Product</span>
+                                  <span>{order.products.length}</span>
+                                </div>
+                                <div className="flex justify-between py-1">
+                                  <span>Total Amount</span>
+                                  <span>₹1000</span>
+                                </div>
+                                <div className="flex justify-between py-1">
+                                  <span>Discount</span>
+                                  <span>₹145</span>
+                                </div>
+                                <div className="flex justify-between py-1 font-semibold">
+                                  <span>Final Amount</span>
+                                  <span>₹40000</span>
+                                </div>
+                                <hr className="my-2" />
+                                <div className="flex justify-between py-1 font-bold text-base">
+                                  <span>Final Amount</span>
+                                  <span className="text-black">₹25000</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                            ))
+                          }
+
                         </div>
-                      </td>
-                    </tr>
-                  ))}
+                      </>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -368,8 +416,8 @@ export default function OrderHistory() {
               <div className="flex items-center justify-between text-sm text-neutral-60">
                 <span>
                   Showing {startIndex + 1} to{" "}
-                  {Math.min(startIndex + itemsPerPage, filteredOrders.length)}{" "}
-                  of {filteredOrders.length} orders
+                  {Math.min(startIndex + itemsPerPage, orders.length)} of{" "}
+                  {orders.length} orders
                 </span>
                 <div className="flex items-center gap-2">
                   <Button

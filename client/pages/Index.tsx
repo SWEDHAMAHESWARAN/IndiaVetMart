@@ -29,6 +29,7 @@ export default function HomeScreen() {
   const [featureProducts, setFeatureProducts] = useState<any[]>([]);
   const [vendorsData, setVendorsData] = useState<any[]>([]);
   const [randomCatProducts, setRandomProducts] = useState<any[]>([]);
+  const history = useNavigate();
   useEffect(() => {
     if (orders?.length) setRecentOrder(orders);
   }, [orders]);
@@ -53,6 +54,12 @@ export default function HomeScreen() {
       setIsPopularLoading(false);
     }
   }, [popularProducts]);
+
+  const handleRedirect = (productId: any, variantId: any) => {
+    console.log("Product ID:", productId);
+    console.log("Variant ID:", variantId);
+    history(`/product/${productId}/${variantId}`);
+  };
 
   const fetchNewProducts = async () => {
     try {
@@ -127,21 +134,21 @@ export default function HomeScreen() {
               <h1 className="text-3xl md:text-4xl lg:text-6xl font-gilroy font-light text-primary-dark-blue leading-tight">
                 One more friend
               </h1>
-              <h2 className="text-2xl md:text-3xl lg:text-5xl font-gabarito font-bold text-primary-dark-blue leading-tight">
+              <h2 className="text-2xl md:text-3xl lg:text-5xl font-bold text-primary-dark-blue leading-tight">
                 Thousands more fun!
               </h2>
-              <p className="text-base md:text-lg text-neutral-80 max-w-lg font-gabarito font-bold mx-auto lg:mx-0">
+              <p className="text-base md:text-lg text-neutral-80 max-w-lg font-bold mx-auto lg:mx-0">
                 Having a pet means you have more joy, a new friend, a happy
                 person who will always be with you to have fun. We have 200+
                 different pets that can meet your needs!
               </p>
               <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center lg:justify-start">
-                <Button className="bg-primary-dark-blue hover:bg-primary-dark-blue80 text-neutral-0 rounded-full px-6 md:px-8 py-3 font-gabarito font-bold">
+                <Button className="bg-primary-dark-blue hover:bg-primary-dark-blue80 text-neutral-0 rounded-full px-6 md:px-8 py-3 font-bold">
                   Explore Now
                 </Button>
                 <Button
                   variant="outline"
-                  className="border-primary-dark-blue text-primary-dark-blue hover:bg-secondary-yellow40 rounded-full px-6 md:px-8 py-3 font-gabarito font-bold"
+                  className="border-primary-dark-blue text-primary-dark-blue hover:bg-secondary-yellow40 rounded-full px-6 md:px-8 py-3 font-bold"
                 >
                   <Play className="w-4 h-4 mr-2" />
                   View Intro
@@ -162,7 +169,7 @@ export default function HomeScreen() {
       {/* Notification Banner */}
       {/* <div className="bg-linear-gradient border-l-4 border-primary-dark-blue mx-4 sm:mx-6 lg:mx-8 my-6 md:my-8 p-3 md:p-4 rounded-lg">
         <div className="flex items-center justify-between gap-4">
-          <p className="text-primary-dark-blue text-xs sm:text-sm font-gabarito font-bold flex-1">
+          <p className="text-primary-dark-blue text-xs sm:text-sm font-bold flex-1">
             New offers just dropped! Check them out before they're gone. Up to
             50% off on winter wear—new arrivals included!
           </p>
@@ -172,7 +179,7 @@ export default function HomeScreen() {
         </div>
       </div> */}
 
-       {/* Dashboard Section */}
+      {/* Dashboard Section */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="w-full bg-white relative rounded-lg shadow-sm border border-neutral-20">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-0">
@@ -180,7 +187,7 @@ export default function HomeScreen() {
             <div className="lg:col-span-1 p-6 border-r border-neutral-20">
               <div className="flex flex-col gap-4">
                 <div className="flex justify-center items-start flex-col gap-2">
-                  <h3 className="text-black text-sm font-gabarito font-bold">
+                  <h3 className="text-black text-sm font-bold">
                     Seven Pet Vet Hospital
                   </h3>
                 </div>
@@ -208,24 +215,22 @@ export default function HomeScreen() {
                       className="flex items-center flex-row  py-2"
                     >
                       <div className="w-20 text-xs text-black  font-gilroy font-light text-left ">
-                        
-
                         {new Date(order.createdAt).toLocaleDateString("en-US", {
                           month: "short",
                           day: "numeric",
                         })}
-                      
                       </div>
                       <div className="w-32 text-xs text-black font-gilroy font-light text-left">
                         {order.products[0]?.sellerName}
                       </div>
                       <div className="w-24 text-xs text-black font-gilroy font-light text-left">
-                        
                         {Rupee}
                         {order.amount}
                       </div>
-                      <div className="w-24 text-xs text-red-500 font-gabarito font-bold text-left">
-                        {order.status}
+                      <div className="w-16 flex justify-center items-center flex-col gap-2 py-2">
+                        <span className="text-red-500 text-xs font-gabarito font-bold">
+                          {order.status}
+                        </span>
                       </div>
                     </div>
                   ))}
@@ -237,12 +242,12 @@ export default function HomeScreen() {
             <div className="lg:col-span-2 p-6">
               <div className="flex flex-col gap-6">
                 <div className="flex justify-center items-start flex-col gap-2">
-                  <h3 className="text-black text-sm font-gabarito font-bold">
+                  <h3 className="text-black text-sm font-bold">
                     Featured Categories
                   </h3>
                 </div>
 
-                <div className="flex justify-center items-center flex-row gap-4 overflow-x-auto">
+                <div className="flex justify-center items-center flex-row gap-4 overflow-x-auto pb-4">
                   <button className="h-6 flex justify-center items-center flex-row gap-2 bg-primary-dark-blue/20 rounded-md px-2">
                     <ChevronLeft className="w-4 h-4" />
                   </button>
@@ -251,16 +256,19 @@ export default function HomeScreen() {
                     {categories.slice(0, 5).map((category) => (
                       <Link to="/category" className="block group">
                         <div className="w-32 flex justify-start items-center flex-col bg-secondary-yellow40 border-primary-dark-blue border-[0.5px] rounded-2xl hover:shadow-md transition-shadow">
-                          <div className="w-16 flex justify-center items-center flex-row gap-2 py-2">
-                            <span className="text-primary-dark-blue text-sm font-gabarito font-bold text-center">
+                          <div className="w-full min-h-[40px] flex items-center justify-center px-2 text-center">
+                            <span className="text-primary-dark-blue text-sm font-bold leading-tight line-clamp-2">
                               {category.name}
                             </span>
                           </div>
-                          <div>
+                          <div className="w-[120px] h-[160px] flex justify-center items-center overflow-hidden rounded-b-2xl">
                             <img
-                              src={category?.images[0]}
+                              src={
+                                category?.images[0] ||
+                                "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=600&h=600&fit=crop&crop=center"
+                              }
                               alt="Pet Cares"
-                              className="w-30 h-30 object-cover rounded-b-2xl"
+                              className="w-full h-full object-cover"
                             />
                           </div>
                         </div>
@@ -283,7 +291,7 @@ export default function HomeScreen() {
         <Card className="bg-gradient-to-r from-secondary-yellow40 to-secondary-yellow60 rounded-2xl p-6 md:p-8 shadow-lg">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h3 className="text-xl md:text-2xl font-gabarito font-bold text-primary-dark-blue">
+              <h3 className="text-xl md:text-2xl font-bold text-primary-dark-blue">
                 🏆 Trending Pet Care Essentials
               </h3>
               <p className="text-primary-dark-blue/80 mt-1">
@@ -335,9 +343,18 @@ export default function HomeScreen() {
                     </div>
 
                     <div className="space-y-2">
-                      <h4 className="font-gabarito font-bold text-primary-dark-blue text-sm">
+                      <h4
+                        className="font-gabarito font-bold text-primary-dark-blue text-sm"
+                        onClick={() =>
+                          handleRedirect(
+                            product?._id,
+                            product?.variants?.[0]?._id,
+                          )
+                        }
+                      >
                         {product.name.substr(0, 20) + "..."}
                       </h4>
+
                       {product?.variants?.some(
                         (v: any) =>
                           v.stock_status === "instock" ||
@@ -363,7 +380,7 @@ export default function HomeScreen() {
                       </div>
 
                       <div className="flex items-center justify-between">
-                        <span className="text-lg font-gabarito font-bold text-primary-dark-blue">
+                        <span className="text-lg font-bold text-primary-dark-blue">
                           {(() => {
                             const vendorPrices =
                               product?.vendors
@@ -400,10 +417,10 @@ export default function HomeScreen() {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-16">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 md:mb-8 gap-4">
           <div>
-            <p className="text-neutral-100 font-gabarito font-bold mb-1 text-sm md:text-base">
+            <p className="text-neutral-100 font-bold mb-1 text-sm md:text-base">
               Featured Products from your search
             </p>
-            <h2 className="text-xl md:text-2xl font-gabarito font-bold text-primary-dark-blue">
+            <h2 className="text-xl md:text-2xl font-bold text-primary-dark-blue">
               Our Products
             </h2>
           </div>
@@ -438,9 +455,18 @@ export default function HomeScreen() {
                     />
                   </div>
                   <div className="space-y-1 md:space-y-2">
-                    <h3 className="font-gilroy font-light text-neutral-100 line-clamp-2 text-sm md:text-base">
+                    <h3
+                      className="font-gilroy font-light text-neutral-100 line-clamp-2 text-sm md:text-base"
+                      onClick={() =>
+                        handleRedirect(
+                          product?._id,
+                          product?.variants?.[0]?._id,
+                        )
+                      }
+                    >
                       {product.name}
                     </h3>
+
                     {product?.variants?.some(
                       (v: any) =>
                         v.stock_status === "instock" ||
@@ -451,10 +477,8 @@ export default function HomeScreen() {
                       <span className="text-red-600 block">Out of Stock</span>
                     )}
                     <div className="flex items-center gap-2 text-xs text-neutral-60">
-                      <span className="font-gabarito font-medium">Vendor:</span>
-                      <span className="font-gabarito font-medium">
-                        {product.sellername}
-                      </span>
+                      <span className="font-medium">Vendor:</span>
+                      <span className="font-medium">{product.sellername}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Rating
@@ -540,13 +564,13 @@ export default function HomeScreen() {
           <div className="relative z-10">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h3 className="text-lg md:text-xl font-gabarito font-bold text-secondary-yellow40">
+                <h3 className="text-lg md:text-xl font-bold text-secondary-yellow40">
                   Balance your mind naturally
                 </h3>
                 <h2 className="text-2xl md:text-3xl font-gilroy font-light text-neutral-0 leading-tight">
                   CBD for Mental Health, Sleep & Mood
                 </h2>
-                <p className="text-sm md:text-base text-neutral-80 font-gabarito font-bold mt-2">
+                <p className="text-sm md:text-base text-neutral-80 font-bold mt-2">
                   Explore CBD products for mental wellness and relaxation
                 </p>
               </div>
@@ -583,7 +607,15 @@ export default function HomeScreen() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <h4 className="font-gabarito font-bold text-primary-dark-blue text-sm">
+                      <h4
+                        className="font-gabarito font-bold text-primary-dark-blue text-sm"
+                        onClick={() =>
+                          handleRedirect(
+                            product?._id,
+                            product?.variants?.[0]?._id,
+                          )
+                        }
+                      >
                         {product.name}
                       </h4>
                       <p className="text-xs text-neutral-60">
@@ -613,7 +645,7 @@ export default function HomeScreen() {
                         </span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-lg font-gabarito font-bold text-primary-dark-blue">
+                        <span className="text-lg font-bold text-primary-dark-blue">
                           {(() => {
                             const vendorPrices =
                               product?.vendors
@@ -645,7 +677,7 @@ export default function HomeScreen() {
             </div>
 
             <div className="flex justify-center mt-6">
-              <Button className="bg-secondary-yellow40 text-primary-dark-blue hover:bg-secondary-yellow rounded-full font-gabarito font-bold px-8">
+              <Button className="bg-secondary-yellow40 text-primary-dark-blue hover:bg-secondary-yellow rounded-full font-bold px-8">
                 Explore All CBD Products
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
@@ -661,7 +693,7 @@ export default function HomeScreen() {
             <span className="text-neutral-100 font-gilroy font-light text-lg md:text-xl">
               Proud to be part of
             </span>
-            <span className="text-primary-dark-blue text-xl md:text-2xl font-gabarito font-bold">
+            <span className="text-primary-dark-blue text-xl md:text-2xl font-bold">
               Vendors
             </span>
           </div>
@@ -681,7 +713,7 @@ export default function HomeScreen() {
               className="bg-neutral-0 rounded-lg p-4 md:p-6 shadow-sm hover:shadow-md transition-shadow cursor-pointer flex items-center justify-center min-w-[140px] md:min-w-[160px] aspect-square flex-shrink-0"
             >
               <div className="flex flex-col items-center justify-center gap-2">
-                <span className="text-neutral-60 font-gabarito font-bold text-xs md:text-sm text-center">
+                <span className="text-neutral-60 font-bold text-xs md:text-sm text-center">
                   {vendor.sellername}
                 </span>
 
@@ -702,10 +734,10 @@ export default function HomeScreen() {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-16">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 md:mb-8 gap-4">
           <div>
-            <p className="text-neutral-100 font-gabarito font-bold mb-1 text-sm md:text-base">
+            <p className="text-neutral-100 font-bold mb-1 text-sm md:text-base">
               Pet Accessories
             </p>
-            <h2 className="text-xl md:text-2xl font-gabarito font-bold text-primary-dark-blue">
+            <h2 className="text-xl md:text-2xl font-bold text-primary-dark-blue">
               Do not miss the current offers until the end of June
             </h2>
           </div>
@@ -737,8 +769,8 @@ export default function HomeScreen() {
                     {product?.name}
                   </h3>
                   <div className="flex items-center gap-2 text-xs text-neutral-60">
-                    <span className="font-gabarito font-medium">Vendor:</span>
-                    <span className="font-gabarito font-medium">
+                    <span className="font-medium">Vendor:</span>
+                    <span className="font-medium">
                       {product?.vendors[0]?.vendorName}
                     </span>
                   </div>

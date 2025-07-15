@@ -1,8 +1,12 @@
 import type { Dispatch, SetStateAction } from "react";
 
+export type AlertBoxType = {
+  open: boolean;
+  error: boolean;
+  msg: string;
+};
+
 export type MyContextType = {
-  alertBox?: { open: boolean; error: boolean; msg: string };
-  setAlertBox?: Dispatch<SetStateAction<{ open: boolean; error: boolean; msg: string }>>;
   orders: any[];
   cat: any[];
   popularProducts: any[];
@@ -15,4 +19,8 @@ export type MyContextType = {
   frequencyProducts: any[];
   recentOrders: any[];
   Permission: any[];
+  addToCart: (item?: any) => void;
+  addingInCart: boolean;
+  setAddingInCart: Dispatch<SetStateAction<boolean>>;
+  setAlertBox: (alert: AlertBoxType) => void;
 };

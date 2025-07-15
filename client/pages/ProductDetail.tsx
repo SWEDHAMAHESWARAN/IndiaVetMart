@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -27,7 +27,13 @@ import {
   Clock,
   Tag,
   Package,
+  ShoppingBag,
 } from "lucide-react";
+import { fetchDataFromApi, postData } from "@/lib/api";
+import { MyContextType } from "@/types";
+import DOMPurify from "dompurify";
+import { C } from "vitest/dist/chunks/reporters.d.C-cu31ET.js";
+import { MyContext } from "@/App";
 
 // Define types for API integration
 interface Vendor {
@@ -41,22 +47,22 @@ interface Vendor {
   deliveryTime: string;
 }
 
-interface ProductData {
-  id: string;
-  name: string;
-  category: string;
-  rating: number;
-  reviewCount: number;
-  images: string[];
-  vendors: Vendor[];
-  description: string;
-  composition: string;
-  benefits: string[];
-  specifications: Record<string, string>;
-}
+// interface ProductData {
+//   id: string;
+//   name: string;
+//   category: string;
+//   rating: number;
+//   reviewCount: number;
+//   images: string[];
+//   vendors: Vendor[];
+//   description: string;
+//   composition: string;
+//   benefits: string[];
+//   specifications: Record<string, string>;
+// }
 
 export default function ProductDetail() {
-  const { id } = useParams();
+  const { productId, varientId } = useParams();
   const navigate = useNavigate();
   const [selectedTab, setSelectedTab] = useState("description");
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -66,116 +72,75 @@ export default function ProductDetail() {
   const [reviewRating, setReviewRating] = useState(0);
   const [reviewTitle, setReviewTitle] = useState("");
   const [reviewText, setReviewText] = useState("");
+  const [productData, setProductData] = useState<any>("");
+  const [relatedOrders, setRelatedOrders] = useState([]);
+  const [reviews, setReviews] = useState([]);
+  const { addToCart, addingInCart } = useContext(MyContext);
 
   const handleAddToCart = () => {
-    // In a real app, this would add the item to cart state/context
-    alert(
-      `Added ${quantity} ${productData.name} to cart from ${productData.vendors[selectedVendor].name}`,
-    );
-    navigate("/shopping");
-  };
+    const user = JSON.parse(localStorage.getItem("user"));
 
-  const handleSubmitReview = () => {
-    if (reviewRating === 0 || !reviewTitle.trim() || !reviewText.trim()) {
-      alert("Please fill in all fields and provide a rating.");
+    if (!user) {
+      console.error("User not found in localStorage.");
       return;
     }
 
-    // In a real app, this would submit to API
-    console.log("Submitting review:", {
-      productId: productData.id,
-      rating: reviewRating,
-      title: reviewTitle,
-      text: reviewText,
-    });
+    const cartFields = {
+      productTitle: productData?.name,
+      image: productData?.images?.[0] || "", // fallback if no image
+      rating: productData?.rating || 0,
+      price: 1000,
+      quantity: quantity || 1,
+      sellerId: productData?.vendors?.[0]?.vendorId || "",
+      subTotal: 1000,
+      productId: productData?._id,
+      catId: productData?.category?._id || "",
+      countInStock: 100,
+      userId: user?.userId,
+      clinicId: user?.clinicId,
+      varientId: varientId,
+      // Add additional optional fields like variantId, countInStock, subTotal if needed
+    };
 
-    alert("Thank you! Your review has been submitted.");
-
-    // Reset form
-    setReviewRating(0);
-    setReviewTitle("");
-    setReviewText("");
-    setShowReviewModal(false);
+    addToCart(cartFields);
   };
 
-  // Sample product data - in real app, this would come from API based on id
-  const productData: ProductData = {
-    id: id || "1",
-    name: "Hemp Seed Oil for Pets",
-    category: "Pet Health & Wellness",
-    rating: 4.8,
-    reviewCount: 256,
-    images: [
-      "https://images.unsplash.com/photo-1605568427561-40dd23c2acea?w=560&h=476&fit=crop",
-      "https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=560&h=476&fit=crop",
-      "https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?w=560&h=476&fit=crop",
-      "https://images.unsplash.com/photo-1612277795421-9bc7706a4a34?w=560&h=476&fit=crop",
-      "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=560&h=476&fit=crop",
-    ],
-    vendors: [
-      {
-        id: "1",
-        name: "Cure By Design",
-        price: "Rs. 499",
-        buttonText: "Add To Cart",
-        buttonStyle: "bg-primary-dark-blue text-white",
-        shipping: true,
-        availability: "In Stock",
-        deliveryTime: "2-3 days",
-      },
-      {
-        id: "2",
-        name: "Pets & Pawlsco",
-        price: "Rs. 459",
-        buttonText: "Connect",
-        buttonStyle: "bg-state-blue-sea text-white",
-        shipping: true,
-        availability: "In Stock",
-        deliveryTime: "3-5 days",
-      },
-      {
-        id: "3",
-        name: "HealthyPaws",
-        price: "Rs. 399",
-        buttonText: "Add To Cart",
-        buttonStyle: "bg-primary-dark-blue text-white",
-        shipping: true,
-        availability: "Limited Stock",
-        deliveryTime: "1-2 days",
-      },
-      {
-        id: "4",
-        name: "NaturalTreats",
-        price: "Rs. 549",
-        buttonText: "Add To Cart",
-        buttonStyle: "bg-primary-dark-blue text-white",
-        shipping: true,
-        availability: "In Stock",
-        deliveryTime: "2-4 days",
-      },
-    ],
-    description:
-      "Hemp Seed Oil for Pets is a broad-spectrum supplement used for promoting overall health and wellness in pets. This natural oil is particularly effective for supporting immune system function, skin health, and joint mobility.",
-    composition: "Hemp Seed Oil (100% Pure)",
-    benefits: [
-      "Supports immune system health",
-      "Promotes healthy skin and coat",
-      "Aids in joint mobility and comfort",
-      "Natural stress relief",
-      "Improves overall wellness",
-    ],
-    specifications: {
-      Volume: "30ml",
-      Concentration: "500mg",
-      "Suitable for": "Dogs, Cats",
-      "Age Range": "All ages",
-      Storage: "Cool, dry place",
-    },
-  };
-
-  const thumbnails = productData.images.map((img, index) =>
+  const thumbnails = productData?.images?.map((img, index) =>
     img.replace("560/476", "94/94"),
   );
+  // useEffect(() => {
+  //   fetchProductData();
+  // }, []);
+
+  useEffect(() => {
+    const fetchProductData = async () => {
+      try {
+        const userRaw = localStorage.getItem("user");
+        if (!userRaw) return;
+
+        const parsedUser = JSON.parse(userRaw);
+        const clinicId = parsedUser.clinicId;
+
+        const response = await fetchDataFromApi(
+          `/api/products/${productId}/userorders?clinicId=${clinicId}`,
+        );
+
+        if (response?.groupedProduct) {
+          console.log("Responsse", response?.groupedProduct);
+          setProductData(response?.groupedProduct);
+        }
+        if (response.findProductRelatedOrder) {
+          console.log("Related Orders", response.findProductRelatedOrder);
+          setRelatedOrders(response.findProductRelatedOrder);
+        } else {
+          console.warn("No product data found in response.");
+        }
+      } catch (err) {
+        console.error("Error fetching product data:", err);
+      }
+    };
+    fetchProductData();
+  }, []);
 
   const nextImage = () => {
     setCurrentImageIndex((prev) => (prev + 1) % productData.images.length);
@@ -185,6 +150,61 @@ export default function ProductDetail() {
     setCurrentImageIndex((prev) =>
       prev === 0 ? productData.images.length - 1 : prev - 1,
     );
+  };
+
+  useEffect(() => {
+    const fetchReviewsData = async () => {
+      try {
+        if (!productId) return;
+        const response = await fetchDataFromApi(
+          `/api/ProductReviews?productId=${productId}`,
+        );
+
+        if (response && Array.isArray(response)) {
+          setReviews(response);
+        } else {
+          console.warn("No data found");
+        }
+      } catch (err) {
+        console.error("Error fetching product data:", err);
+      }
+    };
+
+    fetchReviewsData();
+  }, [productId]);
+
+  const handleSubmitReview = async () => {
+    const userRaw = localStorage.getItem("user");
+    console.log("userraw:", userRaw);
+    if (!userRaw) {
+      alert("User not logged in");
+      return;
+    }
+
+    const user = JSON.parse(userRaw);
+
+    const payload = {
+      customerId: user.userId,
+      customerImage: user.images,
+      customerName: user.name,
+      customerRating: reviewRating,
+      productId: productData._id,
+      productImage: productData.images[0],
+      productTitle: productData.name,
+      review: reviewText,
+    };
+    console.log("Review Payload", payload);
+    try {
+      const response = await postData(`/api/productReviews/add`, payload);
+
+      setShowReviewModal(false);
+      setReviewRating(0);
+      setReviewTitle("");
+      setReviewText("");
+    } catch (error) {
+      console.error("Error submitting review:", error);
+      alert("There was an error submitting your review. Please try again.");
+    }
   };
 
   return (
@@ -213,11 +233,13 @@ export default function ProductDetail() {
                 {/* Product Images */}
                 <div className="space-y-4">
                   <div className="relative group">
-                    <img
-                      src={productData.images[currentImageIndex]}
-                      alt={productData.name}
-                      className="w-full h-[400px] lg:h-[500px] object-cover rounded-xl"
-                    />
+                    {productData?.images?.length > 0 && (
+                      <img
+                        src={productData.images[currentImageIndex]}
+                        alt={productData.name}
+                        className="w-full h-[400px] lg:h-[500px] object-cover rounded-xl"
+                      />
+                    )}
 
                     {/* Image Navigation */}
                     <button
@@ -246,7 +268,7 @@ export default function ProductDetail() {
 
                   {/* Thumbnails */}
                   <div className="flex gap-3 overflow-x-auto pb-2">
-                    {thumbnails.map((thumbnail, index) => (
+                    {thumbnails?.map((thumbnail, index) => (
                       <button
                         key={index}
                         onClick={() => setCurrentImageIndex(index)}
@@ -275,7 +297,7 @@ export default function ProductDetail() {
                         variant="secondary"
                         className="bg-secondary-yellow40 text-primary-dark-blue"
                       >
-                        {productData.category}
+                        {productData.category?.name}
                       </Badge>
                     </div>
                     <h1 className="text-2xl lg:text-3xl font-gabarito font-bold text-primary-dark-blue leading-tight">
@@ -309,7 +331,7 @@ export default function ProductDetail() {
                       Choose Vendor
                     </h3>
                     <div className="space-y-3">
-                      {productData.vendors.map((vendor, index) => (
+                      {productData.vendors?.map((vendor, index) => (
                         <div
                           key={vendor.id}
                           className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${
@@ -323,7 +345,7 @@ export default function ProductDetail() {
                             <div className="flex items-center gap-3">
                               <div className="flex items-center gap-2">
                                 <span className="font-gabarito font-semibold text-primary-dark-blue">
-                                  {vendor.name}
+                                  {vendor.vendorName}
                                 </span>
                                 {vendor.shipping && (
                                   <Truck className="w-4 h-4 text-state-green-light" />
@@ -346,10 +368,7 @@ export default function ProductDetail() {
                             </div>
                             <div className="text-right">
                               <div className="text-xl font-gabarito font-bold text-primary-dark-blue">
-                                {vendor.price}
-                              </div>
-                              <div className="text-xs text-neutral-60">
-                                Delivery: {vendor.deliveryTime}
+                                {vendor.variants?.[0]?.price}
                               </div>
                             </div>
                           </div>
@@ -387,23 +406,28 @@ export default function ProductDetail() {
                       <Button
                         className="flex-1 bg-primary-dark-blue hover:bg-primary-dark-blue80 text-white rounded-xl py-3 font-gabarito font-bold text-lg"
                         size="lg"
-                        onClick={handleAddToCart}
+                        onClick={() => {
+                          if (!addingInCart) {
+                            handleAddToCart();
+                          }
+                        }}
                       >
                         <ShoppingCart className="w-5 h-5 mr-2" />
                         Add to Cart
                       </Button>
-                      <Button
+
+                      {/* <Button
                         variant="outline"
                         className="px-6 border-primary-dark-blue text-primary-dark-blue hover:bg-secondary-yellow40 rounded-xl"
                         size="lg"
                       >
                         Buy Now
-                      </Button>
+                      </Button> */}
                     </div>
                   </div>
 
                   {/* Key Benefits */}
-                  <div className="p-4 bg-secondary-yellow40/30 rounded-xl">
+                  {/* <div className="p-4 bg-secondary-yellow40/30 rounded-xl">
                     <h4 className="font-gabarito font-semibold text-primary-dark-blue mb-3">
                       Key Benefits
                     </h4>
@@ -420,7 +444,7 @@ export default function ProductDetail() {
                           </li>
                         ))}
                     </ul>
-                  </div>
+                  </div> */}
                 </div>
               </div>
             </CardContent>
@@ -434,18 +458,21 @@ export default function ProductDetail() {
                 <div className="flex px-6 py-4 overflow-x-auto">
                   {[
                     { id: "description", label: "Description", icon: Info },
-                    {
-                      id: "specifications",
-                      label: "Specifications",
-                      icon: Package,
-                    },
                     { id: "reviews", label: "Reviews", icon: Star },
                     {
                       id: "previous-orders",
-                      label: "Previous Orders",
+                      label: "Orders",
                       icon: Clock,
                     },
-                    { id: "discount", label: "Discounts", icon: Tag },
+                    ...(productData.platformDiscount
+                      ? [
+                          {
+                            id: "discounts",
+                            label: "Discounts",
+                            icon: Tag,
+                          },
+                        ]
+                      : []),
                   ].map((tab) => (
                     <button
                       key={tab.id}
@@ -471,9 +498,14 @@ export default function ProductDetail() {
                       <h3 className="text-lg font-gabarito font-semibold text-primary-dark-blue mb-4">
                         Product Description
                       </h3>
-                      <p className="text-neutral-80 leading-relaxed mb-6">
-                        {productData.description}
-                      </p>
+                      <div
+                        className="text-neutral-80 leading-relaxed mb-6"
+                        dangerouslySetInnerHTML={{
+                          __html: DOMPurify.sanitize(
+                            productData.description || "",
+                          ),
+                        }}
+                      />
                     </div>
 
                     <div>
@@ -487,48 +519,6 @@ export default function ProductDetail() {
                         </span>{" "}
                         {productData.composition}
                       </p>
-                    </div>
-
-                    <div>
-                      <h4 className="font-gabarito font-semibold text-primary-dark-blue mb-3">
-                        Key Benefits
-                      </h4>
-                      <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        {productData.benefits.map((benefit, index) => (
-                          <li
-                            key={index}
-                            className="flex items-center gap-3 text-neutral-80"
-                          >
-                            <div className="w-2 h-2 bg-state-green-light rounded-full"></div>
-                            {benefit}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
-                )}
-
-                {selectedTab === "specifications" && (
-                  <div className="space-y-6">
-                    <h3 className="text-lg font-gabarito font-semibold text-primary-dark-blue">
-                      Product Specifications
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {Object.entries(productData.specifications).map(
-                        ([key, value]) => (
-                          <div
-                            key={key}
-                            className="flex justify-between items-center p-4 bg-neutral-10 rounded-lg"
-                          >
-                            <span className="font-gabarito font-medium text-neutral-80">
-                              {key}:
-                            </span>
-                            <span className="text-primary-dark-blue font-semibold">
-                              {value}
-                            </span>
-                          </div>
-                        ),
-                      )}
                     </div>
                   </div>
                 )}
@@ -551,7 +541,7 @@ export default function ProductDetail() {
                             Write a Review
                           </Button>
                         </DialogTrigger>
-                        <DialogContent className="sm:max-w-[500px]">
+                        <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
                           <DialogHeader>
                             <DialogTitle className="text-xl font-gabarito font-bold text-primary-dark-blue">
                               Write a Review
@@ -655,7 +645,7 @@ export default function ProductDetail() {
                             </div>
                           </div>
 
-                          <DialogFooter className="gap-3">
+                          <DialogFooter className="gap-3 bg-white border-t pt-4">
                             <Button
                               variant="outline"
                               onClick={() => setShowReviewModal(false)}
@@ -720,29 +710,7 @@ export default function ProductDetail() {
                     </div>
 
                     <div className="space-y-4">
-                      {[
-                        {
-                          name: "Sarah M.",
-                          rating: 5,
-                          date: "2 weeks ago",
-                          comment:
-                            "Excellent product! My pet loves it and I can see the difference in their health.",
-                        },
-                        {
-                          name: "Mike R.",
-                          rating: 4,
-                          date: "1 month ago",
-                          comment:
-                            "Good quality hemp oil. Fast delivery and great customer service.",
-                        },
-                        {
-                          name: "Jessica L.",
-                          rating: 5,
-                          date: "3 weeks ago",
-                          comment:
-                            "Highly recommend! My dog's anxiety has improved significantly.",
-                        },
-                      ].map((review, index) => (
+                      {reviews.map((review, index) => (
                         <div
                           key={index}
                           className="border border-neutral-20 rounded-xl p-4 hover:shadow-md transition-shadow"
@@ -750,11 +718,11 @@ export default function ProductDetail() {
                           <div className="flex items-center justify-between mb-3">
                             <div className="flex items-center gap-3">
                               <div className="w-8 h-8 bg-primary-dark-blue rounded-full flex items-center justify-center text-white font-semibold">
-                                {review.name.charAt(0)}
+                                {review.customerName.charAt(0)}
                               </div>
                               <div>
                                 <p className="font-gabarito font-medium text-primary-dark-blue">
-                                  {review.name}
+                                  {review.customerName}
                                 </p>
                                 <div className="flex items-center gap-2">
                                   <div className="flex">
@@ -762,7 +730,7 @@ export default function ProductDetail() {
                                       <Star
                                         key={i}
                                         className={`w-4 h-4 ${
-                                          i < review.rating
+                                          i < review.customerRating
                                             ? "text-yellow-400 fill-yellow-400"
                                             : "text-neutral-30"
                                         }`}
@@ -770,13 +738,15 @@ export default function ProductDetail() {
                                     ))}
                                   </div>
                                   <span className="text-xs text-neutral-60">
-                                    {review.date}
+                                    {new Date(
+                                      review.createdAt,
+                                    ).toLocaleDateString()}
                                   </span>
                                 </div>
                               </div>
                             </div>
                           </div>
-                          <p className="text-neutral-80">{review.comment}</p>
+                          <p className="text-neutral-80">{review.review}</p>
                         </div>
                       ))}
                     </div>
@@ -798,262 +768,117 @@ export default function ProductDetail() {
                       </Button>
                     </div>
 
-                    <div className="space-y-4">
-                      {[
-                        {
-                          orderId: "#ORD-2024-001",
-                          date: "March 15, 2024",
-                          quantity: 2,
-                          price: "Rs. 998",
-                          status: "Delivered",
-                          vendor: "Cure By Design",
-                        },
-                        {
-                          orderId: "#ORD-2024-015",
-                          date: "February 28, 2024",
-                          quantity: 1,
-                          price: "Rs. 499",
-                          status: "Delivered",
-                          vendor: "HealthyPaws",
-                        },
-                        {
-                          orderId: "#ORD-2023-287",
-                          date: "December 10, 2023",
-                          quantity: 3,
-                          price: "Rs. 1,497",
-                          status: "Delivered",
-                          vendor: "Cure By Design",
-                        },
-                      ].map((order, index) => (
-                        <div
-                          key={index}
-                          className="border border-neutral-20 rounded-xl p-4 hover:shadow-md transition-shadow"
-                        >
-                          <div className="flex items-center justify-between mb-3">
-                            <div className="flex items-center gap-3">
-                              <div className="w-12 h-12 bg-secondary-yellow40 rounded-lg flex items-center justify-center">
-                                <Package className="w-6 h-6 text-primary-dark-blue" />
-                              </div>
-                              <div>
-                                <p className="font-gabarito font-semibold text-primary-dark-blue">
-                                  {order.orderId}
-                                </p>
-                                <p className="text-sm text-neutral-60">
-                                  Ordered on {order.date}
-                                </p>
-                                <p className="text-sm text-neutral-60">
-                                  From {order.vendor}
-                                </p>
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              <Badge
-                                variant="default"
-                                className="bg-state-green-light text-white mb-2"
-                              >
-                                {order.status}
-                              </Badge>
-                              <div className="text-lg font-gabarito font-bold text-primary-dark-blue">
-                                {order.price}
-                              </div>
-                              <div className="text-sm text-neutral-60">
-                                Qty: {order.quantity}
-                              </div>
-                            </div>
-                          </div>
-                          <div className="flex gap-2 pt-3 border-t border-neutral-20">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="flex-1 border-primary-dark-blue text-primary-dark-blue hover:bg-secondary-yellow40"
-                              onClick={handleAddToCart}
-                            >
-                              Reorder
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="flex-1"
-                            >
-                              View Details
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Empty State */}
-                    <div className="text-center py-8 text-neutral-60">
-                      <Clock className="w-12 h-12 mx-auto mb-4 text-neutral-40" />
-                      <p className="text-lg font-gabarito font-medium mb-2">
-                        No previous orders found
-                      </p>
-                      <p className="text-sm">
-                        When you purchase this product, your order history will
-                        appear here.
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                {selectedTab === "discount" && (
-                  <div className="space-y-6">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-lg font-gabarito font-semibold text-primary-dark-blue">
-                        Available Discounts & Offers
-                      </h3>
-                      <Button
-                        variant="outline"
-                        className="border-primary-dark-blue text-primary-dark-blue hover:bg-secondary-yellow40"
-                      >
-                        View All Offers
-                      </Button>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {[
-                        {
-                          type: "Bulk Discount",
-                          title: "Buy 3 Get 1 Free",
-                          description:
-                            "Purchase 3 units and get 1 additional unit absolutely free",
-                          code: "BULK3GET1",
-                          savings: "25% Off",
-                          validUntil: "March 31, 2024",
-                          minOrder: "3 units",
-                          color:
-                            "bg-gradient-to-br from-green-500 to-green-600",
-                        },
-                        {
-                          type: "First Time Buyer",
-                          title: "New Customer Discount",
-                          description:
-                            "Special discount for first-time customers",
-                          code: "WELCOME15",
-                          savings: "15% Off",
-                          validUntil: "Valid for 30 days",
-                          minOrder: "Rs. 499",
-                          color: "bg-gradient-to-br from-blue-500 to-blue-600",
-                        },
-                        {
-                          type: "Loyalty Program",
-                          title: "Recurring Order Discount",
-                          description:
-                            "Subscribe and save on monthly deliveries",
-                          code: "SUBSCRIBE10",
-                          savings: "10% Off",
-                          validUntil: "Ongoing",
-                          minOrder: "Monthly subscription",
-                          color:
-                            "bg-gradient-to-br from-purple-500 to-purple-600",
-                        },
-                        {
-                          type: "Clinic Partner",
-                          title: "Veterinary Clinic Discount",
-                          description:
-                            "Special pricing for registered veterinary clinics",
-                          code: "VETCLINIC20",
-                          savings: "20% Off",
-                          validUntil: "Ongoing",
-                          minOrder: "Clinic verification required",
-                          color:
-                            "bg-gradient-to-br from-orange-500 to-orange-600",
-                        },
-                      ].map((discount, index) => (
-                        <div
-                          key={index}
-                          className="relative border border-neutral-20 rounded-xl p-6 hover:shadow-lg transition-shadow overflow-hidden"
-                        >
+                    {/* Grid Layout for Orders */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                      {relatedOrders
+                        .map((order) => {
+                          const matchedProduct = order.products?.find(
+                            (product) => product.productId === productId,
+                          );
+                          return matchedProduct
+                            ? {
+                                ...order,
+                                filteredProduct: matchedProduct,
+                              }
+                            : null;
+                        })
+                        .filter(Boolean)
+                        .map((order, index) => (
                           <div
-                            className={`absolute top-0 right-0 w-24 h-24 ${discount.color} rounded-bl-full flex items-center justify-center`}
+                            key={index}
+                            className="border border-neutral-20 rounded-xl p-4 hover:shadow-md transition-shadow"
                           >
-                            <Tag className="w-6 h-6 text-white transform rotate-12" />
-                          </div>
-
-                          <div className="space-y-3">
-                            <div>
-                              <Badge
-                                variant="secondary"
-                                className="bg-secondary-yellow40 text-primary-dark-blue mb-2"
-                              >
-                                {discount.type}
-                              </Badge>
-                              <h4 className="text-lg font-gabarito font-bold text-primary-dark-blue">
-                                {discount.title}
-                              </h4>
-                              <p className="text-sm text-neutral-60">
-                                {discount.description}
-                              </p>
-                            </div>
-
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <p className="text-2xl font-gabarito font-bold text-state-green-light">
-                                  {discount.savings}
-                                </p>
-                                <p className="text-xs text-neutral-60">
-                                  Min order: {discount.minOrder}
-                                </p>
+                            <div className="flex items-center justify-between mb-3">
+                              <div className="flex items-center gap-3">
+                                <div className="w-12 h-12 bg-secondary-yellow40 rounded-lg flex items-center justify-center">
+                                  <Package className="w-6 h-6 text-primary-dark-blue" />
+                                </div>
+                                <div>
+                                  <p className="text-sm text-neutral-60">
+                                    Ordered on{" "}
+                                    {new Date(order.date).toLocaleDateString()}
+                                  </p>
+                                  <p className="text-sm text-neutral-60">
+                                    From {order.filteredProduct.sellerName}
+                                  </p>
+                                </div>
                               </div>
-                              <div className="text-right">
-                                <p className="font-mono text-sm font-bold text-primary-dark-blue bg-neutral-10 px-3 py-1 rounded">
-                                  {discount.code}
-                                </p>
-                                <p className="text-xs text-neutral-60 mt-1">
-                                  Valid until: {discount.validUntil}
-                                </p>
+
+                              <div className="text-right min-w-[100px]">
+                                <Badge
+                                  variant="default"
+                                  className="bg-state-green-light text-white mb-2"
+                                >
+                                  {order.status}
+                                </Badge>
+                                <div className="text-lg font-gabarito font-bold text-primary-dark-blue whitespace-nowrap">
+                                  ₹{order.filteredProduct.price}
+                                </div>
+                                <div className="text-sm text-neutral-60 whitespace-nowrap">
+                                  Qty: {order.filteredProduct.quantity}
+                                </div>
                               </div>
                             </div>
-
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="w-full border-primary-dark-blue text-primary-dark-blue hover:bg-secondary-yellow40"
-                              onClick={() => {
-                                navigator.clipboard.writeText(discount.code);
-                                alert(
-                                  `Code ${discount.code} copied to clipboard!`,
-                                );
-                              }}
-                            >
-                              Copy Code
-                            </Button>
                           </div>
-                        </div>
-                      ))}
+                        ))}
                     </div>
 
-                    {/* Terms and Conditions */}
-                    <div className="bg-neutral-10 rounded-xl p-6">
-                      <h4 className="font-gabarito font-semibold text-primary-dark-blue mb-3 flex items-center gap-2">
-                        <Info className="w-5 h-5" />
-                        Terms & Conditions
-                      </h4>
-                      <ul className="space-y-2 text-sm text-neutral-80">
-                        <li>
-                          • Discounts cannot be combined with other offers
-                          unless specified
-                        </li>
-                        <li>
-                          • Bulk discounts apply automatically when minimum
-                          quantity is reached
-                        </li>
-                        <li>
-                          • Clinic verification required for veterinary
-                          discounts
-                        </li>
-                        <li>
-                          • Subscription discounts require active monthly
-                          auto-delivery
-                        </li>
-                        <li>
-                          • All offers subject to product availability and
-                          vendor terms
-                        </li>
-                      </ul>
-                    </div>
+                    {relatedOrders.filter((order) =>
+                      order.products?.some(
+                        (product) => product.productId === productId,
+                      ),
+                    ).length === 0 && (
+                      <div className="text-center py-8 text-neutral-60">
+                        <Clock className="w-12 h-12 mx-auto mb-4 text-neutral-40" />
+                        <p className="text-lg font-gabarito font-medium mb-2">
+                          No previous orders found
+                        </p>
+                        <p className="text-sm">
+                          When you purchase this product, your order history
+                          will appear here.
+                        </p>
+                      </div>
+                    )}
                   </div>
                 )}
+
+                {selectedTab === "discounts" &&
+                  productData.platformDiscount && (
+                    <div className="space-y-6">
+                      <h3 className="text-lg font-gabarito font-semibold text-primary-dark-blue">
+                        Quantity-Based Discounts
+                      </h3>
+                      <div className="overflow-x-auto rounded-xl border border-neutral-20">
+                        <table className="min-w-full text-left text-sm">
+                          <thead className="bg-primary-dark-blue text-white">
+                            <tr>
+                              <th className="px-6 py-3 text-center font-gabarito font-semibold text-base">
+                                Quantity Range
+                              </th>
+                              <th className="px-6 py-3 text-center font-gabarito font-semibold text-base">
+                                Discount
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody className="text-neutral-80">
+                            {productData.platformDiscount.map((item, index) => (
+                              <tr
+                                key={index}
+                                className="border-t border-neutral-20"
+                              >
+                                <td className="px-6 py-4 text-center font-gabarito">
+                                  {item.range}
+                                </td>
+                                <td className="px-6 py-4 text-center font-gabarito">
+                                  {item.discount}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
               </div>
             </CardContent>
           </Card>

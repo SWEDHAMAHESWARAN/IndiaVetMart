@@ -11,6 +11,7 @@ import {
   Route,
   useLocation,
   Navigate,
+  useNavigate,
 } from "react-router-dom";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
@@ -24,14 +25,17 @@ import ShoppingCart from "./pages/ShoppingCart";
 import Checkout from "./pages/Checkout";
 import VendorConnection from "./pages/VendorConnection";
 import Budget from "./pages/Budget";
-//import UserManage from "./pages/UserManagement";
 import ApprovalManagement from "./pages/ApprovalManagement";
 import NotFound from "./pages/NotFound";
 import { createContext, useEffect, useState } from "react";
-import { fetchDataFromApi } from "./lib/api";
-import { MyContextType } from "./types";
+import { fetchDataFromApi, postData } from "./lib/api";
+import { MyContextType, AlertBoxType } from "./types";
 import Signup from "./pages/Signup";
+import Accounts from "./pages/Account";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+
 const queryClient = new QueryClient();
+
 export const MyContext = createContext<MyContextType>({
   orders: [],
   cat: [],
@@ -45,11 +49,16 @@ export const MyContext = createContext<MyContextType>({
   frequencyProducts: [],
   recentOrders: [],
   Permission: [],
+  addToCart: () => {},
+  addingInCart: false,
+  setAddingInCart: () => {},
+  setAlertBox: () => {},
 });
 function Layout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
-  const isAuthPage =
-  ["/login", "/signup", "/clinicform"].includes(location.pathname);
+  const isAuthPage = ["/login", "/signup", "/clinicform"].includes(
+    location.pathname,
+  );
 
   if (isAuthPage) {
     return <>{children}</>;
@@ -76,7 +85,13 @@ function AppContent() {
   const [frequencyProducts, setFrequencyProducts] = useState<any[]>([]);
   const [recentOrders, setRecentOrders] = useState<any[]>([]);
   const [isAppReady, setIsAppReady] = useState(false);
-  const [alertBox, setAlertBox] = useState<{ open: boolean; error: boolean; msg: string }>({ open: false, error: false, msg: "" });
+  const [addingInCart, setAddingInCart] = useState(false);
+  const [alertBox, setAlertBox] = useState<AlertBoxType>({
+    open: false,
+    error: false,
+    msg: "",
+  });
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -144,6 +159,30 @@ function AppContent() {
       </div>
     );
   }
+  const addToCart = (data) => {
+    setAddingInCart(true);
+    postData(`/api/cart/add`, data).then((res) => {
+      console.log("res", res);
+      if (res.status !== false) {
+        setAlertBox({
+          open: true,
+          error: false,
+          msg: "Item is added in the cart",
+        });
+        setTimeout(() => {
+          setAddingInCart(false);
+        }, 1000);
+        cartData;
+      } else {
+        setAlertBox({
+          open: true,
+          error: true,
+          msg: res.msg,
+        });
+        setAddingInCart(false);
+      }
+    });
+  };
 
   const contextValues: MyContextType = {
     orders,
@@ -158,7 +197,9 @@ function AppContent() {
     frequencyProducts,
     recentOrders,
     Permission,
-    alertBox,
+    addToCart,
+    addingInCart,
+    setAddingInCart,
     setAlertBox,
   };
   return (
@@ -168,14 +209,18 @@ function AppContent() {
           <Route path="/" element={<Navigate to="/login" />} />
           <Route path="/home" element={<HomeScreen />} />
           <Route path="/login" element={<Login />} />
-         <Route path="/clinicform" element={<Signup />} />
+          <Route path="/clinicform" element={<Signup />} />
           <Route path="/profile/*" element={<Profile />} />
+          <Route path="/profile/account" element={<Accounts />} /> 
           {/* Placeholder routes for navigation items */}
           <Route
             path="/products/category/:id/:vendorId?/:availability?"
             element={<Category />}
           />
-          <Route path="/product/:id" element={<ProductDetail />} />
+          <Route
+            path="/product/:productId/:variantId"
+            element={<ProductDetail />}
+          />
           <Route path="/orders" element={<OrderHistory />} />
           <Route
             path="/orders/new"

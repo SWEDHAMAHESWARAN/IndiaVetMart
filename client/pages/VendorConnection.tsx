@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useState,useEffect} from "react";
+import axios from "axios";
 import { Link } from "react-router-dom";
+import { fetchDataFromApi } from "@/lib/api";
 import {
   ArrowLeft,
   CheckCircle,
@@ -29,41 +31,36 @@ import {
 } from "@/components/ui/card";
 
 interface Vendor {
-  id: string;
-  name: string;
+  _id: string;
+  sellername: string;
   logo: string;
   isConnected: boolean;
-  address?: string;
-  contact?: string;
+  addressLine1?: string;
+  phone?: string;
   email?: string;
   description?: string;
   requiresAuth?: boolean;
+  platform?: string;
+  dateCreated: string;
 }
 
 export default function VendorConnection() {
   const [vendors, setVendors] = useState<Vendor[]>([
-    {
-      id: "flury",
-      name: "Flury",
-      logo: "https://cdn.builder.io/api/v1/image/assets%2Fa5840e9b6f06467fa264b75489f10060%2Fade81aeada634426b109cddff0f43ba6",
-      isConnected: true,
-      address: "1002B CROSS CREEK BLVD TAMPA, FL 33647",
-      contact: "+1 9403345654",
-      email: "contact@flury.com",
-      description: "Pet care and accessories supplier",
-    },
-    {
-      id: "cure-by-design",
-      name: "Cure By Design",
-      logo: "https://cdn.builder.io/api/v1/image/assets%2Fa5840e9b6f06467fa264b75489f10060%2Fa82df420f0df4eea98e35ffe98d5254f",
-      isConnected: false,
-      address: "123 Medical Plaza, Healthcare District",
-      contact: "+1 9876543210",
-      email: "support@curebydesign.com",
-      description: "Medical supplies and equipment",
-      requiresAuth: true,
-    },
+   
   ]);
+   useEffect(() => {  
+    const fetchVendors = async () => {
+      try {
+        const data = await fetchDataFromApi("/api/vendor/getall");
+        console.log("Fetched vendor data:", data.Response);
+        setVendors(data.Response || []);
+      } catch (error) {
+        console.error("Vendor fetch error", error);
+      }
+    };
+
+    fetchVendors();
+  }, []);
 
   const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
@@ -72,27 +69,34 @@ export default function VendorConnection() {
     password: "",
   });
 
-  const handleConnect = async (vendorId: string) => {
-    setIsConnecting(true);
+ const handleConnect = async (vendorId: string) => {
+  setIsConnecting(true);
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+  await new Promise((resolve) => setTimeout(resolve, 1500));
 
-    setVendors((prev) =>
-      prev.map((vendor) =>
-        vendor.id === vendorId ? { ...vendor, isConnected: true } : vendor,
-      ),
+  setVendors((prev) => {
+    console.log("Before connect:", prev);
+
+    const updated = prev.map((vendor) =>
+      vendor._id === vendorId
+        ? { ...vendor, isConnected: true }
+        : { ...vendor, isConnected: false }
     );
 
-    setIsConnecting(false);
-    setSelectedVendor(null);
-    setAuthForm({ username: "", password: "" });
-  };
+    console.log("After connect:", updated);
+    return updated;
+  });
+
+  setIsConnecting(false);
+  setSelectedVendor(null);
+  setAuthForm({ username: "", password: "" });
+};
+
 
   const handleDisconnect = async (vendorId: string) => {
     setVendors((prev) =>
       prev.map((vendor) =>
-        vendor.id === vendorId ? { ...vendor, isConnected: false } : vendor,
+        vendor._id === vendorId ? { ...vendor, isConnected: false } : vendor,
       ),
     );
   };
@@ -116,7 +120,7 @@ export default function VendorConnection() {
               </Button>
             </Link>
             <div>
-              <h1 className="text-3xl font-gabarito font-bold text-primary-dark-blue">
+              <h1 className="text-3xl font-bold text-primary-dark-blue">
                 Vendor Connections
               </h1>
               <p className="text-neutral-60 mt-1">
@@ -130,25 +134,25 @@ export default function VendorConnection() {
         {/* Connected Vendors */}
         {connectedVendors.length > 0 && (
           <div className="mb-8">
-            <h2 className="text-xl font-gabarito font-bold text-primary-dark-blue mb-4">
+            <h2 className="text-xl font-bold text-primary-dark-blue mb-4">
               Connected Vendors ({connectedVendors.length})
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {connectedVendors.map((vendor) => (
                 <Card
-                  key={vendor.id}
+                  key={vendor._id}
                   className="border-2 border-green-200 bg-green-50"
                 >
                   <CardHeader className="text-center pb-4">
                     <div className="flex justify-center mb-3">
                       <img
                         src={vendor.logo}
-                        alt={vendor.name}
+                        alt={vendor.sellername}
                         className="w-16 h-16 object-contain rounded-lg"
                       />
                     </div>
-                    <CardTitle className="text-primary-dark-blue font-gabarito">
-                      {vendor.name}
+                    <CardTitle className="text-primary-dark-blue">
+                      {vendor.sellername}
                     </CardTitle>
                     <div className="flex items-center justify-center gap-2 text-green-600">
                       <CheckCircle className="w-4 h-4" />
@@ -157,16 +161,16 @@ export default function VendorConnection() {
                   </CardHeader>
                   <CardContent className="pt-0">
                     <div className="space-y-2 text-sm text-neutral-60 mb-4">
-                      {vendor.address && (
+                      {vendor.addressLine1 && (
                         <div className="flex items-start gap-2">
                           <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                          <span>{vendor.address}</span>
+                          <span>{vendor.addressLine1}</span>
                         </div>
                       )}
-                      {vendor.contact && (
+                      {vendor.phone && (
                         <div className="flex items-center gap-2">
                           <Phone className="w-4 h-4" />
-                          <span>{vendor.contact}</span>
+                          <span>{vendor.phone}</span>
                         </div>
                       )}
                       {vendor.email && (
@@ -180,7 +184,7 @@ export default function VendorConnection() {
                       variant="outline"
                       size="sm"
                       className="w-full border-red-300 text-red-600 hover:bg-red-50"
-                      onClick={() => handleDisconnect(vendor.id)}
+                      onClick={() => handleDisconnect(vendor._id)}
                     >
                       Disconnect
                     </Button>
@@ -193,22 +197,22 @@ export default function VendorConnection() {
 
         {/* Available Vendors */}
         <div>
-          <h2 className="text-xl font-gabarito font-bold text-primary-dark-blue mb-4">
+          <h2 className="text-xl font-bold text-primary-dark-blue mb-4">
             Available Vendors ({availableVendors.length})
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {availableVendors.map((vendor) => (
-              <Card key={vendor.id} className="border border-neutral-20">
+              <Card key={vendor._id} className="border border-neutral-20">
                 <CardHeader className="text-center pb-4">
                   <div className="flex justify-center mb-3">
                     <img
                       src={vendor.logo}
-                      alt={vendor.name}
+                      alt={vendor.sellername}
                       className="w-16 h-16 object-contain rounded-lg"
                     />
                   </div>
-                  <CardTitle className="text-primary-dark-blue font-gabarito">
-                    {vendor.name}
+                  <CardTitle className="text-primary-dark-blue">
+                    {vendor.sellername}
                   </CardTitle>
                   <div className="flex items-center justify-center gap-2 text-neutral-40">
                     <XCircle className="w-4 h-4" />
@@ -220,6 +224,26 @@ export default function VendorConnection() {
                     {vendor.description && (
                       <p className="text-center">{vendor.description}</p>
                     )}
+                    <div className="grid [grid-template-columns:auto_1fr] gap-y-1 w-full max-w-sm mx-auto text-sm text-gray-700">
+                     <span className="font-semibold">Email:</span>
+                     <span className="text-right">{vendor.email}</span>
+
+                     <span className="font-semibold">Phone:</span>
+                     <span className="text-right">{vendor.phone}</span>
+
+                     <span className="font-semibold">Platform:</span>
+                     <span className="text-right">{vendor.platform}</span>
+
+                     <span className="font-semibold">Joined:</span>
+                     <span className="text-right">
+                      {new Date(vendor.dateCreated).toLocaleDateString('en-US', {
+                      month: 'long',
+                      year: 'numeric'
+                     })}
+                    </span>
+                   </div>
+
+
                   </div>
 
                   {vendor.requiresAuth ? (
@@ -234,14 +258,14 @@ export default function VendorConnection() {
                       </DialogTrigger>
                       <DialogContent className="sm:max-w-md">
                         <DialogHeader>
-                          <DialogTitle className="text-primary-dark-blue font-gabarito">
-                            Connect to {vendor.name}
+                          <DialogTitle className="text-primary-dark-blue ">
+                            Connect to {vendor.sellername}
                           </DialogTitle>
                           <DialogDescription>
                             By authorizing access, your negotiated pricing &
                             purchase data will be available when shopping on
                             IndiaVetMart. Use the credentials that you would use
-                            to log in to the {vendor.name} website.
+                            to log in to the {vendor.sellername} website.
                           </DialogDescription>
                         </DialogHeader>
 
@@ -251,7 +275,7 @@ export default function VendorConnection() {
                               htmlFor="username"
                               className="text-primary-dark-blue"
                             >
-                              {vendor.name} Username
+                              {vendor.sellername} Username
                             </Label>
                             <Input
                               id="username"
@@ -273,7 +297,7 @@ export default function VendorConnection() {
                               htmlFor="password"
                               className="text-primary-dark-blue"
                             >
-                              {vendor.name} Password
+                              {vendor.sellername} Password
                             </Label>
                             <Input
                               id="password"
@@ -292,7 +316,7 @@ export default function VendorConnection() {
 
                           <Button
                             className="w-full bg-primary-dark-blue text-white hover:bg-primary-dark-blue/90"
-                            onClick={() => handleConnect(vendor.id)}
+                            onClick={() => handleConnect(vendor._id)}
                             disabled={
                               isConnecting ||
                               !authForm.username ||
@@ -303,7 +327,7 @@ export default function VendorConnection() {
                           </Button>
 
                           <div className="text-xs text-neutral-60 text-center">
-                            Don't have online access with {vendor.name}?<br />
+                            Don't have online access with {vendor.sellername}?<br />
                             <a
                               href="#"
                               className="text-primary-dark-blue underline"
@@ -318,7 +342,7 @@ export default function VendorConnection() {
                   ) : (
                     <Button
                       className="w-full bg-primary-dark-blue text-white hover:bg-primary-dark-blue/90"
-                      onClick={() => handleConnect(vendor.id)}
+                      onClick={() => handleConnect(vendor._id)}
                       disabled={isConnecting}
                     >
                       {isConnecting ? "Connecting..." : "Connect Vendor"}
@@ -338,7 +362,7 @@ export default function VendorConnection() {
                 <User className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h3 className="font-gabarito font-bold text-primary-dark-blue mb-2">
+                <h3 className="font-bold text-primary-dark-blue mb-2">
                   Why Connect with Vendors?
                 </h3>
                 <ul className="text-sm text-neutral-60 space-y-1">
