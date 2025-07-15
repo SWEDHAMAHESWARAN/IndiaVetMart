@@ -1049,6 +1049,9 @@ export default function Login() {
           </form>
         </CardContent>
       </Card>
+
+      {/* Debug component - remove in production */}
+      <ApiTest />
     </div>
   );
 }
