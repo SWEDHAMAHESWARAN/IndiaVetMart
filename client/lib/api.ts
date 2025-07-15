@@ -27,11 +27,25 @@ export const fetchDataFromApi = async (url: string) => {
       mode: "cors",
     });
 
+    const responseData = await response.json();
+
+    // If response is not ok but we have JSON data, return it anyway
     if (!response.ok) {
+      console.log("API returned non-ok status:", response.status, responseData);
+
+      // If it's a structured API error response, return it
+      if (
+        responseData &&
+        (responseData.error !== undefined || responseData.msg)
+      ) {
+        return responseData;
+      }
+
+      // Otherwise, throw an error
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    return await response.json();
+    return responseData;
   } catch (error: any) {
     console.error("Fetch error:", error);
 
@@ -73,11 +87,25 @@ export const postData = async (url: string, formData: any) => {
       body: JSON.stringify(formData),
     });
 
+    const responseData = await response.json();
+
+    // If response is not ok but we have JSON data, return it anyway
     if (!response.ok) {
+      console.log("API returned non-ok status:", response.status, responseData);
+
+      // If it's a structured API error response, return it
+      if (
+        responseData &&
+        (responseData.error !== undefined || responseData.msg)
+      ) {
+        return responseData;
+      }
+
+      // Otherwise, throw an error
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    return await response.json();
+    return responseData;
   } catch (error: any) {
     console.error("API Error:", error);
 
