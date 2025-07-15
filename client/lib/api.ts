@@ -72,16 +72,42 @@ export const postData = async (url: string, formData: any) => {
 
     return await response.json();
   } catch (error: any) {
-    console.error("Post error:", error);
+    console.error("Post error details:", {
+      name: error.name,
+      message: error.message,
+      stack: error.stack,
+      url: fullUrl,
+    });
 
     // Handle different types of errors
     if (
       error.name === "TypeError" &&
       error.message.includes("Failed to fetch")
     ) {
-      throw new Error(
-        "Unable to connect to server. Please check your internet connection and try again.",
-      );
+      console.log("Network error detected - trying direct API call...");
+
+      // Fallback: try direct API call for CORS issues
+      try {
+        const directResponse = await fetch(`http://20.235.173.36:3001${url}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          mode: "cors",
+          body: JSON.stringify(formData),
+        });
+
+        if (!directResponse.ok) {
+          throw new Error(`HTTP error! status: ${directResponse.status}`);
+        }
+
+        return await directResponse.json();
+      } catch (directError) {
+        console.error("Direct API call also failed:", directError);
+        throw new Error(
+          "Unable to connect to server. The API server may be down or unreachable from this environment.",
+        );
+      }
     }
 
     if (error.message.includes("HTTP error")) {
