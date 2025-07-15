@@ -15,7 +15,6 @@ import {
 } from "react-router-dom";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
-import { AlertBox } from "./components/AlertBox";
 import HomeScreen from "./pages/Index";
 import Login from "./pages/Login";
 import Category from "./pages/Category";
@@ -57,8 +56,9 @@ export const MyContext = createContext<MyContextType>({
 });
 function Layout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
-  const isAuthPage =
-  ["/login", "/signup", "/clinicform"].includes(location.pathname);
+  const isAuthPage = ["/login", "/signup", "/clinicform"].includes(
+    location.pathname,
+  );
 
   if (isAuthPage) {
     return <>{children}</>;
@@ -97,95 +97,55 @@ function AppContent() {
     const fetchInitialData = async () => {
       try {
         const userRaw = localStorage.getItem("user");
-        const token = localStorage.getItem("token");
-
-        console.log("Auth check:", { userRaw: !!userRaw, token: !!token });
-
-        if (userRaw && token) {
+        if (userRaw) {
           setUser(userRaw);
+          const parsedUser = JSON.parse(userRaw);
+          const clinicId = parsedUser.clinicId;
 
-          try {
-            const parsedUser = JSON.parse(userRaw);
-            const clinicId = parsedUser.clinicId;
+          const [
+            ordersRes,
+            catRes,
+            popRes,
+            vendorRes,
+            cartRes,
+            freqRes,
+            recRes,
+            shippingRes,
+          ] = await Promise.all([
+            fetchDataFromApi(`/api/orders/client?clinicId=${clinicId}`),
+            fetchDataFromApi(`/api/category`),
+            fetchDataFromApi(`/api/products/popular-products`),
+            fetchDataFromApi(`/api/vendor/getall`),
+            fetchDataFromApi(`/api/cart?clinicId=${clinicId}`),
+            fetchDataFromApi(
+              `/api/products/frequency-orders?clinicId=${clinicId}`,
+            ),
+            fetchDataFromApi(`/api/products/last-orders?clinicId=${clinicId}`),
+            fetchDataFromApi(`/api/shipping/addresses?clinicId=${clinicId}`),
+          ]);
 
-            // Only fetch data if we have a valid clinicId
-            if (clinicId) {
-              const [
-                ordersRes,
-                catRes,
-                popRes,
-                vendorRes,
-                cartRes,
-                freqRes,
-                recRes,
-                shippingRes,
-              ] = await Promise.all([
-                fetchDataFromApi(
-                  `/api/orders/client?clinicId=${clinicId}`,
-                ).catch(() => []),
-                fetchDataFromApi(`/api/category`).catch(() => ({
-                  categoryList: [],
-                })),
-                fetchDataFromApi(`/api/products/popular-products`).catch(
-                  () => ({ data: [] }),
-                ),
-                fetchDataFromApi(`/api/vendor/getall`).catch(() => ({
-                  Response: [],
-                })),
-                fetchDataFromApi(`/api/cart?clinicId=${clinicId}`).catch(
-                  () => [],
-                ),
-                fetchDataFromApi(
-                  `/api/products/frequency-orders?clinicId=${clinicId}`,
-                ).catch(() => ({ products: [] })),
-                fetchDataFromApi(
-                  `/api/products/last-orders?clinicId=${clinicId}`,
-                ).catch(() => ({ products: [] })),
-                fetchDataFromApi(
-                  `/api/shipping/addresses?clinicId=${clinicId}`,
-                ).catch(() => []),
-              ]);
+          setOrders(ordersRes);
+          setcat(catRes?.categoryList || []);
+          setPopularProducts(popRes?.data || []);
+          setvendors(vendorRes?.Response || []);
+          setCartData(cartRes);
+          setFrequencyProducts(freqRes?.products || []);
+          setRecentOrders(recRes?.products || []);
+          setShippingAddress(shippingRes);
 
-              setOrders(ordersRes || []);
-              setcat(catRes?.categoryList || []);
-              setPopularProducts(popRes?.data || []);
-              setvendors(vendorRes?.Response || []);
-              setCartData(cartRes || []);
-              setFrequencyProducts(freqRes?.products || []);
-              setRecentOrders(recRes?.products || []);
-              setShippingAddress(shippingRes || []);
-
-              // Permissions
-              const permissionKey = localStorage.getItem("userPermission");
-              if (permissionKey) {
-                try {
-                  const permRes = await fetchDataFromApi(
-                    `/api/user/permission?name=${permissionKey}`,
-                  );
-                  setPermission(permRes?.response || []);
-                } catch (err) {
-                  console.log("Permission fetch failed:", err);
-                  setPermission([]);
-                }
-              }
-            }
-          } catch (parseError) {
-            console.error("Error parsing user data:", parseError);
-            // Clear invalid data
-            localStorage.removeItem("user");
-            localStorage.removeItem("token");
-            setUser("");
+          // Permissions
+          const permissionKey = localStorage.getItem("userPermission");
+          if (permissionKey) {
+            const permRes = await fetchDataFromApi(
+              `/api/user/permission?name=${permissionKey}`,
+            );
+            setPermission(permRes?.response || []);
           }
-        } else {
-          // No auth data found, user needs to login
-          console.log("No authentication found, showing login");
-          setUser("");
         }
 
         setIsAppReady(true);
       } catch (err) {
         console.error("Error during context init:", err);
-        setIsAppReady(true); // Always set ready even if there's an error
       }
     };
 
@@ -194,21 +154,8 @@ function AppContent() {
 
   if (!isAppReady) {
     return (
-      <div className="min-h-screen bg-hero-gradient flex items-center justify-center">
-        <div className="text-center">
-          <img
-            src="/client/assets/indiavetmart-logo.png"
-            alt="IndiaVetMart"
-            className="w-48 h-12 mx-auto object-contain mb-6"
-          />
-          <div className="animate-spin w-8 h-8 border-4 border-brand-navy border-t-transparent rounded-full mx-auto mb-4"></div>
-          <p
-            className="text-brand-navy font-bold"
-            style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
-          >
-            Loading app data...
-          </p>
-        </div>
+      <div className="flex items-center justify-center h-screen text-gray-500 text-lg">
+        Loading app data...
       </div>
     );
   }
@@ -257,73 +204,42 @@ function AppContent() {
   };
   return (
     <MyContext.Provider value={contextValues}>
-      <AlertBox />
       <Layout>
         <Routes>
-          <Route
-            path="/"
-            element={user ? <HomeScreen /> : <Navigate to="/login" />}
-          />
-          <Route
-            path="/home"
-            element={user ? <HomeScreen /> : <Navigate to="/login" />}
-          />
+          <Route path="/" element={<Navigate to="/login" />} />
+          <Route path="/home" element={<HomeScreen />} />
           <Route path="/login" element={<Login />} />
           <Route path="/clinicform" element={<Signup />} />
-          <Route
-            path="/profile/*"
-            element={user ? <Profile /> : <Navigate to="/login" />}
-          />
+          <Route path="/profile/*" element={<Profile />} />
+          <Route path="/profile/account" element={<Accounts />} /> 
           {/* Placeholder routes for navigation items */}
           <Route
             path="/products/category/:id/:vendorId?/:availability?"
-            element={user ? <Category /> : <Navigate to="/login" />}
+            element={<Category />}
           />
           <Route
-            path="/product/:id"
-            element={user ? <ProductDetail /> : <Navigate to="/login" />}
+            path="/product/:productId/:variantId"
+            element={<ProductDetail />}
           />
-          <Route
-            path="/orders"
-            element={user ? <OrderHistory /> : <Navigate to="/login" />}
-          />
+          <Route path="/orders" element={<OrderHistory />} />
           <Route
             path="/orders/new"
             element={
-              user ? (
-                <div className="p-8">
-                  <h1 className="text-2xl font-gabarito font-bold text-primary-dark-blue">
-                    Create New Order - Coming Soon
-                  </h1>
-                  <p className="text-neutral-60 mt-2">
-                    New order creation feature will be available soon.
-                  </p>
-                </div>
-              ) : (
-                <Navigate to="/login" />
-              )
+              <div className="p-8">
+                <h1 className="text-2xl font-gabarito font-bold text-primary-dark-blue">
+                  Create New Order - Coming Soon
+                </h1>
+                <p className="text-neutral-60 mt-2">
+                  New order creation feature will be available soon.
+                </p>
+              </div>
             }
           />
-          <Route
-            path="/shopping"
-            element={user ? <ShoppingCart /> : <Navigate to="/login" />}
-          />
-          <Route
-            path="/checkout"
-            element={user ? <Checkout /> : <Navigate to="/login" />}
-          />
-          <Route
-            path="/vendors"
-            element={user ? <VendorConnection /> : <Navigate to="/login" />}
-          />
-          <Route
-            path="/budget"
-            element={user ? <Budget /> : <Navigate to="/login" />}
-          />
-          <Route
-            path="/approvals"
-            element={user ? <ApprovalManagement /> : <Navigate to="/login" />}
-          />
+          <Route path="/shopping" element={<ShoppingCart />} />
+          <Route path="/checkout" element={<Checkout />} />
+          <Route path="/vendors" element={<VendorConnection />} />
+          <Route path="/budget" element={<Budget />} />
+          <Route path="/approvals" element={<ApprovalManagement />} />
           <Route
             path="/terms"
             element={
