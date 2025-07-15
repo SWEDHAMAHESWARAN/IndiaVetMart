@@ -1,45 +1,11 @@
 import { useState, useEffect, useContext } from "react";
 import React, { FormEvent } from "react";
-// Navigation will be handled with window.location
-
-// Define the context type
-interface MyContextType {
-  // Add your context properties here
-  someValue: any;
-}
-
-// Create a default context value
-const defaultContextValue: MyContextType = {
-  someValue: null
-};
-
-const MyContext = React.createContext<MyContextType>(defaultContextValue);
-import axios from "axios";
-
-// Define types for API responses
-interface ApiResponse<T = any> {
-  data?: T;
-  error?: string;
-  message?: string;
-  response?: T[];
-}
-
-interface UserData {
-  _id: string;
-  name: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  position: string;
-  images?: string[];
-  profilePicture?: string;
-}
+import { useNavigate, useLocation, Routes, Route } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { deleteImages, fetchDataFromApi, uploadImage } from "@/lib/api";
-import { ChevronRight } from "lucide-react";
 import { editData,deleteData } from "@/lib/api";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -48,7 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { 
+import {
   Upload,
   User,
   Building,
@@ -59,8 +25,15 @@ import {
   AlertCircle,
   Mail,
   Phone,
-  Plus 
-} from 'lucide-react';
+  Plus,
+  Trash2,
+  Edit,
+  ChevronRight,
+} from "lucide-react";
+import { postData } from "@/lib/api";
+import { MyContext } from "../App";
+import { set } from "date-fns";
+import { SelectRangeProvider } from "react-day-picker";
 
 interface ProfileData {
   personalInfo: {
@@ -77,159 +50,70 @@ interface ProfileData {
 }
 
 const Accounts = () => {
-  const context = React.useContext(MyContext);
-  // Get current path from window.location
-  const [currentPath, setCurrentPath] = useState('');
-  
-  // Set initial path on component mount
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      setCurrentPath(window.location.pathname);
-    }
-  }, []);
-  
-  // Helper function to handle navigation
-  const handleNavigation = (path: string, isExternal: boolean = false) => {
-    if (isExternal) {
-      window.location.href = path;
-    } else {
-      window.location.href = path;
-    }
-  };
+  const context = useContext(MyContext);
+  const navigate = useNavigate();
+  const location = useLocation();
   const [formField, setFormfields] = useState({
     currentpassword: "",
     newpassword: "",
-    confirmnewpassword: "",
+    confirmnewpassword: ""
   });
-  interface FormValues {
-    name: string;
-    lastName: string;
-    email: string;
-    phone: string;
-    position: string;
-    profilePicture?: string;
-  }
-
-  const [formValues, setFormValues] = useState<FormValues>({
+  const [formValues, setFormValues] = useState({
     name: "",
     lastName: "",
     email: "",
     phone: "",
     position: "",
-    profilePicture: ""
   });
-  
   const [uploading, setUploading] = useState(false);
-  // Store File objects for upload
-  const [imageFiles, setImageFiles] = useState<File[]>([]);
-  // Store URLs for preview
-  const [previews, setPreviews] = useState<string[]>([]);
+  const [previews, setPreviews] = useState<any[]>([]);
   const [alertOpen, setAlertOpen] = useState(false);
   const [alertMsg, setAlertMsg] = useState("");
+
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
-  const [uniqueImages, setUniqueImages] = useState<string[]>([]);
-  // Store image URLs from the server
-  const [serverImages, setServerImages] = useState<string[]>([]);
-
-  // Get auth headers for API requests
-  const getAuthHeaders = (): { 'Content-Type': string; 'Authorization': string } => {
-    const token = localStorage.getItem('token') || '';
-    return {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
-    };
-  };
-
-  // Helper function to get the current tab based on path
-  const getCurrentTab = (path: string): string => {
-    // Default to 'profile' if path is not provided
-    if (!path) return 'profile';
-    
-    if (path.includes('profile')) return 'profile';
-    if (path.includes('settings')) return 'settings';
-    if (path.includes('orders')) return 'orders';
-    if (path.includes('wishlist')) return 'wishlist';
-    if (path.includes('addresses')) return 'addresses';
-    if (path.includes('products')) return 'products';
-    if (path.includes('approvals')) return 'approvals';
-    return 'profile';
-  };
-
-  // Handle file change for image uploads
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
-    if (e.target.files && e.target.files.length > 0) {
-      handleImageUpload(e);
-    }
-  };
-
   const [isUploading, setIsUploading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
-
   useEffect(() => {
-    console.log("useEffect called to fetch user data");
+  console.log("useEffect called to fetch user data");
 
-    const user = JSON.parse(localStorage.getItem("user") || "{}");
-    console.log("Fetched user from localStorage:", user);
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  console.log("Fetched user from localStorage:", user);
 
-    if (!user?.userId) {
-      console.log("User ID not found in localStorage");
-      setAlertMsg("User not found.");
-      setAlertOpen(true);
-      return;
-    }
+  if (!user?.userId) {
+    console.log("User ID not found in localStorage");
+    setAlertMsg("User not found.");
+    setAlertOpen(true);
+    return;
+  }
 
-    const getAuthHeaders = () => {
-      const token = localStorage.getItem('token');
-      return {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      };
-    };
-
-    const fetchDataFromApi = async <T,>(url: string): Promise<T> => {
-      try {
-        const response = await axios.get<ApiResponse<T>>(`/api/proxy${url}`, {
-          headers: getAuthHeaders(),
+  fetchDataFromApi(`/api/user/get?id=${user.userId}`)
+    .then((res) => {
+      console.log("API response:", res);
+      if (res?.response && res.response[0]) {
+        const info = res.response[0];
+        setFormValues({
+          name: info.name || "",
+          lastName: info.lastName || "",
+          email: info.email || "",
+          phone: info.phone || "",
+          position: info.position || "",
         });
-
-        if (response.data.error) {
-          throw new Error(response.data.message || "API request failed");
-        }
-
-        return response.data.data as T;
-      } catch (error) {
-        console.error("API Error:", error);
-        throw error;
-      }
-    };
-
-    fetchDataFromApi<UserData>(`/user/get?id=${user.userId}`)
-      .then((res) => {
-        console.log("API response:", res);
-        if (res) {
-          const info = res;
-          setFormValues({
-            name: info.name ?? "",
-            lastName: info.lastName ?? "",
-            email: info.email ?? "",
-            phone: info.phone ?? "",
-            position: info.position ?? "",
-          });
-          setServerImages(info.images ?? []);
-        } else {
-          console.log("Failed to fetch user details: Invalid structure", res);
-          setAlertMsg("Failed to fetch user details.");
-          setAlertOpen(true);
-        }
-      })
-      .catch((error) => {
-        console.error("Error fetching user details:", error);
-        setAlertMsg("Error fetching user details.");
+        setPreviews(info.images || []);
+      } else {
+        console.log("Failed to fetch user details: Invalid structure", res);
+        setAlertMsg("Failed to fetch user details.");
         setAlertOpen(true);
-      });
-  }, []);
+      }
+    })
+    .catch((error) => {
+      console.error("Error fetching user details:", error);
+      setAlertMsg("Error fetching user details.");
+      setAlertOpen(true);
+    });
+}, []);
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+
+  const handleSubmit = (e) => {
     e.preventDefault();
 
     const user = JSON.parse(localStorage.getItem("user"));
@@ -284,183 +168,35 @@ const Accounts = () => {
       userId: user?.userId,
     };
 
-    const editData = async <T,>(url: string, data: any): Promise<T> => {
-      try {
-        const response = await fetch(`/api/proxy${url}`, {
-          method: "POST",
-          headers: {
-            ...getAuthHeaders(),
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(data),
-        });
-        if (!response.ok) {
-          throw new Error(`API request failed: ${response.status}`);
-        }
-        const res: ApiResponse<T> = await response.json();
-        if (res.error) {
-          throw new Error(res.message || 'API request failed');
-        }
-        return res.data as T;
-      } catch (error) {
-        console.error("API Error:", error);
-        throw error;
-      }
-    };
-
-    const handleUpdatePassword = async () => {
-      if (formField.newpassword !== formField.confirmnewpassword) {
-        setAlertMsg("Passwords do not match.");
+    editData(`/api/user/changePassword/${user.userId}`, data).then((res) => {
+      console.log("data", data);
+      console.log("res:", res);
+      if (res.error) {
+        setAlertMsg(res.error);
         setAlertOpen(true);
-        return;
-      }
-
-      try {
-        const updateData = {
-          _id: user.userId,
-          currentPassword: formField.currentpassword,
-          newPassword: formField.newpassword,
-        };
-
-        const response = await axios.put<{ error?: string }>(
-          `/api/users/update-password`,
-          updateData,
-          { headers: getAuthHeaders() }
-        );
-
-        if (response.data?.error) {
-          setAlertMsg(response.data.error);
-        } else {
-          setAlertMsg("Password updated successfully.");
-          setFormfields(prev => ({
-            ...prev,
-            currentpassword: "",
-            newpassword: "",
-            confirmnewpassword: "",
-          }));
-        }
-        setAlertOpen(true);
-      } catch (error: unknown) {
-        console.error("Error updating password:", error);
-        const errorMessage = (error as any)?.response?.data?.message || "Failed to update password";
-        setAlertMsg(errorMessage);
-        setAlertOpen(true);
-      }
-    };
-
-    handleUpdatePassword();
-  };
-
-  const handleUpdatePhone = async () => {
-    const user = JSON.parse(localStorage.getItem("user") || "{}");
-    const phone = formValues.phone.trim();
-
-    // Indian mobile validation: 10 digits, starts with 6-9
-    const phoneRegex = /^[6-9]\d{9}$/;
-
-    if (!phone) {
-      setAlertMsg("Phone number is required.");
-      setAlertOpen(true);
-      return;
-    }
-
-    if (!phoneRegex.test(phone)) {
-      setAlertMsg("Please enter a valid 10-digit phone number.");
-      setAlertOpen(true);
-      return;
-    }
-
-    try {
-      const updateData = {
-        _id: user.userId,
-        phone,
-      };
-      const res = await axios.put<{ error?: string }>(
-        `/api/users/update-phone`, 
-        updateData, 
-        { headers: getAuthHeaders() }
-      );
-      
-      if (res?.data?.error) {
-        setAlertMsg(res.data.error);
       } else {
-        setAlertMsg("Phone number updated successfully.");
+        setAlertMsg("Password updated successfully");
+        setAlertOpen(true);
+        setFormfields({
+          currentpassword: "",
+          newpassword: "",
+          confirmnewpassword: ""
+        });
       }
-      setAlertOpen(true);
-    } catch (error: unknown) {
-      console.error("Error updating phone number:", error);
-      const errorMessage = (error as any)?.response?.data?.message || "Failed to update phone number";
-      setAlertMsg(errorMessage);
-      setAlertOpen(true);
-    }
-  };
-
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      const files = Array.from(e.target.files);
-      const newPreviews = files.map(file => URL.createObjectURL(file));
-      
-      setPreviews(prevPreviews => [...prevPreviews, ...newPreviews]);
-      setImageFiles(prevFiles => [...prevFiles, ...files]);
-    }
-  };
-
-  const handleImageDelete = (index: number) => {
-    setPreviews(prevPreviews => {
-      const newPreviews = [...prevPreviews];
-      URL.revokeObjectURL(newPreviews[index]);
-      newPreviews.splice(index, 1);
-      return newPreviews;
-    });
-    setImageFiles(prevFiles => {
-      const newFiles = [...prevFiles];
-      newFiles.splice(index, 1);
-      return newFiles;
     });
   };
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
 
-    const formData = new FormData();
-    formData.append("image", file);
-
-    try {
-      setUploading(true);
-      const response = await axios.post<{ url: string }>(
-        "/api/upload",
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            ...getAuthHeaders(),
-          },
-        }
-      );
-
-      if (response.data?.url) {
-        setLogoPreview(response.data.url);
-        setFormfields(prev => ({
-          ...prev,
-          profilePicture: response.data.url
-        }));
-        setShowSuccess(true);
-        setTimeout(() => setShowSuccess(false), 3000);
-      }
-    } catch (error: unknown) {
-      console.error("Error uploading image:", error);
-      const errorMessage = (error as any)?.response?.data?.message || "Failed to upload image. Please try again.";
-      setAlertMsg(errorMessage);
-      setAlertOpen(true);
-    } finally {
-      setUploading(false);
-    }
+  // Get current active tab from URL
+  const getCurrentTab = () => {
+    const path = location.pathname.split("/")[2] || "account";
+    return path;
   };
 
-  const handleRemoveLogo = async (imgUrl: string) => {
+
+  const handleRemoveLogo = async(imgUrl:any) => {
     console.log("Remove image successfully");
-
+   
     let storedImages = JSON.parse(localStorage.getItem("images")) || [];
 
     if (Array.isArray(storedImages)) {
@@ -484,68 +220,148 @@ const Accounts = () => {
     }
 
     try {
-      const response = await axios.delete<ApiResponse<{ message: string }>>(
-        `/api/proxy/imageUpload/deleteAllImages?img=${imgUrl}`,
-        {
-          headers: getAuthHeaders(),
-        }
+      const response = await deleteImages(
+        `/api/imageUpload/deleteAllImages?img=${imgUrl}`,previews
       );
-
-      if (response.data.error) {
-        throw new Error(response.data.message || 'Failed to delete image');
-      }
-
-      setPreviews([]);
+      setPreviews([])
     } catch (error) {
       console.error("Error deleting image:", error);
-      setAlertMsg(error instanceof Error ? error.message : "Failed to delete image");
+      
+    }
+  
+  };
+
+
+
+  const handleUpdatePhone = async () => {
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
+    const phone = formValues.phone.trim();
+
+    // Indian mobile validation: 10 digits, starts with 6-9
+    const phoneRegex = /^[6-9]\d{9}$/;
+
+    if (!phoneRegex.test(phone)) {
+      setAlertMsg("Please enter a valid 10-digit phone number.");
+      setAlertOpen(true);
+      return;
+    }
+
+    try {
+      const updateData = {
+        _id: user.userId,
+        phone,
+      };
+      const res = await editData(`/api/user/update`, updateData);
+      if (res?.error) {
+        setAlertMsg(res.error);
+        setAlertOpen(true);
+      } else {
+        setAlertMsg("Phone number updated successfully.");
+        setAlertOpen(true);
+      
+      }
+    } catch (error) {
+      setAlertMsg("Failed to update phone number.");
       setAlertOpen(true);
     }
   };
+   const onChangeFile = async (e:any, apiEndPoint:any) => {
+    console.log("File changed:", e.target.files);
+    try {
+      const files = e.target.files;
+      console.log("Selected files:", files);
 
-  interface MenuItem {
-    id: string;
-    label: string;
-    path: string;
-    external?: boolean;
-  }
+      if (!files || files.length === 0) {
+        setAlertMsg("Please select at least one image to upload."); 
+        return;
+      }
 
-  const menuItems: MenuItem[] = [
+      const formdata = new FormData();
+      const validImages = [];
+      for (const file of files) {
+        if (
+          ["image/jpeg", "image/jpg", "image/png", "image/webp"].includes(
+            file.type
+          )
+        ) {
+          validImages.push(file);
+          formdata.append("images", file);
+        } else {
+          setAlertMsg(
+            "Invalid file type. Please upload only images (JPEG, PNG, WEBP)."
+          );
+          return;
+        }
+      }
+
+      await uploadImage(apiEndPoint, formdata);
+      const response = await fetchDataFromApi("/api/imageUpload");
+      console.log("Image upload response:", response);
+      if (response?.length > 0) {
+        console.log("Image upload response:", response);
+        const uniqueImages = Array.from(
+          new Set(response.flatMap((item) => item.images || []))
+        );
+
+        setPreviews((prevPreviews) => [
+          ...(Array.isArray(prevPreviews) ? prevPreviews : []),
+          ...uniqueImages,
+        ]);
+
+        localStorage.setItem("images", JSON.stringify(uniqueImages));
+        
+        setUploading(false);
+        setAlertMsg("Image uploaded successfully.");
+      } else {
+        setUploading(false);
+        setAlertMsg("Image upload failed.");
+      }
+      setAlertOpen(true);
+      setLogoPreview(null);
+    } catch (error) {
+      console.error("Error during file upload:", error);
+      setUploading(false);
+      setAlertMsg("Image upload failed.");
+      setAlertOpen(true);
+      setLogoPreview(null);
+    }
+  };
+
+  const handleDeleteImage = async () => {
+    setIsUploading(true);
+    try {
+      await deleteData("/api/imageUpload/deleteAllImages");
+      setLogoPreview(null);
+      // setFormValues((prev) => ({
+      //   ...prev,
+      //   clinicInfo: { ...prev.clinicInfo, logo: null },
+      // }));
+      setAlertMsg("Profile image deleted.");
+      setAlertOpen(true);
+     
+    } catch (error) {
+      setAlertMsg("Failed to delete profile image.");
+      setAlertOpen(true);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const menuItems = [
+    { id: "account", label: "Account & Settings", path: "/profile/account" },
+    { id: "address", label: "Address", path: "/profile/address" },
+    { id: "clinic", label: "Clinic Information", path: "/profile/clinic" },
+    { id: "users", label: "Manage User", path: "/profile/users" },
     {
-      id: "profile",
-      label: "My Profile",
-      path: "/profile",
-    },
-    {
-      id: "orders",
-      label: "My Orders",
-      path: "/orders",
-    },
-    {
-      id: "wishlist",
-      label: "My Wishlist",
-      path: "/wishlist",
-    },
-    {
-      id: "addresses",
-      label: "Saved Addresses",
-      path: "/addresses",
-    },
-    {
-      id: "settings",
-      label: "Account Settings",
-      path: "/settings",
-    },
-    {
-      id: "products",
-      label: "Product Management",
-      path: "/products",
+      id: "vendors",
+      label: "Vendor Connections",
+      path: "/vendors",
       external: true,
     },
     {
-      id: "orders-management",
-      label: "Order Management",
-      path: "/orders-management",
+      id: "budget",
+      label: "Budget Management",
+      path: "/budget",
       external: true,
     },
     {
@@ -569,9 +385,8 @@ const Accounts = () => {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           <div className="lg:hidden mb-6">
             <select
-              value={getCurrentTab(currentPath)}
-              onChange={(e) => handleNavigation(`/account/${e.target.value}`)}
-              onLoad={() => getCurrentTab(currentPath)}
+              value={getCurrentTab()}
+              onChange={(e) => navigate(`/profile/${e.target.value}`)}
               className="w-full p-3 border border-neutral-30 rounded-lg bg-white font-gabarito font-medium text-primary-dark-blue"
             >
               {menuItems.map((item) => (
@@ -587,11 +402,11 @@ const Accounts = () => {
                 <div className="text-center mb-4 font-gilroy font-bold text-black">My Account</div>
                 <div className="flex flex-col gap-2">
                   {menuItems.map((item) => {
-                    const isActive = getCurrentTab(location?.pathname || '') === item.id;
+                    const isActive = getCurrentTab() === item.id;
                     return (
                       <button
                         key={item.id}
-                        onClick={() => handleNavigation(item.path, item.external)}
+                        onClick={() => item.external ? window.location.href = item.path : navigate(item.path)}
                         className={`flex items-center justify-between p-2 rounded-md ${isActive ? 'bg-primary-dark-blue text-white' : 'hover:bg-neutral-10 text-black'}`}
                       >
                         <span className={`font-gilroy ${isActive ? 'font-bold' : 'font-medium'}`}>{item.label}</span>
@@ -621,7 +436,7 @@ const Accounts = () => {
                         type="file"
                         accept="image/*"
                         id="logo-upload"
-                        onChange={handleFileChange}
+                        onChange={(e) => onChangeFile(e, "/api/products/upload")}
                         className="hidden"
                         disabled={isUploading}
                       />

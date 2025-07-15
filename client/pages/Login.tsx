@@ -726,6 +726,7 @@ export default function Login() {
           isLogin ? "max-w-md" : "max-w-2xl p-6 rounded-xl shadow-md bg-white"
         }`}
       >
+        {" "}
         <CardHeader className="text-center">
           <CardTitle className="heading-36pxbold">
             {isLogin && "Sign in to Your Account"}

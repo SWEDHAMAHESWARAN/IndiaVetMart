@@ -1,133 +1,93 @@
 import axios from "axios";
 
-// Use local proxy to handle CORS
-const API_BASE_URL = "/api/proxy"; // This will be prefixed to all API calls
+const API_BASE_URL = `http://20.235.173.36:3001`;
 
-const getAuthHeaders = (): { headers: { [key: string]: string } } => {
+const getAuthHeaders = () => {
   const token = localStorage.getItem("token");
   return {
     headers: {
-      ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
-      'Content-Type': 'application/json',
-      'Accept': 'application/json'
-    }
+      Authorization: token ? `Bearer ${token}` : "",
+      "Content-Type": "application/json",
+    },
   };
 };
 
 export const fetchDataFromApi = async (url: string) => {
   try {
-    const response = await axios.get(API_BASE_URL + url, getAuthHeaders());
-    return response.data;
-  } catch (error: any) {
+    const { data } = await axios.get(API_BASE_URL + url, getAuthHeaders());
+    return data;
+  } catch (error) {
     console.error("Fetch error:", error);
-
-    if (error.name === "TypeError" && error.message.includes("Failed to fetch")) {
-      throw new Error(
-        "Network Error: Unable to connect to the API. Please check your internet connection or try again later."
-      );
-    }
-
-    if (error.message?.includes("HTTP error")) {
-      throw new Error(`Server error: ${error.message}`);
-    }
-
-    if (error.response?.data) {
-      return error.response.data;
-    }
-
-    throw new Error(error.message || "An error occurred");
+    throw error;
   }
 };
 
 export const postData = async (url: string, formData: any) => {
-  const fullUrl = API_BASE_URL + url;
-  console.log("Making API request to:", fullUrl);
-  console.log("Request data:", formData);
-
   try {
-    const response = await axios.post(API_BASE_URL + url, formData, getAuthHeaders());
-    return response.data;
-  } catch (error: any) {
+    const response = await fetch(API_BASE_URL + url, {
+      method: "POST",
+      headers: getAuthHeaders().headers,
+      body: JSON.stringify(formData),
+    });
+    return await response.json();
+  } catch (error) {
     console.error("Post error:", error);
-    // If we have a response with error data, return it
-    if (error.response?.data) {
-      return error.response.data;
-    }
-    
-    // Handle network errors
-    if (error.name === "TypeError" && error.message.includes("Failed to fetch")) {
-      throw new Error(
-        "Network Error: Unable to connect to the API. Please check your internet connection or try again later."
-      );
-    }
-    
     throw error;
   }
 };
 
 export const editData = async (url: string, updatedData: any) => {
   try {
-    const response = await axios.put(
+    const { data } = await axios.put(
       API_BASE_URL + url,
       updatedData,
-      getAuthHeaders()
+      getAuthHeaders(),
     );
-    return response.data;
-  } catch (error: any) {
+    return data;
+  } catch (error) {
     console.error("Edit error:", error);
-    if (error.response?.data) {
-      return error.response.data;
-    }
     throw error;
   }
 };
 
 export const deleteData = async (url: string) => {
   try {
-    const response = await axios.delete(API_BASE_URL + url, getAuthHeaders());
-    return response.data;
-  } catch (error: any) {
+    const { data } = await axios.delete(API_BASE_URL + url, getAuthHeaders());
+    return data;
+  } catch (error) {
     console.error("Delete error:", error);
-    if (error.response?.data) {
-      return error.response.data;
-    }
     throw error;
   }
 };
 
-export const uploadImage = async (url: string, formData: FormData) => {
+export const uploadImage = async (url: string, formData: any) => {
   console.log("Uploading image to:", API_BASE_URL + url);
+  console.log("Form data:", formData);
   try {
-    const response = await axios.post(API_BASE_URL + url, formData, {
+    const { data } = await axios.post(API_BASE_URL + url, formData, {
       headers: {
-        ...getAuthHeaders().headers,
-        'Content-Type': 'multipart/form-data',
+        "Content-Type": "multipart/form-data",
       },
     });
-    return response.data;
-  } catch (error: any) {
+    return data;
+  } catch (error) {
     console.error("Upload error:", error);
-    if (error.response?.data) {
-      return error.response.data;
-    }
     throw error;
   }
 };
 
 export const deleteImages = async (url: string, imageData: any) => {
   try {
-    const response = await axios({
-      method: 'delete',
-      url: API_BASE_URL + url,
-      data: imageData,
-      ...getAuthHeaders()
+    const { data } = await axios.delete(API_BASE_URL + url, {
+      data: imageData, // Proper way to send body in DELETE with axios
+      headers: {
+        "Content-Type": "application/json",
+      },
     });
-    return response.data;
-  } catch (error: any) {
+    return data;
+  } catch (error) {
     console.error("Delete Image error:", error);
-    if (error.response?.data) {
-      return error.response.data;
-    }
     throw error;
   }
 };
+
