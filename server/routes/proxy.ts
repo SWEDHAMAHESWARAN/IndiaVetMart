@@ -15,8 +15,8 @@ export const proxyHandler: RequestHandler = async (req, res) => {
 
   try {
     const { body, method, headers } = req;
-    const apiPath = req.path.replace("/api/proxy", "/api");
-    const targetUrl = `http://20.235.173.36:3001${apiPath}`;
+    const apiPath = req.path.replace("/api/proxy", "");
+    const targetUrl = `http://20.235.173.36:3001/api${apiPath}`;
 
     console.log("Proxying request to:", targetUrl);
     console.log("Method:", method);
@@ -39,10 +39,39 @@ export const proxyHandler: RequestHandler = async (req, res) => {
       body: method !== "GET" ? JSON.stringify(body) : undefined,
     });
 
-    const responseData = await response.json();
-
     console.log("Target API response status:", response.status);
-    console.log("Target API response:", responseData);
+    console.log(
+      "Target API content-type:",
+      response.headers.get("content-type"),
+    );
+
+    // Handle different response types
+    const contentType = response.headers.get("content-type");
+    let responseData;
+
+    if (contentType && contentType.includes("application/json")) {
+      responseData = await response.json();
+    } else {
+      // If not JSON, get text and try to parse or return as error
+      const textResponse = await response.text();
+      console.log("Non-JSON response:", textResponse);
+
+      if (response.ok) {
+        // Try to parse as JSON anyway
+        try {
+          responseData = JSON.parse(textResponse);
+        } catch {
+          responseData = { message: textResponse };
+        }
+      } else {
+        responseData = {
+          error: true,
+          message: `API returned ${response.status}: ${textResponse}`,
+        };
+      }
+    }
+
+    console.log("Processed response data:", responseData);
 
     // Return the response
     res.status(response.status).json(responseData);
