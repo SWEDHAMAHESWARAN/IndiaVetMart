@@ -1,6 +1,7 @@
 import axios from "axios";
 
-const API_BASE_URL = `http://20.235.173.36:3001`;
+// Use proxy in development, full URL in production
+const API_BASE_URL = import.meta.env.DEV ? "" : "http://20.235.173.36:3001";
 
 const getAuthHeaders = () => {
   const token = localStorage.getItem("token");
@@ -16,9 +17,31 @@ export const fetchDataFromApi = async (url: string) => {
   try {
     const { data } = await axios.get(API_BASE_URL + url, getAuthHeaders());
     return data;
-  } catch (error) {
+  } catch (error: any) {
     console.error("Fetch error:", error);
-    throw error;
+
+    // Handle different types of errors
+    if (error.code === "NETWORK_ERROR" || error.message === "Network Error") {
+      throw new Error(
+        "Unable to connect to server. Please check your internet connection.",
+      );
+    }
+
+    if (error.code === "ECONNABORTED") {
+      throw new Error("Request timeout. Please try again.");
+    }
+
+    if (error.response?.status >= 500) {
+      throw new Error("Server error. Please try again later.");
+    }
+
+    if (error.response?.status === 404) {
+      throw new Error("Service not found.");
+    }
+
+    throw new Error(
+      error.response?.data?.message || error.message || "An error occurred",
+    );
   }
 };
 
@@ -29,10 +52,32 @@ export const postData = async (url: string, formData: any) => {
       headers: getAuthHeaders().headers,
       body: JSON.stringify(formData),
     });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
     return await response.json();
-  } catch (error) {
+  } catch (error: any) {
     console.error("Post error:", error);
-    throw error;
+
+    // Handle different types of errors
+    if (
+      error.name === "TypeError" &&
+      error.message.includes("Failed to fetch")
+    ) {
+      throw new Error(
+        "Unable to connect to server. Please check your internet connection and try again.",
+      );
+    }
+
+    if (error.message.includes("HTTP error")) {
+      throw new Error(`Server error: ${error.message}`);
+    }
+
+    throw new Error(
+      error.message || "An unexpected error occurred. Please try again.",
+    );
   }
 };
 
