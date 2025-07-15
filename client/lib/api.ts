@@ -27,7 +27,19 @@ export const fetchDataFromApi = async (url: string) => {
       mode: "cors",
     });
 
-    const responseData = await response.json();
+    // Clone the response to avoid "body stream already read" error
+    const responseClone = response.clone();
+
+    let responseData;
+    try {
+      responseData = await response.json();
+    } catch (jsonError) {
+      // If JSON parsing fails, try to get text response
+      const textResponse = await responseClone.text();
+      console.error("Failed to parse JSON response:", jsonError);
+      console.log("Response text:", textResponse);
+      throw new Error("Invalid JSON response from server");
+    }
 
     // If response is not ok but we have JSON data, return it anyway
     if (!response.ok) {
