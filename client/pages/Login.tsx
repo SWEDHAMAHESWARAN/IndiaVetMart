@@ -108,12 +108,13 @@ export default function Login() {
                   setIsLoading(false);
                 } else {
                   history("/home");
-
                   setIsLoading(false);
                 }
               }, 2000);
             } else {
               setIsLoading(false);
+              setAlertMsg("Login failed. Please check your credentials.");
+              setAlertOpen(true);
             }
           } catch (error) {
             console.log(error);
@@ -122,11 +123,17 @@ export default function Login() {
         });
       })
       .catch((error) => {
-        console.log(error);
-        const errorCode = error.code;
-        const errorMessage = error.message;
-        const email = error.customData.email;
-        const credential = GoogleAuthProvider.credentialFromError(error);
+        console.error("Login error:", error);
+        setIsLoading(false);
+
+        // Show user-friendly error message
+        let errorMessage = "Login failed. Please try again.";
+        if (error.message) {
+          errorMessage = error.message;
+        }
+
+        setAlertMsg(errorMessage);
+        setAlertOpen(true);
       });
   };
 
@@ -141,9 +148,20 @@ export default function Login() {
       }
 
       console.log("Sign In Data:", formfields);
+      setIsLoading(true);
+
       postData("/api/user/signin", formfields).then((res) => {
         console.log("formvalues", formfields);
         console.log("res:", res);
+
+        // Check if the response indicates an error
+        if (res.error === true) {
+          setAlertMsg(res.msg || "Login failed");
+          setAlertOpen(true);
+          setIsLoading(false);
+          return;
+        }
+
         localStorage.setItem("token", res.token);
         localStorage.setItem(
           "existingUser",
