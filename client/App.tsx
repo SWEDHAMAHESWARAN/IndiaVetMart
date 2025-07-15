@@ -48,8 +48,9 @@ export const MyContext = createContext<MyContextType>({
 });
 function Layout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
-  const isAuthPage =
-  ["/login", "/signup", "/clinicform"].includes(location.pathname);
+  const isAuthPage = ["/login", "/signup", "/clinicform"].includes(
+    location.pathname,
+  );
 
   if (isAuthPage) {
     return <>{children}</>;
@@ -76,13 +77,19 @@ function AppContent() {
   const [frequencyProducts, setFrequencyProducts] = useState<any[]>([]);
   const [recentOrders, setRecentOrders] = useState<any[]>([]);
   const [isAppReady, setIsAppReady] = useState(false);
-  const [alertBox, setAlertBox] = useState<{ open: boolean; error: boolean; msg: string }>({ open: false, error: false, msg: "" });
+  const [alertBox, setAlertBox] = useState<{
+    open: boolean;
+    error: boolean;
+    msg: string;
+  }>({ open: false, error: false, msg: "" });
 
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
         const userRaw = localStorage.getItem("user");
-        if (userRaw) {
+        const token = localStorage.getItem("token");
+
+        if (userRaw && token) {
           setUser(userRaw);
           const parsedUser = JSON.parse(userRaw);
           const clinicId = parsedUser.clinicId;
@@ -139,8 +146,21 @@ function AppContent() {
 
   if (!isAppReady) {
     return (
-      <div className="flex items-center justify-center h-screen text-gray-500 text-lg">
-        Loading app data...
+      <div className="min-h-screen bg-hero-gradient flex items-center justify-center">
+        <div className="text-center">
+          <img
+            src="/client/assets/indiavetmart-logo.png"
+            alt="IndiaVetMart"
+            className="w-48 h-12 mx-auto object-contain mb-6"
+          />
+          <div className="animate-spin w-8 h-8 border-4 border-brand-navy border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p
+            className="text-brand-navy font-bold"
+            style={{ fontFamily: "Gabarito, Inter, sans-serif" }}
+          >
+            Loading app data...
+          </p>
+        </div>
       </div>
     );
   }
@@ -165,36 +185,70 @@ function AppContent() {
     <MyContext.Provider value={contextValues}>
       <Layout>
         <Routes>
-          <Route path="/" element={<Navigate to="/login" />} />
-          <Route path="/home" element={<HomeScreen />} />
+          <Route
+            path="/"
+            element={user ? <HomeScreen /> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/home"
+            element={user ? <HomeScreen /> : <Navigate to="/login" />}
+          />
           <Route path="/login" element={<Login />} />
-         <Route path="/clinicform" element={<Signup />} />
-          <Route path="/profile/*" element={<Profile />} />
+          <Route path="/clinicform" element={<Signup />} />
+          <Route
+            path="/profile/*"
+            element={user ? <Profile /> : <Navigate to="/login" />}
+          />
           {/* Placeholder routes for navigation items */}
           <Route
             path="/products/category/:id/:vendorId?/:availability?"
-            element={<Category />}
+            element={user ? <Category /> : <Navigate to="/login" />}
           />
-          <Route path="/product/:id" element={<ProductDetail />} />
-          <Route path="/orders" element={<OrderHistory />} />
+          <Route
+            path="/product/:id"
+            element={user ? <ProductDetail /> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/orders"
+            element={user ? <OrderHistory /> : <Navigate to="/login" />}
+          />
           <Route
             path="/orders/new"
             element={
-              <div className="p-8">
-                <h1 className="text-2xl font-gabarito font-bold text-primary-dark-blue">
-                  Create New Order - Coming Soon
-                </h1>
-                <p className="text-neutral-60 mt-2">
-                  New order creation feature will be available soon.
-                </p>
-              </div>
+              user ? (
+                <div className="p-8">
+                  <h1 className="text-2xl font-gabarito font-bold text-primary-dark-blue">
+                    Create New Order - Coming Soon
+                  </h1>
+                  <p className="text-neutral-60 mt-2">
+                    New order creation feature will be available soon.
+                  </p>
+                </div>
+              ) : (
+                <Navigate to="/login" />
+              )
             }
           />
-          <Route path="/shopping" element={<ShoppingCart />} />
-          <Route path="/checkout" element={<Checkout />} />
-          <Route path="/vendors" element={<VendorConnection />} />
-          <Route path="/budget" element={<Budget />} />
-          <Route path="/approvals" element={<ApprovalManagement />} />
+          <Route
+            path="/shopping"
+            element={user ? <ShoppingCart /> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/checkout"
+            element={user ? <Checkout /> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/vendors"
+            element={user ? <VendorConnection /> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/budget"
+            element={user ? <Budget /> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/approvals"
+            element={user ? <ApprovalManagement /> : <Navigate to="/login" />}
+          />
           <Route
             path="/terms"
             element={
