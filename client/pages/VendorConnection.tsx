@@ -51,7 +51,7 @@ export default function VendorConnection() {
    useEffect(() => {  
     const fetchVendors = async () => {
       try {
-        const data = await fetchDataFromApi("/api/vendor/getall");
+        const data = await fetchDataFromApi("/vendor/getall");
         console.log("Fetched vendor data:", data.Response);
         setVendors(data.Response || []);
       } catch (error) {

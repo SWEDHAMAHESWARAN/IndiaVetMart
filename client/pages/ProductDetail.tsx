@@ -122,7 +122,7 @@ export default function ProductDetail() {
         const clinicId = parsedUser.clinicId;
 
         const response = await fetchDataFromApi(
-          `/api/products/${productId}/userorders?clinicId=${clinicId}`,
+          `/products/${productId}/userorders?clinicId=${clinicId}`
         );
 
         if (response?.groupedProduct) {
