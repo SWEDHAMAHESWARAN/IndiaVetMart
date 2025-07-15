@@ -89,10 +89,50 @@ export default function Checkout() {
   const grandTotal = subtotal + shipping + tax;
 
   const handlePlaceOrder = () => {
-    // In real app, this would process the order
-    alert("Order placed successfully!");
-    // Redirect to order history
-    window.location.href = "/orders";
+    // In real app, this would make an API call to process the order
+    const orderDetails = {
+      orderId: "IVM-" + Date.now().toString().slice(-6),
+      orderDate: new Date().toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      }),
+      status: "confirmed",
+      paymentStatus: "completed",
+      paymentMethod: orderData.paymentMethod,
+      clinicEmail: "clinic@example.com", // Should come from user context
+      items: mockItems.map((item) => ({
+        id: item.id,
+        name: item.name,
+        image: item.image,
+        quantity: item.quantity,
+        price: item.price,
+        seller: item.vendor,
+        unit: "QTY",
+      })),
+      subtotal: subtotal,
+      discount: 0,
+      shipping: shipping,
+      tax: tax,
+      total: grandTotal,
+      shippingAddress: {
+        name: orderData.account.name,
+        street: orderData.account.address.split("\n")[0],
+        city: orderData.account.address.split("\n")[1]?.split(",")[0] || "City",
+        state:
+          orderData.account.address.split("\n")[1]?.split(",")[1]?.trim() ||
+          "State",
+        zipCode: orderData.account.address.match(/\d{5}/)?.[0] || "00000",
+        country: "United States",
+      },
+      estimatedDelivery: "3-5 business days",
+    };
+
+    // Navigate to order confirmation page with order details
+    navigate("/order-confirmation", {
+      state: { orderDetails },
+      replace: true,
+    });
   };
 
   return (
