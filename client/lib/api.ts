@@ -3,6 +3,12 @@ import axios from "axios";
 // Use proxy in development, full URL in production
 const API_BASE_URL = import.meta.env.DEV ? "" : "http://20.235.173.36:3001";
 
+console.log("API Configuration:", {
+  isDev: import.meta.env.DEV,
+  baseURL: API_BASE_URL,
+  env: import.meta.env.MODE,
+});
+
 const getAuthHeaders = () => {
   const token = localStorage.getItem("token");
   return {
@@ -46,12 +52,19 @@ export const fetchDataFromApi = async (url: string) => {
 };
 
 export const postData = async (url: string, formData: any) => {
+  const fullUrl = API_BASE_URL + url;
+  console.log("Making POST request to:", fullUrl);
+  console.log("Request data:", formData);
+
   try {
-    const response = await fetch(API_BASE_URL + url, {
+    const response = await fetch(fullUrl, {
       method: "POST",
       headers: getAuthHeaders().headers,
       body: JSON.stringify(formData),
     });
+
+    console.log("Response status:", response.status);
+    console.log("Response headers:", response.headers);
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
