@@ -1,13 +1,7 @@
 import axios from "axios";
 
-// Use proxy in development, full URL in production
-const API_BASE_URL = import.meta.env.DEV ? "" : "http://20.235.173.36:3001";
-
-console.log("API Configuration:", {
-  isDev: import.meta.env.DEV,
-  baseURL: API_BASE_URL,
-  env: import.meta.env.MODE,
-});
+// Always use the full API URL for direct CORS-enabled requests
+const API_BASE_URL = "http://20.235.173.36:3001";
 
 const getAuthHeaders = () => {
   const token = localStorage.getItem("token");
@@ -21,50 +15,17 @@ const getAuthHeaders = () => {
 
 export const fetchDataFromApi = async (url: string) => {
   try {
-    const { data } = await axios.get(API_BASE_URL + url, getAuthHeaders());
-    return data;
-  } catch (error: any) {
-    console.error("Fetch error:", error);
-
-    // Handle different types of errors
-    if (error.code === "NETWORK_ERROR" || error.message === "Network Error") {
-      throw new Error(
-        "Unable to connect to server. Please check your internet connection.",
-      );
-    }
-
-    if (error.code === "ECONNABORTED") {
-      throw new Error("Request timeout. Please try again.");
-    }
-
-    if (error.response?.status >= 500) {
-      throw new Error("Server error. Please try again later.");
-    }
-
-    if (error.response?.status === 404) {
-      throw new Error("Service not found.");
-    }
-
-    throw new Error(
-      error.response?.data?.message || error.message || "An error occurred",
-    );
-  }
-};
-
-export const postData = async (url: string, formData: any) => {
-  const fullUrl = API_BASE_URL + url;
-  console.log("Making POST request to:", fullUrl);
-  console.log("Request data:", formData);
-
-  try {
-    const response = await fetch(fullUrl, {
-      method: "POST",
-      headers: getAuthHeaders().headers,
-      body: JSON.stringify(formData),
+    const response = await fetch(API_BASE_URL + url, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        ...(localStorage.getItem("token") && {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        }),
+      },
+      mode: "cors",
+      credentials: "omit",
     });
-
-    console.log("Response status:", response.status);
-    console.log("Response headers:", response.headers);
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -72,42 +33,59 @@ export const postData = async (url: string, formData: any) => {
 
     return await response.json();
   } catch (error: any) {
-    console.error("Post error details:", {
-      name: error.name,
-      message: error.message,
-      stack: error.stack,
-      url: fullUrl,
+    console.error("Fetch error:", error);
+
+    if (
+      error.name === "TypeError" &&
+      error.message.includes("Failed to fetch")
+    ) {
+      throw new Error(
+        "CORS Error: Unable to connect to the API server. Please ensure the server has CORS enabled for this domain.",
+      );
+    }
+
+    if (error.message.includes("HTTP error")) {
+      throw new Error(`Server error: ${error.message}`);
+    }
+
+    throw new Error(error.message || "An error occurred");
+  }
+};
+
+export const postData = async (url: string, formData: any) => {
+  const fullUrl = API_BASE_URL + url;
+
+  try {
+    const response = await fetch(fullUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        // Only add Authorization header if token exists
+        ...(localStorage.getItem("token") && {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        }),
+      },
+      mode: "cors",
+      credentials: "omit",
+      body: JSON.stringify(formData),
     });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error: any) {
+    console.error("API Error:", error.message);
 
     // Handle different types of errors
     if (
       error.name === "TypeError" &&
       error.message.includes("Failed to fetch")
     ) {
-      console.log("Network error detected - trying direct API call...");
-
-      // Fallback: try direct API call for CORS issues
-      try {
-        const directResponse = await fetch(`http://20.235.173.36:3001${url}`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          mode: "cors",
-          body: JSON.stringify(formData),
-        });
-
-        if (!directResponse.ok) {
-          throw new Error(`HTTP error! status: ${directResponse.status}`);
-        }
-
-        return await directResponse.json();
-      } catch (directError) {
-        console.error("Direct API call also failed:", directError);
-        throw new Error(
-          "Unable to connect to server. The API server may be down or unreachable from this environment.",
-        );
-      }
+      throw new Error(
+        "CORS Error: Unable to connect to the API server. Please ensure the server at http://20.235.173.36:3001 has CORS enabled for this domain.",
+      );
     }
 
     if (error.message.includes("HTTP error")) {

@@ -17,7 +17,6 @@ import { MyContext } from "../App";
 import { postData } from "@/lib/api";
 import { getAuth, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 import { firebaseApp } from "../../firebase";
-import { ApiTest } from "../components/ApiTest";
 
 export default function Login() {
   const context = useContext(MyContext);
@@ -1049,9 +1048,6 @@ export default function Login() {
           </form>
         </CardContent>
       </Card>
-
-      {/* Debug component - remove in production */}
-      <ApiTest />
     </div>
   );
 }
