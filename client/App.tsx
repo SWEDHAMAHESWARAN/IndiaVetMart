@@ -90,55 +90,93 @@ function AppContent() {
         const userRaw = localStorage.getItem("user");
         const token = localStorage.getItem("token");
 
+        console.log("Auth check:", { userRaw: !!userRaw, token: !!token });
+
         if (userRaw && token) {
           setUser(userRaw);
-          const parsedUser = JSON.parse(userRaw);
-          const clinicId = parsedUser.clinicId;
 
-          const [
-            ordersRes,
-            catRes,
-            popRes,
-            vendorRes,
-            cartRes,
-            freqRes,
-            recRes,
-            shippingRes,
-          ] = await Promise.all([
-            fetchDataFromApi(`/api/orders/client?clinicId=${clinicId}`),
-            fetchDataFromApi(`/api/category`),
-            fetchDataFromApi(`/api/products/popular-products`),
-            fetchDataFromApi(`/api/vendor/getall`),
-            fetchDataFromApi(`/api/cart?clinicId=${clinicId}`),
-            fetchDataFromApi(
-              `/api/products/frequency-orders?clinicId=${clinicId}`,
-            ),
-            fetchDataFromApi(`/api/products/last-orders?clinicId=${clinicId}`),
-            fetchDataFromApi(`/api/shipping/addresses?clinicId=${clinicId}`),
-          ]);
+          try {
+            const parsedUser = JSON.parse(userRaw);
+            const clinicId = parsedUser.clinicId;
 
-          setOrders(ordersRes);
-          setcat(catRes?.categoryList || []);
-          setPopularProducts(popRes?.data || []);
-          setvendors(vendorRes?.Response || []);
-          setCartData(cartRes);
-          setFrequencyProducts(freqRes?.products || []);
-          setRecentOrders(recRes?.products || []);
-          setShippingAddress(shippingRes);
+            // Only fetch data if we have a valid clinicId
+            if (clinicId) {
+              const [
+                ordersRes,
+                catRes,
+                popRes,
+                vendorRes,
+                cartRes,
+                freqRes,
+                recRes,
+                shippingRes,
+              ] = await Promise.all([
+                fetchDataFromApi(
+                  `/api/orders/client?clinicId=${clinicId}`,
+                ).catch(() => []),
+                fetchDataFromApi(`/api/category`).catch(() => ({
+                  categoryList: [],
+                })),
+                fetchDataFromApi(`/api/products/popular-products`).catch(
+                  () => ({ data: [] }),
+                ),
+                fetchDataFromApi(`/api/vendor/getall`).catch(() => ({
+                  Response: [],
+                })),
+                fetchDataFromApi(`/api/cart?clinicId=${clinicId}`).catch(
+                  () => [],
+                ),
+                fetchDataFromApi(
+                  `/api/products/frequency-orders?clinicId=${clinicId}`,
+                ).catch(() => ({ products: [] })),
+                fetchDataFromApi(
+                  `/api/products/last-orders?clinicId=${clinicId}`,
+                ).catch(() => ({ products: [] })),
+                fetchDataFromApi(
+                  `/api/shipping/addresses?clinicId=${clinicId}`,
+                ).catch(() => []),
+              ]);
 
-          // Permissions
-          const permissionKey = localStorage.getItem("userPermission");
-          if (permissionKey) {
-            const permRes = await fetchDataFromApi(
-              `/api/user/permission?name=${permissionKey}`,
-            );
-            setPermission(permRes?.response || []);
+              setOrders(ordersRes || []);
+              setcat(catRes?.categoryList || []);
+              setPopularProducts(popRes?.data || []);
+              setvendors(vendorRes?.Response || []);
+              setCartData(cartRes || []);
+              setFrequencyProducts(freqRes?.products || []);
+              setRecentOrders(recRes?.products || []);
+              setShippingAddress(shippingRes || []);
+
+              // Permissions
+              const permissionKey = localStorage.getItem("userPermission");
+              if (permissionKey) {
+                try {
+                  const permRes = await fetchDataFromApi(
+                    `/api/user/permission?name=${permissionKey}`,
+                  );
+                  setPermission(permRes?.response || []);
+                } catch (err) {
+                  console.log("Permission fetch failed:", err);
+                  setPermission([]);
+                }
+              }
+            }
+          } catch (parseError) {
+            console.error("Error parsing user data:", parseError);
+            // Clear invalid data
+            localStorage.removeItem("user");
+            localStorage.removeItem("token");
+            setUser("");
           }
+        } else {
+          // No auth data found, user needs to login
+          console.log("No authentication found, showing login");
+          setUser("");
         }
 
         setIsAppReady(true);
       } catch (err) {
         console.error("Error during context init:", err);
+        setIsAppReady(true); // Always set ready even if there's an error
       }
     };
 
