@@ -36,6 +36,7 @@ interface CheckoutItem {
 
 export default function Checkout() {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const selectedVendor = searchParams.get("vendor");
 
   const [orderData, setOrderData] = useState({
