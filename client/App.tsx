@@ -211,7 +211,7 @@ function AppContent() {
           <Route path="/login" element={<Login />} />
           <Route path="/clinicform" element={<Signup />} />
           <Route path="/profile/*" element={<Profile />} />
-          <Route path="/profile/account" element={<Accounts />} /> 
+          <Route path="/profile/account" element={<Accounts />} />
           {/* Placeholder routes for navigation items */}
           <Route
             path="/products/category/:id/:vendorId?/:availability?"
