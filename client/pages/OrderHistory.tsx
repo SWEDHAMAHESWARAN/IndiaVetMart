@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -336,73 +336,73 @@ export default function OrderHistory() {
                               : "max-h-0 opacity-0"
                           } overflow-hidden px-4 bg-white`}
                         >
-                          {
-                            order.products?.map((product)=>(
-                                                        <div className=" p-4 md:p-6 w-full max-w-4xl mx-auto bg-white">
-                            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
-                              <p className="font-semibold text-sm md:text-base">
-                                <span className="text-gray-800">Order Id:</span>{" "}
-                                {order._id}
-                              </p>
-                              <p className="text-sm md:text-base text-gray-700">
-                                <span className="font-medium">
-                              {product.sellerName}
-                                </span>
-                              </p>
-                            </div>
+                          {order.products?.map((product) => (
+                            <div className=" p-4 md:p-6 w-full max-w-4xl mx-auto bg-white">
+                              <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
+                                <p className="font-semibold text-sm md:text-base">
+                                  <span className="text-gray-800">
+                                    Order Id:
+                                  </span>{" "}
+                                  {order._id}
+                                </p>
+                                <p className="text-sm md:text-base text-gray-700">
+                                  <span className="font-medium">
+                                    {product.sellerName}
+                                  </span>
+                                </p>
+                              </div>
 
-                            <div className="flex flex-col md:flex-row gap-4">
-                              {/* Left: Image and Product Info */}
-                              <div className="flex gap-4 w-full md:w-1/2">
-                                <img
-                                  src={product.image}
-                                  alt="Product"
-                                  className="w-24 h-24 object-cover rounded-lg shadow-sm"
-                                />
-                                <div className="flex flex-col justify-between">
-                                  <p className="font-medium text-sm md:text-base text-gray-800">
-                                    {product.productTitle}
-                                  </p>
-                                  <div className="flex items-center gap-2 text-xs mt-1">
-                                    <span className="border px-2 py-0.5 rounded-md bg-gray-100">
-                                      {product.quantity} Qty
-                                    </span>
+                              <div className="flex flex-col md:flex-row gap-4">
+                                {/* Left: Image and Product Info */}
+                                <div className="flex gap-4 w-full md:w-1/2">
+                                  <img
+                                    src={product.image}
+                                    alt="Product"
+                                    className="w-24 h-24 object-cover rounded-lg shadow-sm"
+                                  />
+                                  <div className="flex flex-col justify-between">
+                                    <p className="font-medium text-sm md:text-base text-gray-800">
+                                      {product.productTitle}
+                                    </p>
+                                    <div className="flex items-center gap-2 text-xs mt-1">
+                                      <span className="border px-2 py-0.5 rounded-md bg-gray-100">
+                                        {product.quantity} Qty
+                                      </span>
+                                    </div>
+                                    <p className="text-sm font-semibold mt-2">
+                                      Price: {Rupee}
+                                      {product.price}
+                                    </p>
                                   </div>
-                                  <p className="text-sm font-semibold mt-2">
-                                    Price: {Rupee}{product.price}
-                                  </p>
                                 </div>
-                              </div>
 
-                              {/* Right: Price Summary */}
-                              <div className="border-l border-gray-200 pl-4 w-full md:w-1/2 text-sm text-gray-800">
-                                <div className="flex justify-between py-1">
-                                  <span>No. of Product</span>
-                                  <span>{order.products.length}</span>
-                                </div>
-                                <div className="flex justify-between py-1">
-                                  <span>Total Amount</span>
-                                  <span>₹1000</span>
-                                </div>
-                                <div className="flex justify-between py-1">
-                                  <span>Discount</span>
-                                  <span>₹145</span>
-                                </div>
-                                <div className="flex justify-between py-1 font-semibold">
-                                  <span>Final Amount</span>
-                                  <span>₹40000</span>
-                                </div>
-                                <hr className="my-2" />
-                                <div className="flex justify-between py-1 font-bold text-base">
-                                  <span>Final Amount</span>
-                                  <span className="text-black">₹25000</span>
+                                {/* Right: Price Summary */}
+                                <div className="border-l border-gray-200 pl-4 w-full md:w-1/2 text-sm text-gray-800">
+                                  <div className="flex justify-between py-1">
+                                    <span>No. of Product</span>
+                                    <span>{order.products.length}</span>
+                                  </div>
+                                  <div className="flex justify-between py-1">
+                                    <span>Total Amount</span>
+                                    <span>₹1000</span>
+                                  </div>
+                                  <div className="flex justify-between py-1">
+                                    <span>Discount</span>
+                                    <span>₹145</span>
+                                  </div>
+                                  <div className="flex justify-between py-1 font-semibold">
+                                    <span>Final Amount</span>
+                                    <span>₹40000</span>
+                                  </div>
+                                  <hr className="my-2" />
+                                  <div className="flex justify-between py-1 font-bold text-base">
+                                    <span>Final Amount</span>
+                                    <span className="text-black">₹25000</span>
+                                  </div>
                                 </div>
                               </div>
                             </div>
-                          </div>
-                            ))
-                          }
-
+                          ))}
                         </div>
                       </>
                     );
