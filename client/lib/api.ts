@@ -15,10 +15,25 @@ const getAuthHeaders = () => {
 
 export const fetchDataFromApi = async (url: string) => {
   try {
+    console.log("Making GET request to:", API_BASE_URL + url);
     const { data } = await axios.get(API_BASE_URL + url, getAuthHeaders());
+    console.log("API Response received:", data);
     return data;
-  } catch (error) {
-    console.error("Fetch error:", error);
+  } catch (error: any) {
+    console.error("Fetch error for URL:", API_BASE_URL + url);
+    console.error("Error details:", error);
+
+    if (error.response) {
+      console.error("Response status:", error.response.status);
+      console.error("Response data:", error.response.data);
+
+      // Return empty response for non-critical endpoints to prevent app crash
+      if (error.response.status === 404) {
+        console.warn("404 - Endpoint not found, returning empty response");
+        return { error: true, message: "Endpoint not found", data: [] };
+      }
+    }
+
     throw error;
   }
 };
@@ -75,7 +90,7 @@ export const uploadImage = async (url: string, formData: FormData) => {
 export const deleteImages = async (url: string, imageData: any) => {
   try {
     const response = await axios({
-      method: 'delete',
+      method: "delete",
       url: API_BASE_URL + url,
       data: imageData,
       headers: {
@@ -89,4 +104,3 @@ export const deleteImages = async (url: string, imageData: any) => {
     throw error;
   }
 };
-
