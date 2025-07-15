@@ -14,6 +14,7 @@ import {
 } from "react-router-dom";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
+import { AlertBox } from "./components/AlertBox";
 import HomeScreen from "./pages/Index";
 import Login from "./pages/Login";
 import Category from "./pages/Category";
@@ -183,6 +184,7 @@ function AppContent() {
   };
   return (
     <MyContext.Provider value={contextValues}>
+      <AlertBox />
       <Layout>
         <Routes>
           <Route
