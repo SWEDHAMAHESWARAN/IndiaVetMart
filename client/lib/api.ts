@@ -1,7 +1,7 @@
 import axios from "axios";
 
 // Using a proxy to handle CORS - the actual API URL is configured in next.config.js
-const API_BASE_URL = `/api/proxy`;
+const API_BASE_URL = `/api`;
 
 const getAuthHeaders = () => {
   const token = localStorage.getItem("token");
@@ -25,12 +25,8 @@ export const fetchDataFromApi = async (url: string) => {
 
 export const postData = async (url: string, formData: any) => {
   try {
-    const response = await fetch(API_BASE_URL + url, {
-      method: "POST",
-      headers: getAuthHeaders().headers,
-      body: JSON.stringify(formData),
-    });
-    return await response.json();
+    const { data } = await axios.post(API_BASE_URL + url, formData, getAuthHeaders());
+    return data;
   } catch (error) {
     console.error("Post error:", error);
     throw error;
@@ -61,13 +57,12 @@ export const deleteData = async (url: string) => {
   }
 };
 
-export const uploadImage = async (url: string, formData: any) => {
-  console.log("Uploading image to:", API_BASE_URL + url);
-  console.log("Form data:", formData);
+export const uploadImage = async (url: string, formData: FormData) => {
   try {
     const { data } = await axios.post(API_BASE_URL + url, formData, {
       headers: {
-        "Content-Type": "multipart/form-data",
+        ...getAuthHeaders().headers,
+        'Content-Type': 'multipart/form-data',
       },
     });
     return data;
