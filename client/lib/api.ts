@@ -1,6 +1,7 @@
 import axios from "axios";
 
-const API_BASE_URL = `http://20.235.173.36:3001`;
+// Using a proxy to handle CORS - the actual API URL is configured in next.config.js
+const API_BASE_URL = `/api/proxy`;
 
 const getAuthHeaders = () => {
   const token = localStorage.getItem("token");
@@ -78,13 +79,16 @@ export const uploadImage = async (url: string, formData: any) => {
 
 export const deleteImages = async (url: string, imageData: any) => {
   try {
-    const { data } = await axios.delete(API_BASE_URL + url, {
-      data: imageData, // Proper way to send body in DELETE with axios
+    const response = await axios({
+      method: 'delete',
+      url: API_BASE_URL + url,
+      data: imageData,
       headers: {
+        ...getAuthHeaders().headers,
         "Content-Type": "application/json",
       },
     });
-    return data;
+    return response.data;
   } catch (error) {
     console.error("Delete Image error:", error);
     throw error;

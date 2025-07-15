@@ -61,33 +61,49 @@ export default function HomeScreen() {
     history(`/product/${productId}/${variantId}`);
   };
 
+  interface ApiResponse {
+    products?: any[];
+    [key: string]: any;
+  }
+
   const fetchNewProducts = async () => {
     try {
-      const userDetails = JSON.parse(user);
+      const userDetails = user ? JSON.parse(user) : null;
       console.log("User details:", userDetails);
       if (userDetails) {
         const res = await fetchDataFromApi(
           `/api/products?page=1&perPage=10&userid=${userDetails?.userId}`,
-        );
+        ) as ApiResponse;
 
-        setNewProducts(res?.products || []);
+        if (res && Array.isArray(res.products)) {
+          setNewProducts(res.products);
+        } else {
+          setNewProducts([]);
+        }
       }
     } catch (error) {
       console.error("Error fetching new products:", error);
+      setNewProducts([]);
     }
   };
 
   const fetchFeaturedProducts = async () => {
     try {
-      const userDetails = JSON.parse(user);
+      const userDetails = user ? JSON.parse(user) : null;
       if (userDetails) {
         const res = await fetchDataFromApi(
           `/api/products/featured?userid=${userDetails?.userId}`,
-        );
-        setFeatureProducts(res || []);
+        ) as any[];
+        
+        if (Array.isArray(res)) {
+          setFeatureProducts(res);
+        } else {
+          setFeatureProducts([]);
+        }
       }
     } catch (error) {
       console.error("Error fetching featured products:", error);
+      setFeatureProducts([]);
     }
   };
 
@@ -95,19 +111,26 @@ export default function HomeScreen() {
     try {
       if (categories?.length > 0) {
         console.log(`-pokn`);
-        const userDetails = JSON.parse(user);
+        const userDetails = user ? JSON.parse(user) : null;
+        if (!userDetails) return;
 
         const randomIndex = Math.floor(Math.random() * categories.length);
         const catId = categories[randomIndex]?.id;
 
         const res = await fetchDataFromApi(
           `/api/products/catId?catIds=${catId}&userid=${userDetails?.userId}`,
-        );
+        ) as ApiResponse;
+        
         console.log("random", res);
-        setRandomProducts(res?.products || []);
+        if (res && Array.isArray(res.products)) {
+          setRandomProducts(res.products);
+        } else {
+          setRandomProducts([]);
+        }
       }
     } catch (error) {
       console.error("Error fetching random products:", error);
+      setRandomProducts([]);
     }
   };
   const handleAddToCart = (productName: string) => {
