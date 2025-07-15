@@ -123,6 +123,15 @@ export default function OrderHistory() {
                 Track and manage all your orders in one place
               </p>
             </div>
+            <div>
+              <Button
+                onClick={() => navigate("/order-confirmation")}
+                className="bg-green-600 hover:bg-green-700 text-white"
+              >
+                <CheckCircle className="w-4 h-4 mr-2" />
+                View Sample Order Confirmation
+              </Button>
+            </div>
           </div>
 
           {/* Quick Stats */}
