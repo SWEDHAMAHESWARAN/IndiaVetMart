@@ -1,6 +1,7 @@
 import axios from "axios";
 
-const API_BASE_URL = `http://20.235.173.36:3001`;
+// Use local proxy to handle CORS
+const API_BASE_URL = "/api/proxy"; // This will be prefixed to all API calls
 
 const getAuthHeaders = () => {
   const token = localStorage.getItem("token");
@@ -14,7 +15,6 @@ const getAuthHeaders = () => {
 
 export const fetchDataFromApi = async (url: string) => {
   try {
-<<<<<<< HEAD
     const response = await fetch(API_BASE_URL + url, {
       method: "GET",
       headers: {
@@ -59,24 +59,45 @@ export const fetchDataFromApi = async (url: string) => {
 
     return responseData;
   } catch (error: any) {
-=======
-    const { data } = await axios.get(API_BASE_URL + url, getAuthHeaders());
-    return data;
-  } catch (error) {
->>>>>>> 774626e85f7043aa2c14d0e15308d973224955c8
     console.error("Fetch error:", error);
-    throw error;
+
+    if (
+      error.name === "TypeError" &&
+      error.message.includes("Failed to fetch")
+    ) {
+      throw new Error(
+        "Network Error: Unable to connect to the API. Please check your internet connection or try again later.",
+      );
+    }
+
+    if (error.message.includes("HTTP error")) {
+      throw new Error(`Server error: ${error.message}`);
+    }
+
+    throw new Error(error.message || "An error occurred");
   }
 };
 
 export const postData = async (url: string, formData: any) => {
+  const fullUrl = API_BASE_URL + url;
+
+  console.log("Making API request to:", fullUrl);
+  console.log("Request data:", formData);
+
   try {
-    const response = await fetch(API_BASE_URL + url, {
+    const response = await fetch(fullUrl, {
       method: "POST",
-      headers: getAuthHeaders().headers,
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        // Only add Authorization header if token exists
+        ...(localStorage.getItem("token") && {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        }),
+      },
+      mode: "cors",
       body: JSON.stringify(formData),
     });
-<<<<<<< HEAD
 
     // Clone the response to avoid "body stream already read" error
     const responseClone = response.clone();
@@ -129,12 +150,6 @@ export const postData = async (url: string, formData: any) => {
     throw new Error(
       error.message || "An unexpected error occurred. Please try again.",
     );
-=======
-    return await response.json();
-  } catch (error) {
-    console.error("Post error:", error);
-    throw error;
->>>>>>> 774626e85f7043aa2c14d0e15308d973224955c8
   }
 };
 
