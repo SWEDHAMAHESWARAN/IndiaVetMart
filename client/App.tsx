@@ -240,6 +240,7 @@ function AppContent() {
           <Route path="/shopping" element={<ShoppingCart />} />
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/order-confirmation" element={<OrderConfirmation />} />
+          <Route path="/reports" element={<Reports />} />
           <Route path="/vendors" element={<VendorConnection />} />
           <Route path="/budget" element={<Budget />} />
           <Route path="/approvals" element={<ApprovalManagement />} />
