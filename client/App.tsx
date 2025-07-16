@@ -27,6 +27,7 @@ import VendorConnection from "./pages/VendorConnection";
 import Budget from "./pages/Budget";
 import ApprovalManagement from "./pages/ApprovalManagement";
 import OrderConfirmation from "./pages/OrderConfirmation";
+import Reports from "./pages/Reports";
 import NotFound from "./pages/NotFound";
 import { createContext, useEffect, useState } from "react";
 import { fetchDataFromApi, postData } from "./lib/api";
@@ -212,7 +213,7 @@ function AppContent() {
           <Route path="/login" element={<Login />} />
           <Route path="/clinicform" element={<Signup />} />
           <Route path="/profile/*" element={<Profile />} />
-          <Route path="/profile/account" element={<Accounts />} /> 
+          <Route path="/profile/account" element={<Accounts />} />
           {/* Placeholder routes for navigation items */}
           <Route
             path="/products/category/:id/:vendorId?/:availability?"
