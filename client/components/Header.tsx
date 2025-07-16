@@ -238,6 +238,65 @@ export default function Header() {
               </DropdownMenuContent>
             </DropdownMenu>
 
+            {/* Reports Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="flex items-center gap-2 text-primary-dark-blue hover:bg-secondary-yellow40 font-gabarito font-bold px-4 py-2"
+                >
+                  Reports
+                  <ChevronDown className="w-4 h-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56 bg-neutral-0 border border-neutral-20 rounded-lg shadow-lg">
+                <DropdownMenuItem
+                  className="flex items-center gap-3 px-4 py-3 hover:bg-secondary-yellow40 cursor-pointer"
+                  asChild
+                >
+                  <Link to="/reports?tab=categories">
+                    <BarChart3 className="w-4 h-4 text-primary-dark-blue" />
+                    <span className="font-gabarito text-primary-dark-blue">
+                      Categories Report
+                    </span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="flex items-center gap-3 px-4 py-3 hover:bg-secondary-yellow40 cursor-pointer"
+                  asChild
+                >
+                  <Link to="/reports?tab=vendors">
+                    <TrendingUp className="w-4 h-4 text-primary-dark-blue" />
+                    <span className="font-gabarito text-primary-dark-blue">
+                      Vendors Report
+                    </span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="flex items-center gap-3 px-4 py-3 hover:bg-secondary-yellow40 cursor-pointer"
+                  asChild
+                >
+                  <Link to="/reports?tab=items">
+                    <Package className="w-4 h-4 text-primary-dark-blue" />
+                    <span className="font-gabarito text-primary-dark-blue">
+                      Items Report
+                    </span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="flex items-center gap-3 px-4 py-3 hover:bg-secondary-yellow40 cursor-pointer"
+                  asChild
+                >
+                  <Link to="/reports">
+                    <FileText className="w-4 h-4 text-primary-dark-blue" />
+                    <span className="font-gabarito text-primary-dark-blue">
+                      All Reports
+                    </span>
+                  </Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
             {/* Dynamic Clinic Selector */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
