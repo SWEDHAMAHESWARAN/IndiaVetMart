@@ -123,13 +123,20 @@ export default function OrderHistory() {
                 Track and manage all your orders in one place
               </p>
             </div>
-            <div>
+            <div className="flex gap-3">
               <Button
                 onClick={() => navigate("/order-confirmation")}
                 className="bg-green-600 hover:bg-green-700 text-white"
               >
                 <CheckCircle className="w-4 h-4 mr-2" />
                 View Sample Order Confirmation
+              </Button>
+              <Button
+                onClick={() => navigate("/reports")}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                <BarChart3 className="w-4 h-4 mr-2" />
+                View Reports Dashboard
               </Button>
             </div>
           </div>
