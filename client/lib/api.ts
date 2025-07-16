@@ -1,6 +1,7 @@
 import axios from "axios";
 
-const API_BASE_URL = `http://20.235.173.36:3001`;
+// Using CORS proxy for development
+const API_BASE_URL = `https://api.allorigins.win/raw?url=${encodeURIComponent('http://20.235.173.36:3001')}`;
 
 const getAuthHeaders = () => {
   const token = localStorage.getItem("token");
@@ -14,7 +15,9 @@ const getAuthHeaders = () => {
 
 export const fetchDataFromApi = async (url: string) => {
   try {
-    const { data } = await axios.get(API_BASE_URL + url, getAuthHeaders());
+    // For GET requests, append the URL as a query parameter
+    const fullUrl = API_BASE_URL + (url.startsWith('/') ? '' : '/') + url;
+    const { data } = await axios.get(fullUrl, getAuthHeaders());
     return data;
   } catch (error) {
     console.error("Fetch error:", error);
@@ -24,7 +27,8 @@ export const fetchDataFromApi = async (url: string) => {
 
 export const postData = async (url: string, formData: any) => {
   try {
-    const response = await fetch(API_BASE_URL + url, {
+    const fullUrl = API_BASE_URL + (url.startsWith('/') ? '' : '/') + url;
+    const response = await fetch(fullUrl, {
       method: "POST",
       headers: getAuthHeaders().headers,
       body: JSON.stringify(formData),
