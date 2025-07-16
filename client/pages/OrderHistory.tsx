@@ -31,6 +31,7 @@ import {
   Clock,
   ChevronLeft,
   ChevronRight,
+  BarChart3,
 } from "lucide-react";
 import { MyContext } from "@/App";
 import { fetchDataFromApi } from "@/lib/api";
