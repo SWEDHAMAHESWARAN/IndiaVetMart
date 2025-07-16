@@ -9,6 +9,9 @@ import {
   Package,
   ClipboardList,
   Store,
+  BarChart3,
+  TrendingUp,
+  FileText,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
