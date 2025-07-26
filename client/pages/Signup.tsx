@@ -35,11 +35,14 @@ interface UserFormData {
 
 interface ClinicFormData {
   clinicName: string;
+  email: string;
+  phone: string;
   streetAddress: string;
   suite: string;
   zipCode: string;
   city: string;
   state: string;
+  species: string[];
   practiceTypes: string[];
   aboutClinic: string;
   howDidYouHear: string;
@@ -52,17 +55,28 @@ interface VendorFormData {
   corporateHospitalName: string;
 }
 
+const speciesOptions = [
+  { id: "dogs", label: "Dogs", icon: "🐕" },
+  { id: "cats", label: "Cats", icon: "🐱" },
+  { id: "birds", label: "Birds", icon: "🦅" },
+  { id: "exotics", label: "Exotics", icon: "🦎" },
+  { id: "horses", label: "Horses", icon: "🐴" },
+  { id: "farm", label: "Farm Animals", icon: "🐄" },
+  { id: "wildlife", label: "Wildlife", icon: "🦉" },
+  { id: "aquatic", label: "Aquatic", icon: "🐠" },
+];
+
 const practiceTypeOptions = [
-  { id: "general", label: "General Practice", color: "bg-blue-100" },
-  { id: "emergency", label: "Emergency", color: "bg-purple-100" },
-  { id: "specialty", label: "Specialty", color: "bg-green-100" },
-  { id: "exotics", label: "Exotics", color: "bg-orange-100" },
-  { id: "equine", label: "Equine", color: "bg-yellow-100" },
-  { id: "mobile", label: "Mobile", color: "bg-teal-100" },
-  { id: "nonprofit", label: "Nonprofit", color: "bg-pink-100" },
-  { id: "university", label: "University", color: "bg-indigo-100" },
-  { id: "zoo", label: "Zoo/Aquarium", color: "bg-cyan-100" },
-  { id: "shelter", label: "Shelter/Rescue", color: "bg-red-100" },
+  { id: "general", label: "General Practice" },
+  { id: "emergency", label: "Emergency" },
+  { id: "specialty", label: "Specialty" },
+  { id: "exotics", label: "Exotics" },
+  { id: "equine", label: "Equine" },
+  { id: "mobile", label: "Mobile" },
+  { id: "nonprofit", label: "Nonprofit" },
+  { id: "university", label: "University" },
+  { id: "zoo", label: "Zoo/Aquarium" },
+  { id: "shelter", label: "Shelter/Rescue" },
 ];
 
 export default function Signup() {
@@ -82,11 +96,14 @@ export default function Signup() {
 
   const [clinicData, setClinicData] = useState<ClinicFormData>({
     clinicName: "",
+    email: "",
+    phone: "",
     streetAddress: "",
     suite: "",
     zipCode: "",
     city: "",
     state: "",
+    species: [],
     practiceTypes: [],
     aboutClinic: "",
     howDidYouHear: "",
@@ -120,6 +137,15 @@ export default function Signup() {
     setVendorData((prev) => ({ ...prev, [field]: value }));
   };
 
+  const handleSpeciesToggle = (species: string) => {
+    setClinicData((prev) => ({
+      ...prev,
+      species: prev.species.includes(species)
+        ? prev.species.filter((s) => s !== species)
+        : [...prev.species, species],
+    }));
+  };
+
   const handlePracticeTypeToggle = (practiceType: string) => {
     setClinicData((prev) => ({
       ...prev,
@@ -144,10 +170,13 @@ export default function Signup() {
       case 2:
         return !!(
           clinicData.clinicName &&
+          clinicData.email &&
+          clinicData.phone &&
           clinicData.streetAddress &&
           clinicData.zipCode &&
           clinicData.city &&
           clinicData.state &&
+          clinicData.species.length > 0 &&
           clinicData.practiceTypes.length > 0
         );
       case 3:
@@ -391,7 +420,7 @@ export default function Signup() {
   );
 
   const renderClinicInfoStep = () => (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div className="text-center mb-6">
         <h2 className="text-xl font-gabarito font-bold text-primary-dark-blue mb-2">
           Let's Learn About Your Clinic!
@@ -402,164 +431,224 @@ export default function Signup() {
         </p>
       </div>
 
-      <div className="space-y-4">
-        <h3 className="text-lg font-gabarito font-bold text-neutral-80 mb-4">
-          SELECT ALL SPECIES TREATED AT YOUR PRACTICE
+      {/* Species Selection */}
+      <div>
+        <h3 className="text-lg font-gabarito font-semibold text-primary-dark-blue mb-4">
+          SELECT ALL SPECIES TREATED BY YOUR PRACTICE{" "}
+          <span className="text-red-500">*</span>
         </h3>
-
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-          {practiceTypeOptions.map((option) => (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          {speciesOptions.map((species) => (
             <div
-              key={option.id}
-              className={`p-3 rounded-lg border-2 cursor-pointer transition-all ${
-                clinicData.practiceTypes.includes(option.id)
-                  ? "border-primary-dark-blue bg-primary-dark-blue/10"
-                  : "border-neutral-40 hover:border-neutral-60"
+              key={species.id}
+              onClick={() => handleSpeciesToggle(species.id)}
+              className={`cursor-pointer border-2 rounded-lg p-4 text-center transition-all ${
+                clinicData.species.includes(species.id)
+                  ? "border-primary-dark-blue bg-secondary-yellow40"
+                  : "border-neutral-30 hover:border-primary-dark-blue/50"
               }`}
-              onClick={() => handlePracticeTypeToggle(option.id)}
             >
-              <div className="flex items-center space-x-2">
-                <div
-                  className={`w-8 h-8 rounded-lg ${option.color} flex items-center justify-center`}
-                >
-                  <div className="w-4 h-4 bg-white rounded-full"></div>
-                </div>
-                <span className="text-sm font-medium text-neutral-80">
-                  {option.label}
-                </span>
+              <div className="w-16 h-16 mx-auto mb-2 bg-neutral-10 rounded-lg flex items-center justify-center">
+                <span className="text-2xl">{species.icon}</span>
               </div>
+              <span className="font-gabarito font-medium text-primary-dark-blue">
+                {species.label}
+              </span>
             </div>
           ))}
         </div>
       </div>
 
-      <div className="space-y-2">
-        <Label
-          htmlFor="clinicName"
-          className="text-neutral-80 font-gabarito font-bold"
-        >
-          Clinic Name
-        </Label>
-        <Input
-          id="clinicName"
-          value={clinicData.clinicName}
-          onChange={(e) => handleClinicDataChange("clinicName", e.target.value)}
-          placeholder="Your clinic name"
-          className="rounded-lg border-neutral-40 focus:border-primary-dark-blue"
-          required
-        />
+      {/* Practice Type */}
+      <div>
+        <h3 className="text-lg font-gabarito font-semibold text-primary-dark-blue mb-4">
+          PRACTICE TYPE (SELECT ALL THAT APPLY){" "}
+          <span className="text-red-500">*</span>
+        </h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {practiceTypeOptions.map((type) => (
+            <label
+              key={type.id}
+              className="flex items-center gap-3 cursor-pointer"
+            >
+              <input
+                type="checkbox"
+                checked={clinicData.practiceTypes.includes(type.id)}
+                onChange={() => handlePracticeTypeToggle(type.id)}
+                className="w-5 h-5 text-primary-dark-blue rounded border-neutral-30 focus:ring-primary-dark-blue/20"
+              />
+              <span className="text-primary-dark-blue font-gabarito font-medium text-sm">
+                {type.label}
+              </span>
+            </label>
+          ))}
+        </div>
       </div>
 
-      <div className="space-y-2">
-        <Label className="text-neutral-80 font-gabarito font-bold">
-          CLINIC STREET ADDRESS*
-        </Label>
-        <Input
-          value={clinicData.streetAddress}
-          onChange={(e) =>
-            handleClinicDataChange("streetAddress", e.target.value)
-          }
-          placeholder="Street Address"
-          className="rounded-lg border-neutral-40 focus:border-primary-dark-blue"
-          required
-        />
+      {/* Clinic Information Form */}
+      <div>
+        <h3 className="text-lg font-gabarito font-semibold text-primary-dark-blue mb-4">
+          CLINIC INFORMATION <span className="text-red-500">*</span>
+        </h3>
+        <div className="bg-neutral-10 p-6 rounded-lg">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <Label className="text-primary-dark-blue font-gabarito font-medium">
+                Clinic Name
+              </Label>
+              <Input
+                placeholder="Enter the Clinic Name"
+                value={clinicData.clinicName}
+                onChange={(e) =>
+                  handleClinicDataChange("clinicName", e.target.value)
+                }
+                className="mt-2"
+              />
+            </div>
+            <div>
+              <Label className="text-primary-dark-blue font-gabarito font-medium">
+                Clinic Email
+              </Label>
+              <Input
+                placeholder="Enter the Clinic Email"
+                value={clinicData.email}
+                onChange={(e) =>
+                  handleClinicDataChange("email", e.target.value)
+                }
+                className="mt-2"
+                type="email"
+              />
+            </div>
+            <div>
+              <Label className="text-primary-dark-blue font-gabarito font-medium">
+                Clinic Phone
+              </Label>
+              <Input
+                placeholder="Enter the Clinic Phone"
+                value={clinicData.phone}
+                onChange={(e) =>
+                  handleClinicDataChange("phone", e.target.value)
+                }
+                className="mt-2"
+                type="tel"
+              />
+            </div>
+            <div>
+              <Label className="text-primary-dark-blue font-gabarito font-medium">
+                Clinic Street Address
+              </Label>
+              <Input
+                placeholder="Enter the Clinic Street Address"
+                value={clinicData.streetAddress}
+                onChange={(e) =>
+                  handleClinicDataChange("streetAddress", e.target.value)
+                }
+                className="mt-2"
+                required
+              />
+            </div>
+            <div>
+              <Label className="text-primary-dark-blue font-gabarito font-medium">
+                Suite/Building, etc.
+              </Label>
+              <Input
+                placeholder="Enter the Suite, Building, etc."
+                value={clinicData.suite}
+                onChange={(e) =>
+                  handleClinicDataChange("suite", e.target.value)
+                }
+                className="mt-2"
+              />
+            </div>
+            <div>
+              <Label className="text-primary-dark-blue font-gabarito font-medium">
+                Zip Code
+              </Label>
+              <Input
+                placeholder="Enter the Zip Code"
+                value={clinicData.zipCode}
+                onChange={(e) =>
+                  handleClinicDataChange("zipCode", e.target.value)
+                }
+                className="mt-2"
+                required
+              />
+            </div>
+            <div>
+              <Label className="text-primary-dark-blue font-gabarito font-medium">
+                City
+              </Label>
+              <Input
+                placeholder="Enter the City"
+                value={clinicData.city}
+                onChange={(e) => handleClinicDataChange("city", e.target.value)}
+                className="mt-2"
+                required
+              />
+            </div>
+            <div>
+              <Label className="text-primary-dark-blue font-gabarito font-medium">
+                State
+              </Label>
+              <Select
+                value={clinicData.state}
+                onValueChange={(value) =>
+                  handleClinicDataChange("state", value)
+                }
+              >
+                <SelectTrigger className="mt-2 border-neutral-30">
+                  <SelectValue placeholder="Select State" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="CA">California</SelectItem>
+                  <SelectItem value="NY">New York</SelectItem>
+                  <SelectItem value="TX">Texas</SelectItem>
+                  <SelectItem value="FL">Florida</SelectItem>
+                  <SelectItem value="IL">Illinois</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* Optional Information */}
+      <div className="space-y-6">
         <div className="space-y-2">
-          <Label className="text-neutral-80 font-gabarito font-bold">
-            SUITE
+          <Label className="text-primary-dark-blue font-gabarito font-medium">
+            HOW DID YOU HEAR ABOUT US?
           </Label>
-          <Input
-            value={clinicData.suite}
-            onChange={(e) => handleClinicDataChange("suite", e.target.value)}
-            placeholder="Suite, building, etc."
-            className="rounded-lg border-neutral-40 focus:border-primary-dark-blue"
+          <Textarea
+            value={clinicData.howDidYouHear}
+            onChange={(e) =>
+              handleClinicDataChange("howDidYouHear", e.target.value)
+            }
+            placeholder="Referral/show, Conference, etc."
+            className="rounded-lg border-neutral-30 focus:border-primary-dark-blue"
+            rows={3}
           />
         </div>
+
         <div className="space-y-2">
-          <Label className="text-neutral-80 font-gabarito font-bold">
-            ZIP CODE*
+          <Label className="text-primary-dark-blue font-gabarito font-medium">
+            TELL US MORE ABOUT YOUR CLINIC
           </Label>
-          <Input
-            value={clinicData.zipCode}
-            onChange={(e) => handleClinicDataChange("zipCode", e.target.value)}
-            placeholder="Zipcode"
-            className="rounded-lg border-neutral-40 focus:border-primary-dark-blue"
-            required
+          <Textarea
+            value={clinicData.aboutClinic}
+            onChange={(e) =>
+              handleClinicDataChange("aboutClinic", e.target.value)
+            }
+            placeholder="Brief description of your clinic..."
+            className="rounded-lg border-neutral-30 focus:border-primary-dark-blue"
+            rows={3}
           />
         </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label className="text-neutral-80 font-gabarito font-bold">
-            CITY*
-          </Label>
-          <Input
-            value={clinicData.city}
-            onChange={(e) => handleClinicDataChange("city", e.target.value)}
-            placeholder="City"
-            className="rounded-lg border-neutral-40 focus:border-primary-dark-blue"
-            required
-          />
-        </div>
-        <div className="space-y-2">
-          <Label className="text-neutral-80 font-gabarito font-bold">
-            STATE*
-          </Label>
-          <Select
-            value={clinicData.state}
-            onValueChange={(value) => handleClinicDataChange("state", value)}
-          >
-            <SelectTrigger className="rounded-lg border-neutral-40 focus:border-primary-dark-blue">
-              <SelectValue placeholder="Select state" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="CA">California</SelectItem>
-              <SelectItem value="NY">New York</SelectItem>
-              <SelectItem value="TX">Texas</SelectItem>
-              <SelectItem value="FL">Florida</SelectItem>
-              <SelectItem value="IL">Illinois</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      <div className="space-y-2">
-        <Label className="text-neutral-80 font-gabarito font-bold">
-          HOW DID YOU HEAR ABOUT US?
-        </Label>
-        <Textarea
-          value={clinicData.howDidYouHear}
-          onChange={(e) =>
-            handleClinicDataChange("howDidYouHear", e.target.value)
-          }
-          placeholder="Referral/show, Conference, etc."
-          className="rounded-lg border-neutral-40 focus:border-primary-dark-blue"
-          rows={3}
-        />
-      </div>
-
-      <div className="space-y-2">
-        <Label className="text-neutral-80 font-gabarito font-bold">
-          HOW DO YOU HEAR DETAILS?
-        </Label>
-        <Textarea
-          value={clinicData.aboutClinic}
-          onChange={(e) =>
-            handleClinicDataChange("aboutClinic", e.target.value)
-          }
-          placeholder="Email specifically, etc."
-          className="rounded-lg border-neutral-40 focus:border-primary-dark-blue"
-          rows={3}
-        />
       </div>
     </div>
   );
 
   const renderVendorInfoStep = () => (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div className="text-center mb-6">
         <h2 className="text-xl font-gabarito font-bold text-primary-dark-blue mb-2">
           Vendor Information
@@ -570,45 +659,72 @@ export default function Signup() {
       </div>
 
       <div className="space-y-6">
-        <div className="space-y-4">
-          <Label className="text-neutral-80 font-gabarito font-bold">
-            DO YOU BELONG TO A BUYING GROUP / GROUP PURCHASING ORGANIZATION
+        <div>
+          <h3 className="text-lg font-gabarito font-semibold text-primary-dark-blue mb-2">
+            Do You Belong to a Buying Group / Group Purchasing Organization
             (GPO)?
-          </Label>
-          <RadioGroup
-            value={vendorData.belongsToBuyingGroup}
-            onValueChange={(value) =>
-              handleVendorDataChange("belongsToBuyingGroup", value)
-            }
-          >
-            <div className="flex items-center space-x-6">
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="yes" id="buying-group-yes" />
-                <Label htmlFor="buying-group-yes" className="text-neutral-80">
-                  Yes
-                </Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="no" id="buying-group-no" />
-                <Label htmlFor="buying-group-no" className="text-neutral-80">
-                  No
-                </Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="not-sure" id="buying-group-not-sure" />
-                <Label
-                  htmlFor="buying-group-not-sure"
-                  className="text-neutral-80"
-                >
-                  Not Sure
-                </Label>
-              </div>
-            </div>
-          </RadioGroup>
+          </h3>
+          <p className="text-neutral-60 text-sm mb-4">
+            Examples: PSI, VWG, PVO, Vetcove, etc.
+          </p>
+          <div className="flex gap-4">
+            <Button
+              type="button"
+              variant={
+                vendorData.belongsToBuyingGroup === "yes"
+                  ? "default"
+                  : "outline"
+              }
+              onClick={() =>
+                handleVendorDataChange("belongsToBuyingGroup", "yes")
+              }
+              className={
+                vendorData.belongsToBuyingGroup === "yes"
+                  ? "bg-primary-dark-blue text-white"
+                  : "border-primary-dark-blue text-primary-dark-blue hover:bg-secondary-yellow40"
+              }
+            >
+              Yes
+            </Button>
+            <Button
+              type="button"
+              variant={
+                vendorData.belongsToBuyingGroup === "no" ? "default" : "outline"
+              }
+              onClick={() =>
+                handleVendorDataChange("belongsToBuyingGroup", "no")
+              }
+              className={
+                vendorData.belongsToBuyingGroup === "no"
+                  ? "bg-primary-dark-blue text-white"
+                  : "border-primary-dark-blue text-primary-dark-blue hover:bg-secondary-yellow40"
+              }
+            >
+              No
+            </Button>
+            <Button
+              type="button"
+              variant={
+                vendorData.belongsToBuyingGroup === "not-sure"
+                  ? "default"
+                  : "outline"
+              }
+              onClick={() =>
+                handleVendorDataChange("belongsToBuyingGroup", "not-sure")
+              }
+              className={
+                vendorData.belongsToBuyingGroup === "not-sure"
+                  ? "bg-primary-dark-blue text-white"
+                  : "border-primary-dark-blue text-primary-dark-blue hover:bg-secondary-yellow40"
+              }
+            >
+              Not Sure
+            </Button>
+          </div>
 
           {vendorData.belongsToBuyingGroup === "yes" && (
-            <div className="space-y-2">
-              <Label className="text-neutral-80 font-gabarito font-bold">
+            <div className="mt-4 space-y-2">
+              <Label className="text-primary-dark-blue font-gabarito font-medium">
                 IF YES, WHICH ONE? (OR WHICH ONES?)
               </Label>
               <Textarea
@@ -617,50 +733,76 @@ export default function Signup() {
                   handleVendorDataChange("buyingGroupName", e.target.value)
                 }
                 placeholder="Example: CS, BuyVet, PBI, Vetcove, etc."
-                className="rounded-lg border-neutral-40 focus:border-primary-dark-blue"
+                className="rounded-lg border-neutral-30 focus:border-primary-dark-blue"
                 rows={3}
               />
             </div>
           )}
         </div>
 
-        <Separator />
-
-        <div className="space-y-4">
-          <Label className="text-neutral-80 font-gabarito font-bold">
-            IS YOUR PRACTICE OWNED BY A CORPORATE / HOSPITAL GROUP?
-          </Label>
-          <RadioGroup
-            value={vendorData.isCorporateHospital}
-            onValueChange={(value) =>
-              handleVendorDataChange("isCorporateHospital", value)
-            }
-          >
-            <div className="flex items-center space-x-6">
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="yes" id="corporate-yes" />
-                <Label htmlFor="corporate-yes" className="text-neutral-80">
-                  Yes
-                </Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="no" id="corporate-no" />
-                <Label htmlFor="corporate-no" className="text-neutral-80">
-                  No
-                </Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="not-sure" id="corporate-not-sure" />
-                <Label htmlFor="corporate-not-sure" className="text-neutral-80">
-                  Not Sure
-                </Label>
-              </div>
-            </div>
-          </RadioGroup>
+        <div>
+          <h3 className="text-lg font-gabarito font-semibold text-primary-dark-blue mb-2">
+            Is Your Practice Owned by a Corporate Hospital Group?
+          </h3>
+          <p className="text-neutral-60 text-sm mb-4">
+            Examples: VCA, PVA, VetCare, etc.
+          </p>
+          <div className="flex gap-4">
+            <Button
+              type="button"
+              variant={
+                vendorData.isCorporateHospital === "yes" ? "default" : "outline"
+              }
+              onClick={() =>
+                handleVendorDataChange("isCorporateHospital", "yes")
+              }
+              className={
+                vendorData.isCorporateHospital === "yes"
+                  ? "bg-primary-dark-blue text-white"
+                  : "border-primary-dark-blue text-primary-dark-blue hover:bg-secondary-yellow40"
+              }
+            >
+              Yes
+            </Button>
+            <Button
+              type="button"
+              variant={
+                vendorData.isCorporateHospital === "no" ? "default" : "outline"
+              }
+              onClick={() =>
+                handleVendorDataChange("isCorporateHospital", "no")
+              }
+              className={
+                vendorData.isCorporateHospital === "no"
+                  ? "bg-primary-dark-blue text-white"
+                  : "border-primary-dark-blue text-primary-dark-blue hover:bg-secondary-yellow40"
+              }
+            >
+              No
+            </Button>
+            <Button
+              type="button"
+              variant={
+                vendorData.isCorporateHospital === "not-sure"
+                  ? "default"
+                  : "outline"
+              }
+              onClick={() =>
+                handleVendorDataChange("isCorporateHospital", "not-sure")
+              }
+              className={
+                vendorData.isCorporateHospital === "not-sure"
+                  ? "bg-primary-dark-blue text-white"
+                  : "border-primary-dark-blue text-primary-dark-blue hover:bg-secondary-yellow40"
+              }
+            >
+              Not Sure
+            </Button>
+          </div>
 
           {vendorData.isCorporateHospital === "yes" && (
-            <div className="space-y-2">
-              <Label className="text-neutral-80 font-gabarito font-bold">
+            <div className="mt-4 space-y-2">
+              <Label className="text-primary-dark-blue font-gabarito font-medium">
                 IF YES, WHICH ONE? (OR WHICH ONES?)
               </Label>
               <Textarea
@@ -672,7 +814,7 @@ export default function Signup() {
                   )
                 }
                 placeholder="Example: VCA, BluePearl, NVA, Ethos, etc."
-                className="rounded-lg border-neutral-40 focus:border-primary-dark-blue"
+                className="rounded-lg border-neutral-30 focus:border-primary-dark-blue"
                 rows={3}
               />
             </div>
