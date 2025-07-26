@@ -434,7 +434,8 @@ export default function Signup() {
       {/* Species Selection */}
       <div>
         <h3 className="text-lg font-gabarito font-semibold text-primary-dark-blue mb-4">
-          SELECT ALL SPECIES TREATED BY YOUR PRACTICE <span className="text-red-500">*</span>
+          SELECT ALL SPECIES TREATED BY YOUR PRACTICE{" "}
+          <span className="text-red-500">*</span>
         </h3>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {speciesOptions.map((species) => (
@@ -461,7 +462,8 @@ export default function Signup() {
       {/* Practice Type */}
       <div>
         <h3 className="text-lg font-gabarito font-semibold text-primary-dark-blue mb-4">
-          PRACTICE TYPE (SELECT ALL THAT APPLY) <span className="text-red-500">*</span>
+          PRACTICE TYPE (SELECT ALL THAT APPLY){" "}
+          <span className="text-red-500">*</span>
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {practiceTypeOptions.map((type) => (
@@ -497,7 +499,9 @@ export default function Signup() {
               <Input
                 placeholder="Enter the Clinic Name"
                 value={clinicData.clinicName}
-                onChange={(e) => handleClinicDataChange("clinicName", e.target.value)}
+                onChange={(e) =>
+                  handleClinicDataChange("clinicName", e.target.value)
+                }
                 className="mt-2"
               />
             </div>
@@ -508,7 +512,9 @@ export default function Signup() {
               <Input
                 placeholder="Enter the Clinic Email"
                 value={clinicData.email}
-                onChange={(e) => handleClinicDataChange("email", e.target.value)}
+                onChange={(e) =>
+                  handleClinicDataChange("email", e.target.value)
+                }
                 className="mt-2"
                 type="email"
               />
@@ -520,7 +526,9 @@ export default function Signup() {
               <Input
                 placeholder="Enter the Clinic Phone"
                 value={clinicData.phone}
-                onChange={(e) => handleClinicDataChange("phone", e.target.value)}
+                onChange={(e) =>
+                  handleClinicDataChange("phone", e.target.value)
+                }
                 className="mt-2"
                 type="tel"
               />
@@ -532,7 +540,9 @@ export default function Signup() {
               <Input
                 placeholder="Enter the Clinic Street Address"
                 value={clinicData.streetAddress}
-                onChange={(e) => handleClinicDataChange("streetAddress", e.target.value)}
+                onChange={(e) =>
+                  handleClinicDataChange("streetAddress", e.target.value)
+                }
                 className="mt-2"
                 required
               />
@@ -544,7 +554,9 @@ export default function Signup() {
               <Input
                 placeholder="Enter the Suite, Building, etc."
                 value={clinicData.suite}
-                onChange={(e) => handleClinicDataChange("suite", e.target.value)}
+                onChange={(e) =>
+                  handleClinicDataChange("suite", e.target.value)
+                }
                 className="mt-2"
               />
             </div>
@@ -555,7 +567,9 @@ export default function Signup() {
               <Input
                 placeholder="Enter the Zip Code"
                 value={clinicData.zipCode}
-                onChange={(e) => handleClinicDataChange("zipCode", e.target.value)}
+                onChange={(e) =>
+                  handleClinicDataChange("zipCode", e.target.value)
+                }
                 className="mt-2"
                 required
               />
@@ -578,7 +592,9 @@ export default function Signup() {
               </Label>
               <Select
                 value={clinicData.state}
-                onValueChange={(value) => handleClinicDataChange("state", value)}
+                onValueChange={(value) =>
+                  handleClinicDataChange("state", value)
+                }
               >
                 <SelectTrigger className="mt-2 border-neutral-30">
                   <SelectValue placeholder="Select State" />
@@ -595,8 +611,6 @@ export default function Signup() {
           </div>
         </div>
       </div>
-
-
 
       {/* Optional Information */}
       <div className="space-y-6">
@@ -647,8 +661,8 @@ export default function Signup() {
       <div className="space-y-6">
         <div>
           <h3 className="text-lg font-gabarito font-semibold text-primary-dark-blue mb-2">
-            Do You Belong to a Buying Group / Group Purchasing
-            Organization (GPO)?
+            Do You Belong to a Buying Group / Group Purchasing Organization
+            (GPO)?
           </h3>
           <p className="text-neutral-60 text-sm mb-4">
             Examples: PSI, VWG, PVO, Vetcove, etc.
@@ -656,33 +670,52 @@ export default function Signup() {
           <div className="flex gap-4">
             <Button
               type="button"
-              variant={vendorData.belongsToBuyingGroup === "yes" ? "default" : "outline"}
-              onClick={() => handleVendorDataChange("belongsToBuyingGroup", "yes")}
-              className={vendorData.belongsToBuyingGroup === "yes"
-                ? "bg-primary-dark-blue text-white"
-                : "border-primary-dark-blue text-primary-dark-blue hover:bg-secondary-yellow40"
+              variant={
+                vendorData.belongsToBuyingGroup === "yes"
+                  ? "default"
+                  : "outline"
+              }
+              onClick={() =>
+                handleVendorDataChange("belongsToBuyingGroup", "yes")
+              }
+              className={
+                vendorData.belongsToBuyingGroup === "yes"
+                  ? "bg-primary-dark-blue text-white"
+                  : "border-primary-dark-blue text-primary-dark-blue hover:bg-secondary-yellow40"
               }
             >
               Yes
             </Button>
             <Button
               type="button"
-              variant={vendorData.belongsToBuyingGroup === "no" ? "default" : "outline"}
-              onClick={() => handleVendorDataChange("belongsToBuyingGroup", "no")}
-              className={vendorData.belongsToBuyingGroup === "no"
-                ? "bg-primary-dark-blue text-white"
-                : "border-primary-dark-blue text-primary-dark-blue hover:bg-secondary-yellow40"
+              variant={
+                vendorData.belongsToBuyingGroup === "no" ? "default" : "outline"
+              }
+              onClick={() =>
+                handleVendorDataChange("belongsToBuyingGroup", "no")
+              }
+              className={
+                vendorData.belongsToBuyingGroup === "no"
+                  ? "bg-primary-dark-blue text-white"
+                  : "border-primary-dark-blue text-primary-dark-blue hover:bg-secondary-yellow40"
               }
             >
               No
             </Button>
             <Button
               type="button"
-              variant={vendorData.belongsToBuyingGroup === "not-sure" ? "default" : "outline"}
-              onClick={() => handleVendorDataChange("belongsToBuyingGroup", "not-sure")}
-              className={vendorData.belongsToBuyingGroup === "not-sure"
-                ? "bg-primary-dark-blue text-white"
-                : "border-primary-dark-blue text-primary-dark-blue hover:bg-secondary-yellow40"
+              variant={
+                vendorData.belongsToBuyingGroup === "not-sure"
+                  ? "default"
+                  : "outline"
+              }
+              onClick={() =>
+                handleVendorDataChange("belongsToBuyingGroup", "not-sure")
+              }
+              className={
+                vendorData.belongsToBuyingGroup === "not-sure"
+                  ? "bg-primary-dark-blue text-white"
+                  : "border-primary-dark-blue text-primary-dark-blue hover:bg-secondary-yellow40"
               }
             >
               Not Sure
@@ -717,33 +750,50 @@ export default function Signup() {
           <div className="flex gap-4">
             <Button
               type="button"
-              variant={vendorData.isCorporateHospital === "yes" ? "default" : "outline"}
-              onClick={() => handleVendorDataChange("isCorporateHospital", "yes")}
-              className={vendorData.isCorporateHospital === "yes"
-                ? "bg-primary-dark-blue text-white"
-                : "border-primary-dark-blue text-primary-dark-blue hover:bg-secondary-yellow40"
+              variant={
+                vendorData.isCorporateHospital === "yes" ? "default" : "outline"
+              }
+              onClick={() =>
+                handleVendorDataChange("isCorporateHospital", "yes")
+              }
+              className={
+                vendorData.isCorporateHospital === "yes"
+                  ? "bg-primary-dark-blue text-white"
+                  : "border-primary-dark-blue text-primary-dark-blue hover:bg-secondary-yellow40"
               }
             >
               Yes
             </Button>
             <Button
               type="button"
-              variant={vendorData.isCorporateHospital === "no" ? "default" : "outline"}
-              onClick={() => handleVendorDataChange("isCorporateHospital", "no")}
-              className={vendorData.isCorporateHospital === "no"
-                ? "bg-primary-dark-blue text-white"
-                : "border-primary-dark-blue text-primary-dark-blue hover:bg-secondary-yellow40"
+              variant={
+                vendorData.isCorporateHospital === "no" ? "default" : "outline"
+              }
+              onClick={() =>
+                handleVendorDataChange("isCorporateHospital", "no")
+              }
+              className={
+                vendorData.isCorporateHospital === "no"
+                  ? "bg-primary-dark-blue text-white"
+                  : "border-primary-dark-blue text-primary-dark-blue hover:bg-secondary-yellow40"
               }
             >
               No
             </Button>
             <Button
               type="button"
-              variant={vendorData.isCorporateHospital === "not-sure" ? "default" : "outline"}
-              onClick={() => handleVendorDataChange("isCorporateHospital", "not-sure")}
-              className={vendorData.isCorporateHospital === "not-sure"
-                ? "bg-primary-dark-blue text-white"
-                : "border-primary-dark-blue text-primary-dark-blue hover:bg-secondary-yellow40"
+              variant={
+                vendorData.isCorporateHospital === "not-sure"
+                  ? "default"
+                  : "outline"
+              }
+              onClick={() =>
+                handleVendorDataChange("isCorporateHospital", "not-sure")
+              }
+              className={
+                vendorData.isCorporateHospital === "not-sure"
+                  ? "bg-primary-dark-blue text-white"
+                  : "border-primary-dark-blue text-primary-dark-blue hover:bg-secondary-yellow40"
               }
             >
               Not Sure
