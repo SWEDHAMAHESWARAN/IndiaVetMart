@@ -634,7 +634,7 @@ export default function Signup() {
   );
 
   const renderVendorInfoStep = () => (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div className="text-center mb-6">
         <h2 className="text-xl font-gabarito font-bold text-primary-dark-blue mb-2">
           Vendor Information
@@ -645,45 +645,53 @@ export default function Signup() {
       </div>
 
       <div className="space-y-6">
-        <div className="space-y-4">
-          <Label className="text-neutral-80 font-gabarito font-bold">
-            DO YOU BELONG TO A BUYING GROUP / GROUP PURCHASING ORGANIZATION
-            (GPO)?
-          </Label>
-          <RadioGroup
-            value={vendorData.belongsToBuyingGroup}
-            onValueChange={(value) =>
-              handleVendorDataChange("belongsToBuyingGroup", value)
-            }
-          >
-            <div className="flex items-center space-x-6">
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="yes" id="buying-group-yes" />
-                <Label htmlFor="buying-group-yes" className="text-neutral-80">
-                  Yes
-                </Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="no" id="buying-group-no" />
-                <Label htmlFor="buying-group-no" className="text-neutral-80">
-                  No
-                </Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="not-sure" id="buying-group-not-sure" />
-                <Label
-                  htmlFor="buying-group-not-sure"
-                  className="text-neutral-80"
-                >
-                  Not Sure
-                </Label>
-              </div>
-            </div>
-          </RadioGroup>
+        <div>
+          <h3 className="text-lg font-gabarito font-semibold text-primary-dark-blue mb-2">
+            Do You Belong to a Buying Group / Group Purchasing
+            Organization (GPO)?
+          </h3>
+          <p className="text-neutral-60 text-sm mb-4">
+            Examples: PSI, VWG, PVO, Vetcove, etc.
+          </p>
+          <div className="flex gap-4">
+            <Button
+              type="button"
+              variant={vendorData.belongsToBuyingGroup === "yes" ? "default" : "outline"}
+              onClick={() => handleVendorDataChange("belongsToBuyingGroup", "yes")}
+              className={vendorData.belongsToBuyingGroup === "yes"
+                ? "bg-primary-dark-blue text-white"
+                : "border-primary-dark-blue text-primary-dark-blue hover:bg-secondary-yellow40"
+              }
+            >
+              Yes
+            </Button>
+            <Button
+              type="button"
+              variant={vendorData.belongsToBuyingGroup === "no" ? "default" : "outline"}
+              onClick={() => handleVendorDataChange("belongsToBuyingGroup", "no")}
+              className={vendorData.belongsToBuyingGroup === "no"
+                ? "bg-primary-dark-blue text-white"
+                : "border-primary-dark-blue text-primary-dark-blue hover:bg-secondary-yellow40"
+              }
+            >
+              No
+            </Button>
+            <Button
+              type="button"
+              variant={vendorData.belongsToBuyingGroup === "not-sure" ? "default" : "outline"}
+              onClick={() => handleVendorDataChange("belongsToBuyingGroup", "not-sure")}
+              className={vendorData.belongsToBuyingGroup === "not-sure"
+                ? "bg-primary-dark-blue text-white"
+                : "border-primary-dark-blue text-primary-dark-blue hover:bg-secondary-yellow40"
+              }
+            >
+              Not Sure
+            </Button>
+          </div>
 
           {vendorData.belongsToBuyingGroup === "yes" && (
-            <div className="space-y-2">
-              <Label className="text-neutral-80 font-gabarito font-bold">
+            <div className="mt-4 space-y-2">
+              <Label className="text-primary-dark-blue font-gabarito font-medium">
                 IF YES, WHICH ONE? (OR WHICH ONES?)
               </Label>
               <Textarea
@@ -692,50 +700,59 @@ export default function Signup() {
                   handleVendorDataChange("buyingGroupName", e.target.value)
                 }
                 placeholder="Example: CS, BuyVet, PBI, Vetcove, etc."
-                className="rounded-lg border-neutral-40 focus:border-primary-dark-blue"
+                className="rounded-lg border-neutral-30 focus:border-primary-dark-blue"
                 rows={3}
               />
             </div>
           )}
         </div>
 
-        <Separator />
-
-        <div className="space-y-4">
-          <Label className="text-neutral-80 font-gabarito font-bold">
-            IS YOUR PRACTICE OWNED BY A CORPORATE / HOSPITAL GROUP?
-          </Label>
-          <RadioGroup
-            value={vendorData.isCorporateHospital}
-            onValueChange={(value) =>
-              handleVendorDataChange("isCorporateHospital", value)
-            }
-          >
-            <div className="flex items-center space-x-6">
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="yes" id="corporate-yes" />
-                <Label htmlFor="corporate-yes" className="text-neutral-80">
-                  Yes
-                </Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="no" id="corporate-no" />
-                <Label htmlFor="corporate-no" className="text-neutral-80">
-                  No
-                </Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="not-sure" id="corporate-not-sure" />
-                <Label htmlFor="corporate-not-sure" className="text-neutral-80">
-                  Not Sure
-                </Label>
-              </div>
-            </div>
-          </RadioGroup>
+        <div>
+          <h3 className="text-lg font-gabarito font-semibold text-primary-dark-blue mb-2">
+            Is Your Practice Owned by a Corporate Hospital Group?
+          </h3>
+          <p className="text-neutral-60 text-sm mb-4">
+            Examples: VCA, PVA, VetCare, etc.
+          </p>
+          <div className="flex gap-4">
+            <Button
+              type="button"
+              variant={vendorData.isCorporateHospital === "yes" ? "default" : "outline"}
+              onClick={() => handleVendorDataChange("isCorporateHospital", "yes")}
+              className={vendorData.isCorporateHospital === "yes"
+                ? "bg-primary-dark-blue text-white"
+                : "border-primary-dark-blue text-primary-dark-blue hover:bg-secondary-yellow40"
+              }
+            >
+              Yes
+            </Button>
+            <Button
+              type="button"
+              variant={vendorData.isCorporateHospital === "no" ? "default" : "outline"}
+              onClick={() => handleVendorDataChange("isCorporateHospital", "no")}
+              className={vendorData.isCorporateHospital === "no"
+                ? "bg-primary-dark-blue text-white"
+                : "border-primary-dark-blue text-primary-dark-blue hover:bg-secondary-yellow40"
+              }
+            >
+              No
+            </Button>
+            <Button
+              type="button"
+              variant={vendorData.isCorporateHospital === "not-sure" ? "default" : "outline"}
+              onClick={() => handleVendorDataChange("isCorporateHospital", "not-sure")}
+              className={vendorData.isCorporateHospital === "not-sure"
+                ? "bg-primary-dark-blue text-white"
+                : "border-primary-dark-blue text-primary-dark-blue hover:bg-secondary-yellow40"
+              }
+            >
+              Not Sure
+            </Button>
+          </div>
 
           {vendorData.isCorporateHospital === "yes" && (
-            <div className="space-y-2">
-              <Label className="text-neutral-80 font-gabarito font-bold">
+            <div className="mt-4 space-y-2">
+              <Label className="text-primary-dark-blue font-gabarito font-medium">
                 IF YES, WHICH ONE? (OR WHICH ONES?)
               </Label>
               <Textarea
@@ -747,7 +764,7 @@ export default function Signup() {
                   )
                 }
                 placeholder="Example: VCA, BluePearl, NVA, Ethos, etc."
-                className="rounded-lg border-neutral-40 focus:border-primary-dark-blue"
+                className="rounded-lg border-neutral-30 focus:border-primary-dark-blue"
                 rows={3}
               />
             </div>
